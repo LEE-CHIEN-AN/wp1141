@@ -117,6 +117,7 @@ my-timeline/
 
 5. **開啟瀏覽器**
    訪問 `http://localhost:3000`
+   或 直接用瀏覽器打開 index.html
 
 ## 📱 響應式設計
 
