@@ -1,0 +1,228 @@
+.hero { display:grid; grid-template-columns: 1fr 1fr; gap:3rem; align-items:center; background:#f5F3EF; border-radius:0; padding:4rem 2rem; box-shadow:none; margin-bottom:0; position:relative; overflow:hidden; min-height:80vh; }
+.hero:after { content:""; position:absolute; inset:0; background: radial-gradient(600px 200px at -10% -40%, rgba(255,209,102,.15), transparent 60%), radial-gradient(500px 200px at 110% 140%, rgba(255,209,102,.1), transparent 60%); pointer-events:none; }
+.hero-left { z-index:2; }
+.hero-right { position:relative; z-index:2; }
+.hero img { width:100%; max-width:500px; height:auto; object-fit:cover; border-radius:20px; box-shadow:0 20px 40px rgba(0,0,0,.15); }
+.hero h1 { font-size: clamp(2.8rem, 5vw, 4rem); color:#24392e; letter-spacing:1px; margin-bottom:1rem; }
+.hero h1 .highlight { color:#bb9564; }
+.hero p { color:#666; font-size:1.1rem; margin-bottom:2rem; }
+.chips { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.75rem; }
+.chip { padding:.4rem .8rem; background:#24392e; color:#f6efe6; border-radius:20px; font-size:1.2rem; font-weight:500; transition:all .2s ease; }
+.chip:hover { background:#ffd166; color:#24392e; transform:translateY(-2px); }
+.section { margin-top:2.2rem; }
+.section h2 { font-size:1.5rem; color:#244b3c; margin-bottom:.9rem; font-weight:900; letter-spacing:.4px; position:relative; display:inline-block; }
+.section h2:after { content:""; position:absolute; left:0; right:-6px; bottom:-6px; height:6px; background:#ffd166; border-radius:999px; }
+.gallery { display:grid; grid-template-columns: repeat(3,1fr); gap:.75rem; }
+.ph { height:150px; border-radius:12px; background: linear-gradient(135deg,#e3fafc,#fff0f6); display:flex; align-items:center; justify-content:center; color:#868e96; }
+.video { aspect-ratio:16/9; width:100%; border:0; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.1); }
+
+/* 興趣 Section 樣式 */
+.interests-section { 
+    padding: 4rem 2rem; 
+    background: #f5F3EF; 
+    margin-top: 0;
+}
+
+.section-title { 
+    font-size: 2.5rem; 
+    color: #24392e; 
+    text-align: center; 
+    margin-bottom: 3rem; 
+    font-weight: 700;
+    position: relative;
+}
+
+.section-title::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -10px;
+    width: 80px;
+    height: 4px;
+    background: #ffd166;
+    border-radius: 2px;
+}
+
+.interest-card { 
+    background: white; 
+    border-radius: 20px; 
+    padding: 2rem; 
+    margin-bottom: 2rem; 
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08); 
+    border: 1px solid #e9ecef;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.interest-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+}
+
+.interest-card h3 { 
+    font-size: 1.8rem; 
+    color: #24392e; 
+    margin-bottom: 1.5rem; 
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.interest-card h4 {
+    font-size: 1.2rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.interest-card p {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/* 照片網格 */
+.photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.photo-item {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.photo-item:hover {
+    transform: scale(1.05);
+}
+
+.photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 音樂內容 */
+.music-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.artists-list, .festivals {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 12px;
+    border-left: 4px solid #ffd166;
+}
+
+.music-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.music-grid iframe {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+/* 影片容器 */
+.video-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.skateboard-video {
+    max-width: 100%;
+    width: 500px;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* Instagram 貼文 */
+.ig-posts, .exhibition-posts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.ig-post {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    border: 2px dashed #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.ig-post:hover {
+    border-color: #ffd166;
+    background: #fff;
+}
+
+.ig-post a {
+    color: #6c757d;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.ig-post a:hover {
+    color: #24392e;
+}
+
+/* YouTube 影片網格 */
+.youtube-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.youtube-grid iframe {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.youtube-grid iframe:hover {
+    transform: scale(1.02);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .interests-section {
+        padding: 2rem 1rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .interest-card {
+        padding: 1.5rem;
+    }
+    
+    .photo-gallery {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .music-grid, .youtube-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ig-posts, .exhibition-posts {
+        grid-template-columns: 1fr;
+    }
+}
+

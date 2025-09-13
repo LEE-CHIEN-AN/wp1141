@@ -1,0 +1,93 @@
+.hero { display:grid; grid-template-columns: 220px 1fr; gap:2rem; align-items:center; background:#24392e; border-radius:22px; padding:2rem; box-shadow:0 20px 40px rgba(0,0,0,.18); margin-bottom:2.2rem; position:relative; overflow:hidden; }
+.hero:after { content:""; position:absolute; inset:0; background: radial-gradient(600px 200px at -10% -40%, rgba(255,209,102,.25), transparent 60%), radial-gradient(500px 200px at 110% 140%, rgba(255,209,102,.15), transparent 60%); pointer-events:none; }
+.hero img { width:200px; height:200px; object-fit:cover; border-radius:18px; }
+.hero h1 { font-size: 2.6rem; color:#ffd166; letter-spacing:1px; }
+.hero p { color:#d6e1d9; }
+.chips { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.75rem; }
+.chip { padding:.35rem .75rem; background:#f6efe6; border:1px solid rgba(0,0,0,.05); color:#244b3c; border-radius:999px; font-size:.95rem; }
+.section { margin-top:2.2rem; }
+.section h2 { font-size:1.5rem; color:#244b3c; margin-bottom:.9rem; font-weight:900; letter-spacing:.4px; position:relative; display:inline-block; }
+.section h2:after { content:""; position:absolute; left:0; right:-6px; bottom:-6px; height:6px; background:#ffd166; border-radius:999px; }
+.card { background:#ffffff; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,.12); padding:1.5rem; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.list { color:#495057; }
+.list li { margin:.35rem 0; }
+.gallery { display:grid; grid-template-columns: repeat(3,1fr); gap:.75rem; }
+.ph { height:150px; border-radius:12px; background: linear-gradient(135deg,#e3fafc,#fff0f6); display:flex; align-items:center; justify-content:center; color:#868e96; }
+.video { aspect-ratio:16/9; width:100%; border:0; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.1); }
+
+.filters { display:flex; justify-content:center; gap:.75rem; flex-wrap:wrap; margin: 1rem 0 2rem; }
+.filters input[type="radio"] { display:none; }
+.filter-btn { background:#244b3c; border:1px solid #e1e6eb; color:#d6e1d9; border-radius:999px; padding:.4rem 1rem; font-size:.9rem; cursor:pointer; transition:.2s; }
+.filter-btn:hover { background:#e6ebf0; }
+
+.timeline-container { position: relative; max-width: 1000px; margin: 0 auto; padding: 2rem 0; }
+.timeline-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #A68A64; transform: translateX(-1px); }
+.timeline-events { position: relative; }
+.timeline-event { position: relative; width: calc(50% - 2.5rem); margin-bottom: 2rem; background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 12px 24px rgba(0,0,0,0.08); transition: all 0.2s ease; border: 1px solid #e9ecef; animation: fadeInUp 0.6s ease-out; }
+.timeline-event:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(0,0,0,0.12); }
+.timeline-event::before { content: ''; position: absolute; top: 1.5rem; width: 12px; height: 12px; background: #656D4A; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 0 3px #A4AC86; }
+
+/* 自動左右交錯 - 奇數事件在左邊，偶數事件在右邊 */
+.timeline-event:nth-child(odd) { 
+    margin-right: calc(50% + 2.5rem); 
+    margin-left: 0;
+}
+.timeline-event:nth-child(odd)::before { 
+    right: -2.5rem; 
+    left: auto;
+}
+
+.timeline-event:nth-child(even) { 
+    margin-left: calc(50% + 2.5rem); 
+    margin-right: 0;
+}
+.timeline-event:nth-child(even)::before { 
+    left: -2.5rem; 
+    right: auto;
+}
+
+/* 保留原有的 left 和 right 類別作為備用 */
+.timeline-event.left { margin-right: calc(50% + 2.5rem); margin-left: 0; }
+.timeline-event.left::before { right: -2.5rem; left: auto; }
+.timeline-event.right { margin-left: calc(50% + 2.5rem); margin-right: 0; }
+.timeline-event.right::before { left: -2.5rem; right: auto; }
+.event-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; }
+.timeline-title { font-size:1.3rem; font-weight:600; color:#2c3e50; }
+.event-category { background:#ffd166; color:#244b3c; padding:.25rem .75rem; border-radius:12px; font-size:.8rem; font-weight:500; position:absolute; bottom:1.5rem; right:1.5rem; }
+.timeline-year { font-size:1.1rem; color:#6c757d; margin-bottom:.5rem; font-weight:500; }
+.timeline-description { color:#6c757d; line-height:1.6; }
+.event-image { width:60px; height:60px; border-radius:8px; object-fit:cover; margin-top:1rem; }
+.event-date { position:absolute; right:1.5rem; top:1.5rem; text-align:right; color:#6c757d; font-size:.9rem; }
+.day { font-size:1.2rem; font-weight:bold; color:#2c3e50; }
+
+#filter-study:checked ~ .filters label[for="filter-study"],
+#filter-work:checked ~ .filters label[for="filter-work"],
+#filter-project:checked ~ .filters label[for="filter-project"],
+#filter-daily:checked ~ .filters label[for="filter-daily"],
+#filter-all:checked ~ .filters label[for="filter-all"] { background:#ffd166; color:#fff; border-color:#ffd166; }
+
+#filter-study:checked ~ .timeline-container .timeline-event:not(.cat-study) { display:none; }
+#filter-work:checked ~ .timeline-container .timeline-event:not(.cat-work) { display:none; }
+#filter-project:checked ~ .timeline-container .timeline-event:not(.cat-project) { display:none; }
+#filter-daily:checked ~ .timeline-container .timeline-event:not(.cat-daily) { display:none; }
+#filter-all:checked ~ .timeline-container .timeline-event { display:block; }
+
+@keyframes fadeInUp { from { opacity:0; transform: translateY(20px);} to { opacity:1; transform: translateY(0);} }
+
+@media (max-width: 768px) {
+    .main-content { margin-top: 120px; padding: 2rem 1rem; }
+    .timeline-line { left: 20px; transform:none; }
+    .timeline-event, .timeline-event.left, .timeline-event.right { width: auto; margin: 0 0 1rem 48px; }
+    .timeline-event::before, .timeline-event.left::before, .timeline-event.right::before { left: -28px; right: auto; }
+    .event-header { flex-direction: column; gap:.5rem; }
+    .event-date { position: static; text-align: left; margin-top: 1rem; }
+    .event-category { position: static; margin-top:1rem; align-self:flex-end; }
+}
+
+@media (max-width: 480px) {
+    .main-title { font-size: 1.5rem; }
+    .timeline-event { padding: 1rem; }
+    .timeline-event::before { width: 10px; height: 10px; left: -25px; }
+}
+

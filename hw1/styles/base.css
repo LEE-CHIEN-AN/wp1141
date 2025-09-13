@@ -1,0 +1,50 @@
+/* Fonts: ChenYuluoyan (辰宇落雁體) */
+@font-face {
+    font-family: "jf-openhuninn-2.1";                 /* ← 你等下就用這個名字 */
+    src:
+      url("../assets/jf-openhuninn-2.1.woff2") format("woff2"),
+      url("../assets/jf-openhuninn-2.1.woff") format("woff"),
+      url("../assets/jf-openhuninn-2.1.ttf") format("truetype");
+    font-weight: 100;                             /* Thin 權重，多數瀏覽器也會合成 400 */
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'jf-openhuninn-2.1','Microsoft JhengHei','PingFang TC','Helvetica Neue',Arial,sans-serif;
+    line-height: 1.7;
+    color: #2b2b2b;
+    background: #f5F3EF;
+    min-height: 100vh;
+}
+
+/* Header & Nav */
+.header { background:#24392e; border-bottom:1px solid rgba(255,255,255,.06); padding:1rem 0; position:fixed; top:0; left:0; right:0; z-index:1000; display:flex; justify-content:center; align-items:center; box-shadow:0 8px 24px rgba(0,0,0,.15); }
+.header-content { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:1200px; padding:0 2rem; }
+.logo { font-size: 2rem; font-weight:900; color:#f6efe6; letter-spacing:.5px; }
+.nav { display:flex; gap:2rem; align-items:center; }
+.nav-item { display:flex; align-items:center; gap:.5rem; color:#d9e2da; text-decoration:none; font-size:1rem; transition: all .2s ease; }
+.nav-item:hover { color:#ffd166; transform: translateY(-1px); }
+.nav-icon { width:16px; height:16px; }
+
+/* Layout helpers */
+.main-content { margin-top: 90px; padding: 3rem 2rem; max-width: 1100px; margin-left:auto; margin-right:auto; }
+.card { background:#ffffff; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,.12); padding:1.5rem; }
+.list { color:#495057; }
+.list li { margin:.35rem 0; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header { padding: 1rem; flex-direction: column; gap: 1rem; }
+    .nav { gap: 1rem; }
+    .main-content { margin-top: 120px; padding: 2rem 1rem; }
+}
+
