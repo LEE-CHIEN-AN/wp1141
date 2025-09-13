@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline | Joan's Website</title>
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/timeline.css">
+
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">Joan Lee</div>
+            <nav class="nav">
+                <a href="index.html" class="nav-item">
+                    <span class="nav-icon"></span>
+                    Home 
+                </a>
+                <a href="about.html" class="nav-item">
+                    <span class="nav-icon"></span>
+                    About Me 
+                </a>
+                <a href="timeline.html" class="nav-item">
+                    <span class="nav-icon"></span>
+                    Timeline 
+                </a>
+                <a href="contact.html" class="nav-item">
+                    <span class="nav-icon"></span>
+                    Contact 
+                </a>
+            </nav>
+        </div>
+    </header>
+
+
+    <main class="main-content">
+        <div class="hero-section">
+            <h1 class="main-title">我的人生旅程</h1>
+            <p class="subtitle">Life is a journey</p>
+        </div>
+
+        <!-- CSS-only Filters -->
+        <input type="radio" id="filter-all" name="cat" checked hidden>
+        <input type="radio" id="filter-study" name="cat" hidden>
+        <input type="radio" id="filter-work" name="cat" hidden>
+        <input type="radio" id="filter-daily" name="cat" hidden>
+        <input type="radio" id="filter-project" name="cat" hidden>
+
+        <div class="filters">
+            <label class="filter-btn" for="filter-all">全部</label>
+            <label class="filter-btn" for="filter-project">專案/報告</label>
+            <label class="filter-btn" for="filter-work">工作經歷</label>
+            <label class="filter-btn" for="filter-study">學業</label>
+            <label class="filter-btn" for="filter-daily">日常</label>
+        </div>
+
+        <div class="timeline-container">
+            <div class="timeline-line"></div>
+            <div id="timeline-events" class="timeline-events">
+                <!-- 靜態事件（由新到舊） -->
+
+                <div class="timeline-event cat-work">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">CAE 專題生 </div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">把暑假實習-淨零循環健康校園之數位雙生應用平台之建構的內容做個結尾，預計在 2026 年 1 月 完成</div>
+                    <div class="event-date">
+                        <div>OCT 01</div>
+                    </div>
+                    <div class="event-category">工作經歷</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">電影 - 紅豬</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">第一次去公館百老匯看電影，拿到紅豬海報了歐耶</div>
+                    <div class="event-date">
+                        <div>SEP 12</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">大三了，開啟師大PASSION偏鄉優質教育、科技化教學產業學分學程探索之旅</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">開始探索偏鄉教育與科技化教學，看自己有沒有熱忱走這條路。</div>
+                    <div class="event-date">
+                        <div>SEP 01</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">騎車去大稻埕</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">實習結束了，和實習生們一起吃熱炒，騎車去大稻埕喝酒，沿路在公園玩得跟小孩一樣</div>
+                    <div class="event-date">
+                        <div>AUG 15</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-work">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">CAE 暑期實習成果展 </div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">以 Wio Link 感測器、MQTT、PostgreSQL、Supabase、Python + Plotly + Streamlit建置平台，呈現室內熱力圖（PMV/PPD)、 CO₂/VOC趨勢，並研究pythermalcomfort。
+                        <a href="https://drive.google.com/file/d/1TfRlYyPhxsr2Qqx-3L_3iDbOzRVoG3mM/view?usp=sharing" target="_blank">暑期成果海報</a>
+                    </div>
+                    <div class="event-date">
+                        <div>AUG 15</div>
+                    </div>
+                    <div class="event-category">工作經歷</div>
+                </div>
+
+                <div class="timeline-event cat-work">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">CAE 暑期實習 </div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">研究初體驗，看看自己適不適合做研究。</div>
+                    <div class="event-date">
+                        <div>JUN 23</div>
+                    </div>
+                    <div class="event-category">工作經歷</div>
+                </div>
+
+                
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">電影 - 心之谷</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">跟兩位輔幹一起看電影，這部真的太純愛了，看不太下去笑死。</div>
+                    <div class="event-date">
+                        <div>JUN 13</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">資管導 - RoRobot數學聊天機器人安卓APP</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">資訊管理導論專案，我負責訪談博幼基金會與台師大胡翠君教授確認偏鄉教學現場狀況，並使用GPT和Gemini API 並設計Propmt提供互動式解題引導，支援國小三、四年級數學，即時聊天反饋。
+                        <a href="https://youtu.be/VNoURcefqJQ" target="_blank">APP Demo 影片</a>
+                    </div>
+                    <div class="event-date">
+                        <div>JUN 6</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">統計學 - Facebook 互動分析</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">分析Facebook貼文類型、內容分類、發文月份對互動指標(點擊率、留言率)的影響。
+                        <a href="https://drive.google.com/file/d/1sFcTs4zQGoHeY1sRIUuceCLcVOjhmZhs/view?usp=sharing" target="_blank">報告連結</a>
+                    </div>
+                    <div class="event-date">
+                        <div>JUN 11</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">2025嘉義縣龍舟賽 - 一坨答辯</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">期末考前的周末，跟一群18周的高中同學去划龍舟，跟瘋子一樣。</div>
+                    <div class="event-date">
+                        <div>MAY 31</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">組織行為 - 四季酒店個案分析</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">我負責撰寫四季酒店的人力資源戰略與進入巴黎/法國市場的方式、策略優勢和劣勢。
+                        <a href="https://drive.google.com/file/d/1e_ad57E1O5AeIpYuumR42OTYBppmVERS/view?usp=sharing" target="_blank">報告連結</a></div>
+                    <div class="event-date">
+                        <div>APR 28</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">資訊管理導論 - 訪談胡翠君教授</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">訪談師大PASSION偏鄉優質教育計畫主持人 - 胡翠君教授，了解偏鄉教育現場狀況。
+                        <a href="https://youtu.be/9waIRBj-oG4" target="_blank">影片連結</a></div>
+                    <div class="event-date">
+                        <div>APR 17</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+                
+                <div class="timeline-event cat-work">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2025</div>
+                            <div class="timeline-title">EAGLE 建築模型事務所寒假實習 </div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">依 AutoCAD 圖面製作比例模型，利用壓克力板與雷切機製作地板、牆面、傢俱、裝飾，進行打磨、噴漆與精修，確保模型與設計圖一致。</div>
+                    <div class="event-date">
+                        <div>JAN 01</div>
+                    </div>
+                    <div class="event-category">工作經歷</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">台北跨年、101煙火</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">第二次去台北市政府人擠人看現場表演，實習6點半下班急急忙忙一個人跑去看，慢慢地擠到前面了。</div>
+                    <div class="event-date">
+                        <div>DEC 31</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+                
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">統計學 - 寶可夢數據圖鑑：性能、捕捉機率與屬性分析</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">分析寶可夢的性能、捕捉機率與屬性，並進行統計分析。
+                        <a href="https://drive.google.com/file/d/1PB_oHKquR9RriLVlPurTEY0YkI8Dnoyf/view?usp=sharing" target="_blank">報告連結</a>
+                    </div>
+                    <div class="event-date">
+                        <div>DEC 17</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+                
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">管理學 - Starbucks 個案分析</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">我負責撰寫在地文化整合章節，分析特色門市、在地商品與社區活動，探討如何透過空間設計與文化連結強化顧客體驗與品牌忠誠度。
+                        <a href="https://drive.google.com/file/d/1sIdcOskdiY8p7qMBqLPOiu5pVuvVW-03/view?usp=sharing" target="_blank">報告連結</a>
+                        <a href="https://drive.google.com/file/d/1iW2d9-gzpqrUl5T_Fl1HzpF3okbo4GGx/view?usp=sharing" target="_blank">簡報連結</a>
+                    </div>
+                    <div class="event-date">
+                        <div>DEC 16</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">工程圖學期末Revit專案 - 保健中心</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description"> 參考心理系館舊有模糊平面圖、立面圖紙，前往實體建築勘查與測量，利用Revit建模，並引用 Revit library 元件。
+                        <a href="https://drive.google.com/file/d/1e4gtLNcUlz4GAOByYqNZkmknPDhpAGWP/view?usp=sharing" target="_blank">簡報連結</a>
+                    </div>
+                    <div class="event-date">
+                        <div>DEC 11</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">土木工程概念設計 - Stratus 53 </div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">設計並實做了一個水上風力發電的塔的模型。期末成果展有拿獎ㄝ(海報設計)，開心。
+                        <a href="https://docs.google.com/presentation/d/1R40Gp3j07HSpDe6-EdPLaE3h86Y5FfXo/edit?usp=sharing&ouid=104004360489768057704&rtpof=true&sd=true" target="_blank">展示簡報連結</a>
+                    </div>
+                    <div class="event-date">
+                        <div>DEC 10</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">2024臺灣設計展在臺南</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">期中考後的獨旅，給自己放個假，逃離台北。</div>
+                    <div class="event-date">
+                        <div>NOV 03</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">工程圖學期中SketchUp專案 - 心理系南北館 </div>
+                        </div>
+                    </div>
+                    <div class="timeline-description"> 利用 3D Warehouse 模型庫的心理系館模型進行修改，並增加自己對心理系館改造的想法，例如:草地變成滯洪池、荒廢的戶外平台變成休憩空間。
+                        <a href="https://drive.google.com/file/d/1v7FCpZPg5nMOlm5X2lJHMybUXKhsdJMp/view?usp=sharing" target="_blank">簡報連結</a>
+                    </div>
+                    <div class="event-date">
+                        <div>OCT 16</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">2024 秋OUT</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">在公館，讀到天黑從咖啡廳出來，跑去公館水岸蹭免費舞台，聽到趙奕帆了開心。</div>
+                    <div class="event-date">
+                        <div>SEP 29</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">資管服學高中生組 -大學生輔導助教</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">為期一學期，一對一輔導高中生，從零開始學習C++，練習寫程式、考APCS。</div>
+                    <div class="event-date">
+                        <div>SEP 20</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+
+                <div class="timeline-event cat-work">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">校內工讀 - 開始擔任女八網管</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">協助宿舍住戶註冊宿舍網路、架設路由器、處理網路連線異常、速度過慢、舍胞們觸發資安事件等問題。</div>
+                    <div class="event-date">
+                        <div>SEP 01</div>
+                    </div>
+                    <div class="event-category">工作經歷</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">2024 JAM JAM ASIA</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">在北流，大二剛開學就跑音樂祭，第二次去大型音樂祭，用文化幣買了雙日票，有冷氣的音樂祭好舒服。</div>
+                    <div class="event-date">
+                        <div>SEP 07</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">大二了，開啟土木系實作課探索之旅</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">申請輔修土木系成功了，跑去土木系上看看開給土木大一新生的實作課。</div>
+                    <div class="event-date">
+                        <div>SEP 01</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">大一暑假 - 小琉球打工換宿</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">練習社交、聊天，聽不同的故事，當bartender學一點調酒，看海、攝影。</div>
+                    <div class="event-date">
+                        <div>JUN 24</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">北美館 - 摩登生活台灣建築展、許雨仁回顧展</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">很喜歡看建築的展，雖然我沒有任何專業，但看到那些建築師們的創作，還是覺得很厲害。</div>
+                    <div class="event-date">
+                        <div>JUN 11</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">北師美術館 - 戰鬥之城 </div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">動畫很有趣，第一次看到這種畫風，但我沒看懂其深意。台灣街道模型做得很細緻很厲害。</div>
+                    <div class="event-date">
+                        <div>JUN 11</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">2024大港開唱</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">第一次去大型音樂祭，買了雙日票和毛巾，看到草東現場，我死而無憾了，萬分後悔沒有去買個貼紙貼在筆電上。</div>
+                    <div class="event-date">
+                        <div>MAR 31</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2024</div>
+                            <div class="timeline-title">大一寒假 - 雲嘉會新塭國小返鄉服務隊</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">雲嘉會的人都沒認識幾個，不知道哪來的勇氣就報名參加了。第一次去返鄉服務隊，第一次寫教案，跟一群大學生去小學教小朋友，很累、很開心。</div>
+                    <div class="event-date">
+                        <div>JUN 24</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">台北跨年、101煙火</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">第一次去台北市政府人擠人看現場表演，下午就去卡位了，看到101煙火了。</div>
+                    <div class="event-date">
+                        <div>DEC 31</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">北流 - 唱 我們的歌 流行音樂故事展</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">大一寒假獨旅第二站--台北流行音樂中心 - 唱 我們的歌 流行音樂故事展</div>
+                    <div class="event-date">
+                        <div>DEC 28</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">爬象山</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">大一寒假獨旅第一站--象山</div>
+                    <div class="event-date">
+                        <div>DEC 27</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">資管新生專題 - 電子商務分析報告</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">發現自己什麼都不會、幫不上忙，貢獻度極低拖累同學，只負責寫了兩個客群的商業策略。
+                        <a href=https://drive.google.com/file/d/1dnQc4Ot5YhC5YXK7S7LqwYMJBbBe-RBj/view?usp=sharing" target="_blank">報告連結</a></div>
+                    <div class="event-date">
+                        <div>DEC 17</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-project">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">程式設計 - BBBLUE 格格不入 C++ 遊戲</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">程設是我大一最挫折的課程，不斷懷疑自己憑什麼錄取資管系。 
+                        <a href=https://youtu.be/2pElUXNK9GM?si=pAaPlTSnSRIn4tc1" target="_blank">遊戲Demo影片</a></div>
+                    <div class="event-date">
+                        <div>DEC 10</div>
+                    </div>
+                    <div class="event-category">專案/報告</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">諸羅搖滾</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">第一次被開圈衝擊到，免費的音樂祭一定要到的吧，就算期中考要爆炸了也要去。</div>
+                    <div class="event-date">
+                        <div>OCT 10</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-work">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">開始擔任青幫高中組輔導志工</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">回饋青幫，幫忙面試、審查會、年會等等。</div>
+                    <div class="event-date">
+                        <div>SEP 16</div>
+                    </div>
+                    <div class="event-category">工作經歷</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">大一新生</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">開始撞牆期(學業、生活、人際關係)，不斷的適應新的環境、新的生活、新的學習方式。</div>
+                    <div class="event-date">
+                        <div>SEP 01</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">北漂開始</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">離鄉背井去台北讀大學，踏上新大地，開啟挑戰。</div>
+                    <div class="event-date">
+                        <div>AUG 28</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">高中畢業，不再是高中生了</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">嘉女數理班畢業，同學們各奔前程。</div>
+                    <div class="event-date">
+                        <div>JUN 01</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">學測讀書策略分享-國英數A自</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">學校輔導室邀請我和同學分享學測讀書策略給即將升高三的學妹們。
+                        <a href="https://youtu.be/CtHuvXcLXj4?si=PySsM0JxfPFNBXQ4" target="_blank">分享影片</a>
+                    </div>
+                    <div class="event-date">
+                        <div>MAY 01</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+                <div class="timeline-event cat-daily">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2023</div>
+                            <div class="timeline-title">五月天演唱會</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">人生第一場演唱會，第一次進到高雄巨蛋，達成考完學測要去看演唱會的Flag。</div>
+                    <div class="event-date">
+                        <div>APR 02</div>
+                    </div>
+                    <div class="event-category">日常</div>
+                </div>
+
+                <div class="timeline-event cat-study">
+                    <div class="event-header">
+                        <div>
+                            <div class="timeline-year">2022</div>
+                            <div class="timeline-title">希望入學錄取資管系</div>
+                        </div>
+                    </div>
+                    <div class="timeline-description">希望入學錄取台大資管與土木，進入資管系。</div>
+                    <div class="event-date">
+                        <div>DEC 26</div>
+                    </div>
+                    <div class="event-category">學業</div>
+                </div>
+
+                
+
+
+              
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
+

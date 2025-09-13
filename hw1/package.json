@@ -1,0 +1,23 @@
+{
+  "name": "my-timeline",
+  "version": "1.0.0",
+  "description": "李倢安的冒險年表 - 純前端時間軸應用程式",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "serve": "npx http-server . -p 3000 -o"
+  },
+  "keywords": [
+    "timeline",
+    "typescript",
+    "frontend"
+  ],
+  "author": "Li Jie-An",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
