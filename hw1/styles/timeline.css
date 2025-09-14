@@ -75,21 +75,127 @@
 
 @keyframes fadeInUp { from { opacity:0; transform: translateY(20px);} to { opacity:1; transform: translateY(0);} }
 
+/* 響應式設計 - 手機版 */
 @media (max-width: 768px) {
     .main-content { margin-top: 120px; padding: 2rem 1rem; }
-    .timeline-line { left: 50%; transform: translateX(-50%); }
-    .timeline-event, .timeline-event.left, .timeline-event.right { width: calc(100% - 60px); margin: 0 0 1rem 30px; }
-    .timeline-event::before, .timeline-event.left::before, .timeline-event.right::before { left: -30px; right: auto; }
-    .event-header { flex-direction: column; gap:.5rem; }
-    .event-date { position: static; text-align: left; margin-top: 1rem; }
-    .event-category { position: static; margin-top:1rem; align-self:flex-end; }
+    
+    /* 手機版時間軸靠左，所有事件都在右側 */
+    .timeline-line { 
+        left: 20px; 
+        transform: none; 
+        width: 2px;
+        background: #A68A64;
+    }
+    
+    /* 所有事件都統一在右側顯示 */
+    .timeline-event, 
+    .timeline-event.left, 
+    .timeline-event.right,
+    .timeline-event:nth-child(odd),
+    .timeline-event:nth-child(even) { 
+        width: calc(100% - 48px); 
+        margin: 0 0 1.5rem 48px; 
+        margin-left: 48px;
+        margin-right: 0;
+    }
+    
+    /* 所有圓點都在左側時間軸上 */
+    .timeline-event::before, 
+    .timeline-event.left::before, 
+    .timeline-event.right::before,
+    .timeline-event:nth-child(odd)::before,
+    .timeline-event:nth-child(even)::before { 
+        left: -28px; 
+        right: auto; 
+        top: 1.5rem;
+    }
+    
+    .event-header { 
+        flex-direction: column; 
+        gap: 0.5rem; 
+        align-items: flex-start;
+    }
+    
+    .event-date { 
+        position: static; 
+        text-align: left; 
+        margin-top: 0.5rem; 
+        order: 2;
+    }
+    
+    .event-category { 
+        position: static; 
+        margin-top: 0.5rem; 
+        align-self: flex-end; 
+        order: 3;
+    }
+    
+    .timeline-title {
+        order: 1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-year {
+        order: 0;
+        margin-bottom: 0.25rem;
+    }
 }
 
+/* 針對更小的手機螢幕 */
 @media (max-width: 480px) {
-    .main-content { padding: 1rem 0.5rem; }
-    .main-title { font-size: 1.5rem; }
-    .timeline-event { padding: 1rem; width: calc(100% - 50px); margin-left: 25px; }
-    .timeline-event::before { width: 10px; height: 10px; left: -25px; }
-    .timeline-line { left: 50%; transform: translateX(-50%); }
+    .main-content { 
+        padding: 1rem 0.5rem; 
+    }
+    
+    .main-title { 
+        font-size: 1.5rem; 
+    }
+    
+    .timeline-container {
+        padding: 1rem 0;
+    }
+    
+    .timeline-line {
+        left: 15px;
+    }
+    
+    .timeline-event, 
+    .timeline-event.left, 
+    .timeline-event.right,
+    .timeline-event:nth-child(odd),
+    .timeline-event:nth-child(even) { 
+        width: calc(100% - 40px); 
+        margin: 0 0 1rem 40px; 
+        padding: 1rem; 
+    }
+    
+    .timeline-event::before, 
+    .timeline-event.left::before, 
+    .timeline-event.right::before,
+    .timeline-event:nth-child(odd)::before,
+    .timeline-event:nth-child(even)::before { 
+        width: 10px; 
+        height: 10px; 
+        left: -25px; 
+        right: auto;
+        top: 1rem;
+    }
+    
+    .timeline-title {
+        font-size: 1.1rem;
+    }
+    
+    .timeline-year {
+        font-size: 1rem;
+    }
+    
+    .event-category {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    .timeline-description {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
 }
-
