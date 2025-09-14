@@ -7,7 +7,7 @@
 .hero h1 .highlight { color:#bb9564; }
 .hero p { color:#666; font-size:1.1rem; margin-bottom:2rem; }
 .chips { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.75rem; }
-.chip { padding:.4rem .8rem; background:#24392e; color:#f6efe6; border-radius:20px; font-size:1.2rem; font-weight:500; transition:all .2s ease; }
+.chip { padding:.4rem .8rem; background:#24392e; color:#f6efe6; border-radius:20px; font-size:1rem; font-weight:500; transition:all .2s ease; }
 .chip:hover { background:#ffd166; color:#24392e; transform:translateY(-2px); }
 .section { margin-top:2.2rem; }
 .section h2 { font-size:1.5rem; color:#244b3c; margin-bottom:.9rem; font-weight:900; letter-spacing:.4px; position:relative; display:inline-block; }
@@ -211,6 +211,7 @@
     
     .interest-card {
         padding: 1.5rem;
+        overflow: hidden; /* 防止內容溢出 */
     }
     
     .photo-gallery {
@@ -223,6 +224,73 @@
     
     .ig-posts, .exhibition-posts {
         grid-template-columns: 1fr;
+    }
+    
+    /* 修正音樂嵌入在手機上的顯示 */
+    .music-grid iframe {
+        width: 100% !important;
+        max-width: 100%;
+        height: 152px;
+    }
+    
+    /* 修正 Instagram 貼文在手機上的顯示 */
+    .ig-post iframe {
+        width: 100% !important;
+        max-width: 100%;
+        height: auto;
+        min-height: 400px;
+    }
+    
+    /* 修正 YouTube 影片在手機上的顯示 */
+    .youtube-grid iframe {
+        width: 100% !important;
+        max-width: 100%;
+        height: 200px;
+    }
+    
+    /* 確保所有嵌入內容不會溢出 */
+    .music-embeds, .ig-posts, .youtube-grid {
+        width: 100%;
+        overflow: hidden;
+    }
+}
+
+/* 針對更小的手機螢幕 */
+@media (max-width: 480px) {
+    .interests-section {
+        padding: 1.5rem 0.5rem;
+    }
+    
+    .interest-card {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .interest-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* 進一步優化嵌入內容 */
+    .music-grid iframe {
+        height: 140px;
+    }
+    
+    .ig-post iframe {
+        min-height: 350px;
+    }
+    
+    .youtube-grid iframe {
+        height: 180px;
+    }
+    
+    /* 確保照片網格在小螢幕上也能正常顯示 */
+    .photo-gallery {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
     }
 }
 
