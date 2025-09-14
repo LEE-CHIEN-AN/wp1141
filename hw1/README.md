@@ -75,7 +75,7 @@ my-timeline/
 
 ### 設計系統
 - **主色調**：深綠色 (#24392e)、金黃色 (#ffd166)
-- **字體**：jf-openhuninn-2.1（辰宇落雁體）
+- **字體**：jf-openhuninn-2.1（jf open 粉圓字型)
 - **設計風格**：現代簡約、卡片式佈局
 - **動畫效果**：hover 效果、淡入動畫、變換效果
 
@@ -178,3 +178,4 @@ MIT License - 詳見 [LICENSE](LICENSE) 檔案
 - LinkedIn: [倢安 李](https://www.linkedin.com/in/倢安-李-494965356)
 
 ---
+
