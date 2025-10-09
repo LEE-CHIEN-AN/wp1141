@@ -1,0 +1,183 @@
+.space-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+/* 深空背景漸層 */
+.deep-space-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 60%, rgba(236, 72, 153, 0.05) 0%, transparent 50%),
+    linear-gradient(135deg, #0F0A1A 0%, #1E1B4B 25%, #3B1E69 50%, #1E1B4B 75%, #0F0A1A 100%);
+}
+
+/* 星雲效果 */
+.nebula {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 行星軌道 */
+.planet-orbit {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.planet {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 星星容器 */
+.stars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  background: radial-gradient(circle, #ffffff 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 流星效果 */
+.meteor {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: linear-gradient(45deg, transparent, #ffffff, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.meteor::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  transform: translateX(-100px);
+}
+
+.meteor-1 {
+  top: 20%;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.meteor-2 {
+  top: 40%;
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.8);
+}
+
+.meteor-3 {
+  top: 60%;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+}
+
+/* 宇宙塵埃 */
+.cosmic-dust {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.dust-particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* 能量脈衝 */
+.energy-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* 宇宙射線 */
+.cosmic-rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.cosmic-ray {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 200px;
+  background: linear-gradient(to bottom, transparent, rgba(167, 139, 250, 0.3), transparent);
+  transform-origin: center bottom;
+  pointer-events: none;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .deep-space-gradient {
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+      linear-gradient(135deg, #0F0A1A 0%, #1E1B4B 50%, #0F0A1A 100%);
+  }
+  
+  .energy-pulse {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .cosmic-ray {
+    height: 100px;
+  }
+}
+
+/* 動畫優化 */
+@media (prefers-reduced-motion: reduce) {
+  .star,
+  .meteor,
+  .nebula,
+  .planet-orbit,
+  .dust-particle,
+  .energy-pulse,
+  .cosmic-ray {
+    animation: none !important;
+  }
+}

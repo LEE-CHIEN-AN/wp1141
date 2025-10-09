@@ -1,0 +1,30 @@
+.vending-machine-grid {
+  width: 100%;
+}
+
+.products-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.no-products {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Orbitron', monospace;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .products-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .no-products {
+    padding: 2rem 1rem;
+    font-size: 1rem;
+  }
+}
