@@ -24,6 +24,10 @@ const VendingMachine: React.FC<VendingMachineProps> = ({ products }) => {
     return categoryMatch && rarityMatch
   })
 
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product)
+  }
+
   const closeModal = () => {
     setSelectedProduct(null)
   }

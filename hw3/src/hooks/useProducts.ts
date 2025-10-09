@@ -23,8 +23,7 @@ export const useProducts = () => {
             rarity: row.rarity,
             price: row.price,
             pros: row.pros,
-            cons: row.cons,
-            img_url: row.img_url
+            cons: row.cons
           }))
           setProducts(parsedProducts)
           setError(null)
@@ -34,7 +33,7 @@ export const useProducts = () => {
           setLoading(false)
         }
       },
-      error: () => {
+      error: (error) => {
         setError('載入商品資料時發生錯誤')
         setLoading(false)
       }

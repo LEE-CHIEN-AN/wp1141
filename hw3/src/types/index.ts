@@ -8,7 +8,6 @@ export interface Product {
   price: string
   pros: string
   cons: string
-  img_url: string
 }
 
 export interface SoulTitle {

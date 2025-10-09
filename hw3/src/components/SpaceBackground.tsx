@@ -1,13 +1,9 @@
 import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { SpaceBackgroundProps } from '../types'
-import { convertGoogleDriveAudioUrl } from '../utils'
 import './SpaceBackground.css'
 
 const SpaceBackground: React.FC<SpaceBackgroundProps> = ({ audioRef }) => {
-  // Google Drive 音訊連結
-  const googleDriveAudioUrl = 'https://drive.google.com/file/d/1bBHRlQcI2fyKEoNCq59e6jZ9I3tlZdO1/view?usp=drive_link'
-  const audioSrc = convertGoogleDriveAudioUrl(googleDriveAudioUrl)
 
   // 生成隨機星星
   const stars = Array.from({ length: 200 }, (_, i) => ({
@@ -66,7 +62,7 @@ const SpaceBackground: React.FC<SpaceBackgroundProps> = ({ audioRef }) => {
     <div className="space-background">
       {/* 音效 */}
       <audio ref={audioRef} preload="auto">
-        <source src={audioSrc} type="audio/mpeg" />
+        <source src="/audio/Soul Vending Machine-sunoAI.mp3" type="audio/mpeg" />
       </audio>
 
       {/* 深空背景漸層 */}

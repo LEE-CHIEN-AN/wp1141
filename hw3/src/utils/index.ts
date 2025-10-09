@@ -43,26 +43,6 @@ export const formatPrice = (price: string): string => {
   return price || '免費'
 }
 
-export const convertGoogleDriveUrl = (url: string): string => {
-  // 從 Google Drive 分享連結中提取檔案 ID
-  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-  if (match && match[1]) {
-    // 使用 Google Drive 的直接圖片連結格式
-    return `https://drive.google.com/uc?export=view&id=${match[1]}`
-  }
-  return url // 如果無法解析，返回原始 URL
-}
-
-export const convertGoogleDriveAudioUrl = (url: string): string => {
-  // 從 Google Drive 分享連結中提取檔案 ID
-  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)
-  if (match && match[1]) {
-    // 使用 Google Drive 的直接音訊連結格式
-    return `https://drive.google.com/uc?export=download&id=${match[1]}`
-  }
-  return url // 如果無法解析，返回原始 URL
-}
-
 export const getImagePath = (productId: number): string => {
   return `/picture/${productId.toString().padStart(2, '0')}.png`
 }

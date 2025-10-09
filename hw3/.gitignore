@@ -9,16 +9,9 @@ lerna-debug.log*
 
 node_modules
 public/picture
-public/audio
 dist
 dist-ssr
 *.local
-
-# 大檔案
-*.mp3
-*.wav
-*.mp4
-*.mov
 
 # Editor directories and files
 .vscode/*

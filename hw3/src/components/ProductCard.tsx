@@ -1,24 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Card, CardContent, Typography, Box, Chip, Button } from '@mui/material'
 import { motion } from 'framer-motion'
 import { ProductCardProps } from '../types'
-import { getRarityColor, getRarityIcon, convertGoogleDriveUrl, getImagePath } from '../utils'
+import { getRarityColor, getRarityIcon, getImagePath } from '../utils'
+import { IMAGE_PATHS } from '../constants'
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToMix, isHovered, isPurchased }) => {
-  const [useLocalImage, setUseLocalImage] = useState(false)
-
-  const handleImageError = () => {
-    if (!useLocalImage) {
-      setUseLocalImage(true)
-    }
-  }
-
-  const getImageSrc = () => {
-    if (useLocalImage) {
-      return getImagePath(product.id)
-    }
-    return convertGoogleDriveUrl(product.img_url)
-  }
 
   return (
     <motion.div
@@ -67,7 +54,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToMix, isHovere
             }}
           >
             <motion.img
-              src={getImageSrc()}
+              src={`/picture/${String(product.id).padStart(2, '0')}.png`}
               alt={product.name}
               style={{
                 width: '100%',
@@ -77,7 +64,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToMix, isHovere
                 filter: isHovered ? 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.8))' : 'none',
                 transform: isHovered ? 'scale(1.05)' : 'scale(1)',
               }}
-              onError={handleImageError}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjYwIiB5PSI2MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNmI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+5peg5Y+v5Zu+54mHPC90ZXh0Pjwvc3ZnPg=='
+              }}
             />
           </Box>
         </Box>
