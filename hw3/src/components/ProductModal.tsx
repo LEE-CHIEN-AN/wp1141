@@ -1,5 +1,5 @@
 import React from 'react'
-import { Product } from '../App'
+import { Product } from '../types'
 import './ProductModal.css'
 
 interface ProductModalProps {

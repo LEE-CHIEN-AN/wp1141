@@ -5,15 +5,11 @@ import { ProductCardProps } from '../types'
 import { getRarityColor, getRarityIcon, convertGoogleDriveUrl, getImagePath } from '../utils'
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToMix, isHovered, isPurchased }) => {
-  const [imageError, setImageError] = useState(false)
   const [useLocalImage, setUseLocalImage] = useState(false)
 
   const handleImageError = () => {
     if (!useLocalImage) {
       setUseLocalImage(true)
-      setImageError(false)
-    } else {
-      setImageError(true)
     }
   }
 

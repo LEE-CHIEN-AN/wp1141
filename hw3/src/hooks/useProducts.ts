@@ -34,7 +34,7 @@ export const useProducts = () => {
           setLoading(false)
         }
       },
-      error: (error) => {
+      error: () => {
         setError('載入商品資料時發生錯誤')
         setLoading(false)
       }
