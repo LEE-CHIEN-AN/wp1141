@@ -24,9 +24,7 @@ const VendingMachine: React.FC<VendingMachineProps> = ({ products }) => {
     return categoryMatch && rarityMatch
   })
 
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product)
-  }
+  // removed unused handler to satisfy noUnusedLocals
 
   const closeModal = () => {
     setSelectedProduct(null)
