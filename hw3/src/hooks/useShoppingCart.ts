@@ -33,6 +33,7 @@ export const useShoppingCart = () => {
 
   const resetCart = useCallback(() => {
     setSelectedProducts([])
+    setPurchasedProducts(new Set())
   }, [])
 
   const closeGodWarning = useCallback(() => {
@@ -49,4 +50,5 @@ export const useShoppingCart = () => {
     closeGodWarning
   }
 }
+
 

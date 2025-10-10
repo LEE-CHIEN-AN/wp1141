@@ -1,5 +1,5 @@
 import React from 'react'
-import { Product } from '../App'
+import { Product } from '../types'
 import './ProductModal.css'
 
 interface ProductModalProps {
@@ -34,7 +34,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>×</button>
         
         <div className="modal-header">
@@ -42,7 +42,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
             <img 
               src={`/picture/${String(product.id).padStart(2, '0')}.png`} 
               alt={product.name}
-              onError={(e) => {
+              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                 const target = e.target as HTMLImageElement
                 target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiBmb250LmZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM2YjcyODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7ml6Dlj6/lm77niYc8L3RleHQ+PC9zdmc+'
               }}

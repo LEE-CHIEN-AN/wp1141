@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, FormControl, InputLabel, Select, MenuItem, Card } from '@mui/material'
+import { SelectChangeEvent } from '@mui/material/Select'
 import { motion } from 'framer-motion'
 import { FilterBarProps } from '../types'
 
@@ -25,7 +26,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               labelId="category-filter-label"
               value={filterCategory}
               label="🔍 分類篩選"
-              onChange={(e) => onCategoryChange(e.target.value)}
+              onChange={(e: SelectChangeEvent) => onCategoryChange(e.target.value as string)}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '&:hover fieldset': {
@@ -51,7 +52,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               labelId="rarity-filter-label"
               value={filterRarity}
               label="✨ 稀有度篩選"
-              onChange={(e) => onRarityChange(e.target.value)}
+              onChange={(e: SelectChangeEvent) => onRarityChange(e.target.value as string)}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '&:hover fieldset': {

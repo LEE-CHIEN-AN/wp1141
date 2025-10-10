@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Grid, Typography, Box } from '@mui/material'
 import { motion, AnimatePresence } from 'framer-motion'
-import { VendingMachineGridProps } from '../types'
+import { VendingMachineGridProps, Product } from '../types'
 import ProductCard from './ProductCard'
 
 const VendingMachineGrid: React.FC<VendingMachineGridProps> = ({
