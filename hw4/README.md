@@ -59,18 +59,7 @@
 cd hw4
 ```
 
-### 2. 安裝依賴
-```bash
-# 安裝前端依賴
-npm install
-
-# 安裝後端依賴
-cd backend
-npm install
-cd ..
-```
-
-### 3. 環境變數設定
+### 2. 環境變數設定
 
 **⚠️ 重要：請評分者務必替換為自己的 Google Maps API Key**
 
@@ -116,9 +105,11 @@ GOOGLE_MAPS_SERVER_KEY=YOUR_SERVER_KEY
 ```bash
 # 啟動後端 (終端機 1)
 cd backend
+npm install
 npm run dev
 
 # 啟動前端 (終端機 2)
+npm install
 npm run dev
 ```
 
@@ -126,7 +117,7 @@ npm run dev
 - 前端：http://localhost:5173
 - 後端 API：http://localhost:3001
 
-### 7. 種子資料說明
+### 種子資料說明
 種子資料包含：
 - **測試用戶**：`test@example.com` / `password123`
 - **範例商店**：3 間選物店（台北、台南、高雄）
