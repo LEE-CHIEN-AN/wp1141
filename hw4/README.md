@@ -111,16 +111,8 @@ MAX_FILE_SIZE=5242880
 GOOGLE_MAPS_SERVER_KEY=YOUR_SERVER_KEY
 ```
 
-### 4. 資料庫初始化
-```bash
-cd backend
-npx prisma generate
-npx prisma db push
-npm run db:seed  # 初始化種子資料
-cd ..
-```
 
-### 5. 啟動應用
+### 4. 啟動應用
 ```bash
 # 啟動後端 (終端機 1)
 cd backend
@@ -141,12 +133,14 @@ npm run dev
 - **標籤**：文創、咖啡、手作、選物、設計
 - **造訪記錄**：測試用戶的造訪記錄
 
-如需重新初始化種子資料：
+資料庫初始化
 ```bash
 cd backend
-npm run db:seed
+npx prisma generate
+npx prisma db push
+npm run db:seed  # 初始化種子資料
+cd ..
 ```
-
 ## 🔑 Google Maps API 整合
 
 ### 整合的 Google Maps API 服務
