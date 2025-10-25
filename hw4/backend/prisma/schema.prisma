@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Media {
+  id          String   @id @default(uuid())
+  kind        String   @default("IMAGE")
+  mime        String
+  bytes       Bytes
+  sizeBytes   Int
+  width       Int?
+  height      Int?
+  sha256      String?   @unique
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  usedAsUserAvatar  User[]       @relation("UserAvatarMedia")
+  usedAsStoreMain   Store[]      @relation("StoreMainPhoto")
+  storePhotos       StorePhoto[]
+  visitPhotos       VisitPhoto[]
+
+  @@index([sha256])
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  nickname     String?
+  status       String?
+  passwordHash String
+  avatar       Media?   @relation("UserAvatarMedia", fields: [avatarId], references: [id], onDelete: SetNull)
+  avatarId     String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  visits       Visit[]
+  reviews      Review[]
+  favorites    Favorite[]
+  storeEdits   StoreEdit[]
+
+  @@index([username])
+  @@index([email])
+}
+
+model Store {
+  id            String    @id @default(uuid())
+  name          String
+  address       String?
+  lat           Float
+  lng           Float
+  mainPhoto     Media?    @relation("StoreMainPhoto", fields: [mainPhotoId], references: [id], onDelete: SetNull)
+  mainPhotoId   String?
+
+  googleMapUrl  String?
+  instagramUrl  String?
+  openingHours  String?
+  googlePlaceId String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  photos   StorePhoto[]
+  tags     StoreTagLink[]
+  visits   Visit[]
+  reviews  Review[]
+  fans     Favorite[]
+  editHistory StoreEdit[]
+
+  @@index([lat, lng])
+  @@index([name])
+  @@index([googlePlaceId])
+}
+
+model StorePhoto {
+  id        String   @id @default(uuid())
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId   String
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  mediaId   String
+  caption   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([storeId, order])
+}
+
+model Tag {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  links StoreTagLink[]
+}
+
+model StoreTagLink {
+  store   Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId String
+  tag     Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId   Int
+
+  @@id([storeId, tagId])
+}
+
+model Favorite {
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  store    Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId  String
+  createdAt DateTime @default(now())
+
+  @@id([userId, storeId])
+  @@index([storeId])
+}
+
+model Visit {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId   String
+  date      DateTime
+  rating    Int
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  photos VisitPhoto[]
+
+  @@index([userId, date])
+  @@index([storeId, date])
+  @@index([storeId, rating])
+}
+
+model VisitPhoto {
+  id        String   @id @default(uuid())
+  visit     Visit    @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  visitId   String
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  mediaId   String
+  caption   String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([visitId, order])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId   String
+  date      DateTime
+  rating    Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId, date])
+  @@index([storeId, rating])
+}
+
+model StoreEdit {
+  id          String   @id @default(uuid())
+  store       Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId     String
+  editor      User     @relation(fields: [editorId], references: [id], onDelete: Cascade)
+  editorId    String
+  
+  editType    String
+  fieldName   String?
+  oldValue    String?
+  newValue    String?
+  description String?
+  
+  status      String   @default("APPROVED")
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([storeId])
+  @@index([editorId])
+  @@index([editType])
+  @@index([status])
+  @@index([createdAt])
+}

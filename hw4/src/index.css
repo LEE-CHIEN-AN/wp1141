@@ -1,0 +1,226 @@
+/* 全域樣式 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Noto Sans TC', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FAF5EF;
+  color: #333333;
+}
+
+/* Google Maps 自訂樣式 */
+.gm-style-iw {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(47, 111, 78, 0.1) !important;
+}
+
+.gm-style-iw-d {
+  overflow: hidden !important;
+}
+
+.gm-style-iw-tc {
+  background: white !important;
+}
+
+/* 自訂標記樣式 */
+.custom-marker {
+  background-color: #2F6F4E;
+  border: 2px solid white;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(47, 111, 78, 0.3);
+  transition: all 0.2s ease;
+}
+
+.custom-marker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(47, 111, 78, 0.4);
+}
+
+.custom-marker.favorite {
+  background-color: #F4A261;
+  box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3);
+}
+
+.custom-marker.favorite:hover {
+  box-shadow: 0 6px 16px rgba(244, 162, 97, 0.4);
+}
+
+/* 懸停卡片動畫 */
+.hover-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .custom-marker {
+    width: 32px;
+    height: 32px;
+    font-size: 10px;
+  }
+  
+  .MuiDialog-paper {
+    margin: 16px !important;
+    max-height: calc(100vh - 32px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-marker {
+    width: 28px;
+    height: 28px;
+    font-size: 9px;
+  }
+}
+
+/* 載入動畫 */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 標籤樣式 */
+.tag-chip {
+  margin: 2px !important;
+  font-size: 0.75rem !important;
+  font-family: 'Noto Sans TC', sans-serif !important;
+  font-weight: 500 !important;
+}
+
+/* 評分樣式 */
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #F4A261;
+  font-weight: 500;
+}
+
+/* 按鈕群組 */
+.button-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 卡片內容間距 */
+.card-content-spacing {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 表單樣式 */
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* 新的色彩主題樣式 */
+.forest-green {
+  color: #2F6F4E;
+}
+
+.warm-beige {
+  background-color: #FAF5EF;
+}
+
+.bright-orange {
+  color: #F4A261;
+}
+
+/* 卡片陰影效果 */
+.card-shadow {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(47, 111, 78, 0.1);
+}
+
+/* 按鈕樣式 */
+.btn-primary {
+  background-color: #2F6F4E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #1F4A33;
+  box-shadow: 0 2px 8px rgba(47, 111, 78, 0.2);
+}
+
+/* 標籤樣式 */
+.chip-outlined {
+  border: 1px solid #2F6F4E;
+  color: #2F6F4E;
+  background-color: #FAF5EF;
+  border-radius: 16px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+.chip-filled {
+  background-color: #2F6F4E;
+  color: white;
+  border-radius: 16px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .custom-marker {
+    width: 40px;
+    height: 40px;
+    font-size: 10px;
+  }
+}
