@@ -86,6 +86,10 @@ const StoreDetailDialog: React.FC<StoreDetailDialogProps> = ({
   const handleStoreUpdated = (updatedStore: Store) => {
     setStoreDetail(updatedStore)
     setShowEditDialog(false)
+    // 在對話框關閉後重新載入資料，確保顯示最新資訊
+    setTimeout(() => {
+      loadStoreDetail()
+    }, 300)
   }
 
   if (!store) return null
@@ -101,10 +105,12 @@ const StoreDetailDialog: React.FC<StoreDetailDialogProps> = ({
       maxWidth="md" 
       fullWidth
       disableEscapeKeyDown={false}
-      onTransitionExited={() => {
-        // 確保對話框關閉後焦點回到正確位置
-        if (document.activeElement && document.activeElement.blur) {
-          document.activeElement.blur()
+      TransitionProps={{
+        onExited: () => {
+          // 確保對話框關閉後移除焦點，避免 aria-hidden 警告
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur()
+          }
         }
       }}
     >

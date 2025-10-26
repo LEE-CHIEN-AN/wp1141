@@ -238,14 +238,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
       return
     }
     
-    // 立即更新 hoveredStore 和 selectedStore 的收藏狀態
-    if (hoveredStore && hoveredStore.id === storeId) {
-      setHoveredStore(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null)
-    }
-    if (selectedStore && selectedStore.id === storeId) {
-      setSelectedStore(prev => prev ? { ...prev, isFavorite: !prev.isFavorite } : null)
-    }
-    
+    // 不要提前更新本地狀態，讓 API 調用和父組件處理狀態更新
     onToggleFavorite(storeId)
   }
 
@@ -263,7 +256,7 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
     }
   }
 
-  // 當 stores 更新時，同步更新 selectedStore
+  // 當 stores 更新時，同步更新 selectedStore 和 hoveredStore
   useEffect(() => {
     if (selectedStore) {
       const updatedStore = stores.find(store => store.id === selectedStore.id)
@@ -271,7 +264,13 @@ const GoogleMap: React.FC<GoogleMapProps> = ({
         setSelectedStore(updatedStore)
       }
     }
-  }, [stores, selectedStore])
+    if (hoveredStore) {
+      const updatedStore = stores.find(store => store.id === hoveredStore.id)
+      if (updatedStore) {
+        setHoveredStore(updatedStore)
+      }
+    }
+  }, [stores, selectedStore, hoveredStore])
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '100vh' }}>

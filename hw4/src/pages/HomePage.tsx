@@ -142,7 +142,8 @@ const HomePage: React.FC = () => {
     stores,
     fetchStores,
     createStore,
-    toggleFavorite: toggleStoreFavorite
+    toggleFavorite: toggleStoreFavorite,
+    updateFavoriteStatus
   } = useStores(userFavorites)
 
   // 使用搜尋 Hook
@@ -310,24 +311,48 @@ const HomePage: React.FC = () => {
 
     try {
       const isFavorited = isFavorite(storeId)
+      
+      // 只調用一個 API，不要重複調用
       await toggleFavoriteAPI(storeId, isFavorited)
       
-      // 使用 useStores 的 toggleFavorite 來更新 stores 狀態
+      // 更新 stores 的本地狀態
       await toggleStoreFavorite(storeId, isFavorited)
       
       const store = stores.find(s => s.id === storeId)
       const action = isFavorited ? '取消收藏' : '收藏'
       setSnackbar({
         open: true,
-        message: `已${action} ${store?.name || '商店'}`,
+        message: `成功${action}店家`,
         severity: 'success'
       })
     } catch (error: any) {
-      setSnackbar({
-        open: true,
-        message: error.message || '操作失敗',
-        severity: 'error'
-      })
+      // 409 Conflict 或 404 Not Found 可能表示後端狀態與前端不同步
+      // 視為操作成功（因為後端狀態已經是期望的）
+      const errorStatus = error.response?.status || error.status
+      if (errorStatus === 409 || errorStatus === 404) {
+        // 直接更新本地狀態到目標狀態（不調用 API）
+        if (isFavorited) {
+          // 想取消收藏但失敗，假設已經取消
+          updateFavoriteStatus(storeId, false)
+        } else {
+          // 想收藏但失敗，假設已經收藏
+          updateFavoriteStatus(storeId, true)
+        }
+        
+        const store = stores.find(s => s.id === storeId)
+        const action = isFavorited ? '取消收藏' : '收藏'
+        setSnackbar({
+          open: true,
+          message: `成功${action}店家`,
+          severity: 'success'
+        })
+      } else {
+        setSnackbar({
+          open: true,
+          message: error.message || '操作失敗',
+          severity: 'error'
+        })
+      }
     }
   }
 

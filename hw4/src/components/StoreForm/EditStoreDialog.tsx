@@ -174,7 +174,9 @@ const EditStoreDialog: React.FC<EditStoreDialogProps> = ({
 
       // 重新載入完整的店家資料（包括新上傳的照片）
       const fullStoreData = await storesAPI.getStore(store.id)
+      // 通知父組件更新資料
       onStoreUpdated(fullStoreData)
+      // 立即關閉對話框
       onClose()
     } catch (err: any) {
       setError(err.message || '更新店家失敗')
@@ -208,6 +210,14 @@ const EditStoreDialog: React.FC<EditStoreDialogProps> = ({
       maxWidth="md" 
       fullWidth
       PaperProps={{ sx: { borderRadius: 3 } }}
+      TransitionProps={{
+        onExited: () => {
+          // 確保對話框關閉後移除焦點
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur()
+          }
+        }
+      }}
     >
       <DialogTitle sx={{ pb: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

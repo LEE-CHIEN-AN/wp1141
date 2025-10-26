@@ -40,10 +40,15 @@ export const useFavorites = (isAuthenticated: boolean) => {
     try {
       if (isFavorited) {
         await favoritesAPI.unfavorite(storeId)
-        setFavorites(prev => prev.filter(store => store.id !== storeId))
       } else {
         await favoritesAPI.favorite(storeId)
-        // 重新載入收藏列表
+      }
+      
+      // 同步更新本地狀態
+      if (isFavorited) {
+        setFavorites(prev => prev.filter(store => store.id !== storeId))
+      } else {
+        // 需要重新載入收藏列表以獲取完整的店舖資訊
         await fetchFavorites(true)
       }
     } catch (err: any) {

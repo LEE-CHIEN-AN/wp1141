@@ -20,7 +20,10 @@ const apiRequest = async (url: string, options: RequestInit = {}) => {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: { message: '網路錯誤' } }))
-    throw new Error(error.error?.message || `HTTP ${response.status}`)
+    const customError = new Error(error.error?.message || `HTTP ${response.status}`) as any
+    customError.response = response
+    customError.status = response.status
+    throw customError
   }
 
   // 檢查響應是否有內容

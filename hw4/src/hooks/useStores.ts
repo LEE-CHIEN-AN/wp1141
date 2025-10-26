@@ -96,8 +96,20 @@ export const useStores = (userFavorites?: string[]) => {
           : store
       ))
     } catch (err: any) {
-      setError(err.message)
-      throw err
+      // 409 Conflict：表示已經收藏過了
+      // 404 Not Found：表示沒有收藏記錄
+      // 這些情況視為狀態已經是期望的，更新本地狀態即可
+      const errorStatus = err.response?.status || err.status
+      if (errorStatus === 409 || errorStatus === 404) {
+        setStores(prev => prev.map(store => 
+          store.id === storeId 
+            ? { ...store, isFavorite: !isFavorited }
+            : store
+        ))
+      } else {
+        setError(err.message)
+        throw err
+      }
     }
   }
 
@@ -118,6 +130,15 @@ export const useStores = (userFavorites?: string[]) => {
 
   // 移除初始載入，讓調用者控制何時載入
 
+  // 直接更新本地收藏狀態（不調用 API）
+  const updateFavoriteStatus = (storeId: string, isFavorite: boolean) => {
+    setStores(prev => prev.map(store => 
+      store.id === storeId 
+        ? { ...store, isFavorite }
+        : store
+    ))
+  }
+
   return {
     stores,
     loading,
@@ -125,5 +146,6 @@ export const useStores = (userFavorites?: string[]) => {
     fetchStores,
     createStore,
     toggleFavorite,
+    updateFavoriteStatus,
   }
 }
