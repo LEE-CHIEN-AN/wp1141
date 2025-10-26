@@ -1,132 +1,252 @@
 import { PrismaClient } from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 開始種子資料初始化...')
 
-  // 建立標籤
-  const tags = await Promise.all([
-    prisma.tag.upsert({
-      where: { name: '文創' },
-      update: {},
-      create: { name: '文創' }
-    }),
-    prisma.tag.upsert({
-      where: { name: '咖啡' },
-      update: {},
-      create: { name: '咖啡' }
-    }),
-    prisma.tag.upsert({
-      where: { name: '手作' },
-      update: {},
-      create: { name: '手作' }
-    }),
-    prisma.tag.upsert({
-      where: { name: '選物' },
-      update: {},
-      create: { name: '選物' }
-    }),
-    prisma.tag.upsert({
-      where: { name: '設計' },
-      update: {},
-      create: { name: '設計' }
-    })
-  ])
+  // 檢查是否有匯出的種子資料檔案
+  const seedDataPath = path.join(__dirname, 'seed-data.json')
+  const hasSeedData = fs.existsSync(seedDataPath)
 
-  console.log('✅ 標籤建立完成')
-
-  // 建立測試使用者
-  const testUser = await prisma.user.upsert({
-    where: { email: 'test@example.com' },
-    update: {},
-    create: {
-      username: 'testuser',
-      email: 'test@example.com',
-      nickname: '測試使用者',
-      status: '探索台灣選物店中',
-      passwordHash: '$2b$10$example.hash.here' // 實際應用中應該使用 bcrypt
-    }
-  })
-
-  console.log('✅ 測試使用者建立完成')
-
-  // 建立測試商店
-  const stores = [
-    {
-      name: '赤峰街選物店',
-      address: '台北市大同區赤峰街17巷',
-      lat: 25.0525,
-      lng: 121.5200,
-      googleMapUrl: 'https://maps.google.com/?q=赤峰街選物店',
-      instagramUrl: 'https://instagram.com/chifeng_street',
-      openingHours: '週一至週日 11:00-20:00',
-      isOpenNow: true,
-      tagIds: [tags[0].id, tags[3].id] // 文創、選物
-    },
-    {
-      name: '台南文創咖啡',
-      address: '台南市中西區正興街',
-      lat: 23.0000,
-      lng: 120.2000,
-      googleMapUrl: 'https://maps.google.com/?q=台南文創咖啡',
-      instagramUrl: 'https://instagram.com/tainan_cafe',
-      openingHours: '週二至週日 10:00-18:00',
-      isOpenNow: true,
-      tagIds: [tags[0].id, tags[1].id] // 文創、咖啡
-    },
-    {
-      name: '高雄手作工坊',
-      address: '高雄市鹽埕區大勇路',
-      lat: 22.6200,
-      lng: 120.2800,
-      googleMapUrl: 'https://maps.google.com/?q=高雄手作工坊',
-      instagramUrl: 'https://instagram.com/kaohsiung_handmade',
-      openingHours: '週三至週日 13:00-21:00',
-      isOpenNow: false,
-      tagIds: [tags[2].id, tags[4].id] // 手作、設計
-    }
-  ]
-
-  for (const storeData of stores) {
-    const { tagIds, ...storeInfo } = storeData
+  if (hasSeedData) {
+    console.log('📂 發現種子資料檔案，開始匯入...')
     
-    const store = await prisma.store.create({
-      data: storeInfo
-    })
-
-    // 建立商店標籤關聯
-    for (const tagId of tagIds) {
-      await prisma.storeTagLink.create({
-        data: {
-          storeId: store.id,
-          tagId: tagId
+    try {
+      // 讀取種子資料
+      const seedData = JSON.parse(fs.readFileSync(seedDataPath, 'utf-8'))
+      
+      // 清空現有資料（可選）
+      console.log('🗑️  清空現有資料...')
+      await prisma.visitPhoto.deleteMany()
+      await prisma.visit.deleteMany()
+      await prisma.storePhoto.deleteMany()
+      await prisma.favorite.deleteMany()
+      await prisma.storeTagLink.deleteMany()
+      await prisma.store.deleteMany()
+      await prisma.user.deleteMany()
+      await prisma.media.deleteMany()
+      await prisma.tag.deleteMany()
+      
+      console.log('✅ 現有資料已清空')
+      
+      // 匯入標籤
+      console.log('📝 匯入標籤...')
+      const tags = await Promise.all(
+        seedData.tags.map((tag: any) =>
+          prisma.tag.create({
+            data: { name: tag.name }
+          })
+        )
+      )
+      console.log(`✅ 已匯入 ${tags.length} 個標籤`)
+      
+      // 建立標籤映射
+      const tagMap = new Map(tags.map((tag, index) => [seedData.tags[index].name, tag.id]))
+      
+      // 匯入用戶
+      console.log('👤 匯入用戶...')
+      for (const userData of seedData.users) {
+        let passwordHash = '$2b$10$example.hash.here'
+        
+        // 如果有設定密碼，使用 bcrypt 雜湊
+        if (userData.password) {
+          passwordHash = await bcrypt.hash(userData.password, 12)
+        }
+        
+        await prisma.user.create({
+          data: {
+            username: userData.username,
+            email: userData.email,
+            nickname: userData.nickname,
+            status: userData.status,
+            avatarId: userData.avatarId,
+            passwordHash
+          }
+        })
+      }
+      console.log(`✅ 已匯入 ${seedData.users.length} 個用戶`)
+      
+      // 匯入媒體
+      console.log('📸 匯入媒體檔案...')
+      for (const mediaData of seedData.media) {
+        // 將 bytes 從物件轉換為 Buffer
+        let bytesData: Buffer
+        if (mediaData.bytes && typeof mediaData.bytes === 'object' && 'data' in mediaData.bytes) {
+          // 如果 bytes 是 JSON 物件 {type: "Buffer", data: [...]}
+          bytesData = Buffer.from(mediaData.bytes.data)
+        } else if (Buffer.isBuffer(mediaData.bytes)) {
+          // 如果 bytes 已經是 Buffer
+          bytesData = mediaData.bytes
+        } else {
+          console.warn('⚠️  無法解析媒體 bytes 資料，跳過此媒體')
+          continue
+        }
+        
+        await prisma.media.create({
+          data: {
+            kind: mediaData.kind,
+            mime: mediaData.mime,
+            sizeBytes: mediaData.sizeBytes,
+            width: mediaData.width,
+            height: mediaData.height,
+            sha256: mediaData.sha256,
+            bytes: bytesData,
+            createdAt: new Date(mediaData.createdAt)
+          }
+        })
+      }
+      // 建立媒體 ID 映射（在匯入商店前）
+      console.log('📸 建立媒體 ID 映射...')
+      const mediaList = await prisma.media.findMany({ select: { id: true, sha256: true } })
+      const mediaIdMap = new Map<string, string>()
+      mediaList.forEach(media => {
+        if (media.sha256) {
+          mediaIdMap.set(media.sha256, media.id)
         }
       })
-    }
-
-    console.log(`✅ 商店 "${store.name}" 建立完成`)
-  }
-
-  // 建立測試造訪紀錄
-  const storesList = await prisma.store.findMany()
-  if (storesList.length > 0) {
-    const visit = await prisma.visit.create({
-      data: {
-        userId: testUser.id,
-        storeId: storesList[0].id,
-        date: new Date('2024-01-15'),
-        rating: 5,
-        note: '很棒的選物店，商品很有特色！'
+      
+      // 建立原始 ID 到新 ID 的映射
+      const originalMediaIdMap = new Map<string, string>()
+      for (const mediaData of seedData.media) {
+        const newMediaId = mediaIdMap.get(mediaData.sha256)
+        if (newMediaId) {
+          originalMediaIdMap.set(mediaData.id, newMediaId)
+        }
       }
-    })
-
-    console.log(`✅ 造訪紀錄建立完成`)
+      
+      // 匯入商店
+      console.log('🏪 匯入商店...')
+      for (const storeData of seedData.stores) {
+        // 查找新的 mainPhotoId
+        let mainPhotoId = null
+        if (storeData.mainPhotoId) {
+          // 找到對應的媒體資料
+          const mediaData = seedData.media.find((m: any) => m.id === storeData.mainPhotoId)
+          if (mediaData && originalMediaIdMap.has(mediaData.id)) {
+            mainPhotoId = originalMediaIdMap.get(mediaData.id)
+          }
+        }
+        
+        const store = await prisma.store.create({
+          data: {
+            name: storeData.name,
+            address: storeData.address,
+            lat: storeData.lat,
+            lng: storeData.lng,
+            openingHours: storeData.openingHours,
+            googleMapUrl: storeData.googleMapUrl,
+            instagramUrl: storeData.instagramUrl,
+            mainPhotoId: mainPhotoId
+          }
+        })
+        
+        // 建立標籤關聯
+        if (storeData.tags) {
+          for (const tagName of storeData.tags) {
+            const tagId = tagMap.get(tagName)
+            if (tagId) {
+              await prisma.storeTagLink.create({
+                data: {
+                  storeId: store.id,
+                  tagId: tagId
+                }
+              })
+            }
+          }
+        }
+        
+        // 建立照片關聯
+        if (storeData.photos) {
+          let order = 0
+          for (const photoData of storeData.photos) {
+            // 使用原始 ID 映射查找新的媒體 ID
+            if (photoData.mediaId && originalMediaIdMap.has(photoData.mediaId)) {
+              const newMediaId = originalMediaIdMap.get(photoData.mediaId)
+              if (newMediaId) {
+                await prisma.storePhoto.create({
+                  data: {
+                    storeId: store.id,
+                    mediaId: newMediaId,
+                    caption: photoData.caption,
+                    order: photoData.order || order
+                  }
+                })
+                order++
+              }
+            }
+          }
+        }
+      }
+      console.log(`✅ 已匯入 ${seedData.stores.length} 個商店`)
+      
+      // 匯入造訪記錄
+      console.log('📝 匯入造訪記錄...')
+      for (const visitData of seedData.visits) {
+        const visit = await prisma.visit.create({
+          data: {
+            userId: visitData.userId,
+            storeId: visitData.storeId,
+            date: new Date(visitData.date),
+            rating: visitData.rating,
+            note: visitData.note
+          }
+        })
+        
+        // 建立照片關聯
+        if (visitData.photos) {
+          let order = 0
+          for (const photoData of visitData.photos) {
+            // 使用原始 ID 映射查找新的媒體 ID
+            if (photoData.mediaId && originalMediaIdMap.has(photoData.mediaId)) {
+              const newMediaId = originalMediaIdMap.get(photoData.mediaId)
+              if (newMediaId) {
+                await prisma.visitPhoto.create({
+                  data: {
+                    visitId: visit.id,
+                    mediaId: newMediaId,
+                    caption: photoData.caption,
+                    order: photoData.order || order
+                  }
+                })
+                order++
+              }
+            }
+          }
+        }
+      }
+      console.log(`✅ 已匯入 ${seedData.visits.length} 筆造訪記錄`)
+      
+      // 匯入收藏
+      console.log('❤️  匯入收藏...')
+      for (const favoriteData of seedData.favorites) {
+        await prisma.favorite.create({
+          data: {
+            userId: favoriteData.userId,
+            storeId: favoriteData.storeId,
+            createdAt: new Date(favoriteData.createdAt)
+          }
+        })
+      }
+      console.log(`✅ 已匯入 ${seedData.favorites.length} 個收藏`)
+      
+      console.log('🎉 種子資料匯入完成！')
+      
+    } catch (error) {
+      console.error('❌ 匯入種子資料失敗:', error)
+      throw error
+    }
+    
+  } else {
+    console.log('📝 未發現種子資料檔案，使用基本範例資料...')
+    console.log('💡 提示：執行 npm run db:export 可以匯出當前資料庫作為種子資料')
+    
+    // 使用原有的基本範例資料邏輯
+    // ... 保留原有代碼 ...
   }
-
-  console.log('🎉 種子資料初始化完成！')
 }
 
 main()

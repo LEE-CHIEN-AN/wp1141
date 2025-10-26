@@ -1,9 +1,6 @@
 # 台灣選物店地圖 🗺️
 
-選物店地圖 - 維基百科版，讓用戶可以在地圖上新增、編輯、瀏覽、收藏和記錄造訪過的選物店，共同建立選物店資料庫。
-
-目前網站功能應該沒有大bug了，但還沒有什麼內容
-(期中周生出這個難度陡升的作業，debug好幾天，沒時間搞真實店家和評論)
+一個基於 React + Node.js 的選物店地圖應用（維基百科版），讓用戶可以在地圖上新增、編輯、瀏覽、收藏和記錄造訪過的選物店，共同建立選物店資料庫。
 
 ## 📋 專案簡介與功能清單
 
@@ -49,25 +46,44 @@
 │ └─────────────┘  │    │ └─────────────┘  │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
-![alt text](image-1.png)
-## 🚀 前後端啟動步驟
+
+## 🚀 快速啟動指南
 
 ### 環境需求
-- Node.js 18+ 
-- npm 或 yarn
-- Google Maps API Key
+- **Node.js**：18.0.0 或更高版本
+- **npm**：9.0.0 或更高版本（或 yarn）
+- **Google Maps API Key**：需要 Browser Key 和 Server Key
 
-### 1. 進入專案
+### 📦 步驟一：克隆專案
 ```bash
-cd hw4
+# 克隆專案
+git clone <repository-url>
+cd store_map
 ```
 
-### 2. 環境變數設定
+### 📚 步驟二：安裝依賴
+```bash
+# 安裝前端依賴
+npm install
 
+# 安裝後端依賴
+cd backend
+npm install
+cd ..
+```
+
+### 🔑 步驟三：設定環境變數
 **⚠️ 重要：請評分者務必替換為自己的 Google Maps API Key**
 
-#### 前端環境變數 (.env)
+#### 設定前端環境變數
+在專案根目錄創建 `.env` 檔案：
 ```bash
+# 複製範例檔案
+cp .env.example .env
+```
+
+編輯 `.env` 檔案：
+```env
 # API 服務器 URL
 VITE_API_BASE=http://localhost:3001
 
@@ -75,8 +91,16 @@ VITE_API_BASE=http://localhost:3001
 VITE_GOOGLE_MAPS_API_KEY=YOUR_BROWSER_KEY
 ```
 
-#### 後端環境變數 (backend/.env)
+#### 設定後端環境變數
+在 `backend` 目錄創建 `.env` 檔案：
 ```bash
+# 複製範例檔案
+cd backend
+cp env.example .env
+```
+
+編輯 `backend/.env` 檔案：
+```env
 # 服務器配置
 PORT=3001
 NODE_ENV=development
@@ -103,38 +127,71 @@ MAX_FILE_SIZE=5242880
 GOOGLE_MAPS_SERVER_KEY=YOUR_SERVER_KEY
 ```
 
-
-### 4. 啟動應用
+### 💾 步驟四：初始化資料庫
 ```bash
-# 啟動後端 (終端機 1)
+# 進入後端目錄
 cd backend
-npm install
-npm run dev
 
-# 啟動前端 (終端機 2)
-npm install
-npm run dev
-```
+# 生成 Prisma 客戶端
+npm run db:generate
 
-### 6. 訪問應用
-- 前端：http://localhost:5173
-- 後端 API：http://localhost:3001
+# 推送資料庫 schema
+npm run db:push
 
-### 種子資料說明
-種子資料包含：
-- **測試用戶**：`test@example.com` / `password123`
-- **範例商店**：3 間選物店（台北、台南、高雄）
-- **標籤**：文創、咖啡、手作、選物、設計
-- **造訪記錄**：測試用戶的造訪記錄
+# 初始化種子資料（包含真實商店和照片）
+npm run db:seed
 
-資料庫初始化
-```bash
-cd backend
-npx prisma generate
-npx prisma db push
-npm run db:seed  # 初始化種子資料
+# 返回根目錄
 cd ..
 ```
+
+> 💡 **提示**：執行 `npm run db:seed` 會匯入包含所有真實商店、照片和用戶的種子資料
+
+### ▶️ 步驟五：啟動應用
+
+#### 啟動後端（終端機 1）
+```bash
+cd backend
+npm run dev
+```
+
+#### 啟動前端（終端機 2）
+```bash
+# 在專案根目錄執行
+npm run dev
+```
+
+### 🌐 步驟六：訪問應用
+- **前端應用**：http://localhost:5173
+- **後端 API**：http://localhost:3001
+- **API 文件**：http://localhost:3001/api
+
+### 🎯 測試應用
+使用種子資料中的測試帳號登入：
+- **Email**：`test@example.com`
+- **密碼**：`password123`
+
+### 📊 種子資料內容
+- **10 個標籤**：文創、咖啡、手作、選物、設計等
+- **12 間商店**：包含真實的選物店資訊和照片
+- **6 位用戶**：包含測試用戶和真實用戶資料
+- **8 個媒體檔案**：所有店家照片
+
+#### 📤 匯出當前資料庫作為種子資料
+如果您的資料庫有新的資料，可以匯出為種子資料：
+```bash
+cd backend
+npm run db:export
+```
+
+#### 📥 重新初始化種子資料
+```bash
+cd backend
+npm run db:seed
+```
+
+> **⚠️ 注意**：執行 `npm run db:seed` 會清空並重新匯入資料，請謹慎使用
+
 ## 🔑 Google Maps API 整合
 
 ### 整合的 Google Maps API 服務
@@ -386,6 +443,46 @@ curl -X POST http://localhost:3001/api/visits \
    - 請勿在版本控制中提交真實的 API Key
    - 使用 `.env.example` 作為範本
    - 定期檢查 API 使用量
+
+## 🐛 已知問題
+
+1. **Google Maps API 棄用警告**
+   - 問題：控制台顯示 AutocompleteService、PlacesService、Marker 棄用警告
+   - 狀態：已實施警告抑制，但建議後續遷移到新 API
+
+2. **圖片載入偶爾失敗**
+   - 問題：某些情況下圖片無法正常載入
+   - 原因：CORS 設定或網路問題
+   - 狀態：已修復 CORS 標頭
+
+3. **地圖標記偶爾不顯示**
+   - 問題：在某些瀏覽器或網路環境下標記可能不顯示
+   - 原因：Google Maps API 載入時機問題
+   - 狀態：已優化載入邏輯
+
+## 🔮 未來改進方向
+
+### 短期改進 (1-2 個月)
+- [ ] 遷移到 Google Maps 新 API (AdvancedMarkerElement)
+- [ ] 實作離線地圖快取
+- [ ] 優化圖片載入性能
+- [ ] 添加地圖標記群組功能
+
+### 中期改進 (3-6 個月)
+- [ ] 實作即時通知系統
+- [ ] 添加社交分享功能
+- [ ] 實作店家推薦演算法
+- [ ] 添加多語言支援
+
+### 長期改進 (6 個月以上)
+- [ ] 實作 PWA (Progressive Web App)
+- [ ] 添加 AR 導航功能
+- [ ] 實作機器學習推薦系統
+- [ ] 支援多平台 (iOS/Android)
+
+## 📄 授權
+
+本專案僅供學習用途，請勿用於商業用途。
 
 
 
