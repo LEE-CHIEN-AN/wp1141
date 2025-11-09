@@ -89,14 +89,11 @@ export function getPusherClient() {
     return client;
   }
 
-  const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+  const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'us2';
   client = new Pusher(key, {
     cluster: cluster,
     forceTLS: true,
     authEndpoint: '/api/pusher/auth',
-    auth: {
-      withCredentials: true,
-    },
   });
   return client;
 }
