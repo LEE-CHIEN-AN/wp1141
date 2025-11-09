@@ -1,42 +1,37 @@
-// Datasource & Generator
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_PRISMA_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-// NextAuth core models
 model User {
-  id            String   @id @default(cuid())
-  name          String?
-  email         String?  @unique
-  emailVerified DateTime?
-  image         String?
-
-  // custom fields
-  userId        String?  @unique // public handle (e.g., ric2k1)
-  verified      Boolean  @default(false) // 是否為已驗證用戶
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  accounts      Account[]
-  sessions      Session[]
-  profile       Profile?
-  posts         Post[]    @relation("UserPosts")
-  comments      Comment[]
-  likes         Like[]
-  reposts       Repost[]
-  commentLikes  CommentLike[]
-  commentReposts CommentRepost[]
-  following     Follow[]  @relation("following")
-  followers     Follow[]  @relation("followers")
-  drafts        Draft[]
-  bookmarks     Bookmark[]
-  notifications Notification[] @relation("UserNotifications")
-  actorNotifications Notification[] @relation("NotificationActor")
+  id                 String          @id @default(cuid())
+  name               String?
+  email              String?         @unique
+  emailVerified      DateTime?
+  image              String?
+  userId             String?         @unique
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  verified           Boolean         @default(false)
+  accounts           Account[]
+  bookmarks          Bookmark[]
+  comments           Comment[]
+  commentLikes       CommentLike[]
+  commentReposts     CommentRepost[]
+  drafts             Draft[]
+  followers          Follow[]        @relation("followers")
+  following          Follow[]        @relation("following")
+  likes              Like[]
+  actorNotifications Notification[]  @relation("NotificationActor")
+  notifications      Notification[]  @relation("UserNotifications")
+  posts              Post[]          @relation("UserPosts")
+  profile            Profile?
+  reposts            Repost[]
+  sessions           Session[]
 }
 
 model Account {
@@ -52,8 +47,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -63,8 +57,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -75,7 +68,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Domain models
 model Profile {
   id          String  @id @default(cuid())
   userId      String  @unique
@@ -83,32 +75,25 @@ model Profile {
   bio         String? @db.VarChar(280)
   avatarUrl   String?
   bannerUrl   String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Post {
-  id         String   @id @default(cuid())
-  authorId   String
-  content    String   @db.VarChar(2000)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  deletedAt  DateTime?
-
-  author   User     @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
-  comments Comment[]
-  likes    Like[]
-  reposts  Repost[]
-  bookmarks Bookmark[]
-  media    PostMedia[]
+  id            String         @id @default(cuid())
+  authorId      String
+  content       String         @db.VarChar(2000)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  bookmarks     Bookmark[]
+  comments      Comment[]
+  likes         Like[]
   notifications Notification[]
+  author        User           @relation("UserPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  media         PostMedia[]
+  reposts       Repost[]
 
   @@index([createdAt])
-}
-
-enum PostMediaType {
-  IMAGE
-  VIDEO
 }
 
 model PostMedia {
@@ -121,39 +106,36 @@ model PostMedia {
   height    Int?
   duration  Float?
   createdAt DateTime      @default(now())
-
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId])
 }
 
 model Comment {
-  id         String   @id @default(cuid())
-  postId     String
-  authorId   String
-  content    String   @db.VarChar(2000)
-  parentId   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parent   Comment? @relation("CommentToComment", fields: [parentId], references: [id])
-  replies  Comment[] @relation("CommentToComment")
-  likes    CommentLike[]
-  reposts  CommentRepost[]
+  id            String          @id @default(cuid())
+  postId        String
+  authorId      String
+  content       String          @db.VarChar(2000)
+  parentId      String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  author        User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent        Comment?        @relation("CommentToComment", fields: [parentId], references: [id])
+  replies       Comment[]       @relation("CommentToComment")
+  post          Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes         CommentLike[]
+  reposts       CommentRepost[]
   notifications Notification[]
 
   @@index([postId, createdAt])
 }
 
 model Like {
-  userId  String
-  postId  String
+  userId    String
+  postId    String
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, postId])
 }
@@ -163,9 +145,8 @@ model Repost {
   userId    String
   postId    String
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
 }
@@ -174,9 +155,8 @@ model CommentLike {
   userId    String
   commentId String
   createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, commentId])
 }
@@ -186,21 +166,19 @@ model CommentRepost {
   userId    String
   commentId String
   createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, commentId])
 }
 
 model Follow {
-  id           String   @id @default(cuid())
-  followerId   String
-  followingId  String
-  createdAt    DateTime @default(now())
-
-  follower  User @relation("followers", fields: [followerId], references: [id], onDelete: Cascade)
-  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
 }
@@ -211,8 +189,41 @@ model Draft {
   content   String   @db.VarChar(2000)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
 
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  actorId   String
+  postId    String?
+  commentId String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  actor     User             @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  comment   Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Bookmark {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId, createdAt])
+}
+
+enum PostMediaType {
+  IMAGE
+  VIDEO
 }
 
 enum NotificationType {
@@ -223,36 +234,3 @@ enum NotificationType {
   COMMENT_REPOST
   COMMENT_REPLY
 }
-
-model Notification {
-  id        String   @id @default(cuid())
-  userId    String   // 接收通知的用戶
-  type      NotificationType
-  actorId   String   // 執行操作的用戶
-  postId    String?  // 相關的貼文 ID（如果有的話）
-  commentId String?  // 相關的留言 ID（如果有的話）
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user  User   @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-  actor User   @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
-  post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
-  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@index([userId, read, createdAt])
-  @@index([userId, createdAt])
-}
-
-model Bookmark {
-  userId    String
-  postId    String
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@id([userId, postId])
-  @@index([userId, createdAt])
-}
-
-
