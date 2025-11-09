@@ -37,7 +37,7 @@ export async function GET(req: Request) {
       const followingIds = followingUsers.map((f) => f.followingId);
       // 如果沒有關注任何人，返回空列表
       if (followingIds.length === 0) {
-        return NextResponse.json({ ok: true, posts: [] });
+        return NextResponse.json({ ok: true, posts: [], nextCursor: null, hasMore: false });
       }
 
       // 取得這些用戶發表的文章和轉發的文章
@@ -49,10 +49,15 @@ export async function GET(req: Request) {
       const repostedIds = repostedPostIds.map((r) => r.postId);
       
       // 包含原文章和轉發的文章
-      where.OR = [
-        { authorId: { in: followingIds } }, // 原文章
-        { id: { in: repostedIds } }, // 轉發的文章
-      ];
+      // 如果沒有轉發，只查詢原文章
+      if (repostedIds.length === 0) {
+        where.authorId = { in: followingIds };
+      } else {
+        where.OR = [
+          { authorId: { in: followingIds } }, // 原文章
+          { id: { in: repostedIds } }, // 轉發的文章
+        ];
+      }
     }
 
          // 取得 limit + 1 條貼文，用於判斷是否還有更多貼文
