@@ -23,6 +23,9 @@ export async function GET(req: Request) {
       take: 10,
       orderBy: { createdAt: 'desc' },
       include: {
+        media: {
+          orderBy: { createdAt: 'asc' },
+        },
         _count: {
           select: {
             comments: true,
