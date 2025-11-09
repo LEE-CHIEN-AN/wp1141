@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { createPostSchema } from '@/lib/validators/post';
 import { countPostCharacters } from '@/lib/utils/post-counter';
 import { handleApiError, createErrorResponse } from '@/lib/utils/api-error-handler';
+import { triggerNewPostForFollowers } from '@/lib/pusher-server';
 
 // GET: 取得文章列表（首頁 feed）
 export async function GET(req: Request) {
