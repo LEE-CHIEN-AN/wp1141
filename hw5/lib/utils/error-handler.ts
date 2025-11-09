@@ -146,7 +146,7 @@ export async function safeApiRequest<T = any>(
   url: string,
   options: RequestInit = {},
   retry = true
-): Promise<{ ok: boolean; data?: T; error?: ApiError }> {
+): Promise<{ ok: boolean; data?: T; error?: ApiError; status?: number }> {
   try {
     const response = retry
       ? await fetchWithRetry(url, options)
@@ -157,11 +157,11 @@ export async function safeApiRequest<T = any>(
 
     if (!response.ok) {
       const error = await extractApiError(response);
-      return { ok: false, error };
+      return { ok: false, error, status: response.status };
     }
 
     const data = await response.json();
-    return { ok: true, data };
+    return { ok: true, data, status: response.status };
   } catch (error) {
     const message = getUserFriendlyMessage(error);
     return {
@@ -170,6 +170,7 @@ export async function safeApiRequest<T = any>(
         message,
         code: isNetworkError(error) ? 'NETWORK_ERROR' : 'UNKNOWN_ERROR',
       },
+      status: isNetworkError(error) ? 0 : 500,
     };
   }
 }

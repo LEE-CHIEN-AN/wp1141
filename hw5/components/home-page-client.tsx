@@ -73,6 +73,10 @@ export function HomePageClient({ user }: HomePageClientProps) {
       if (!append) {
         setError(message);
         showError(message);
+        // 如果是 401 或 500 錯誤，可能是 session 或資料庫問題
+        if (result.status === 401 || result.status === 500) {
+          console.error('API error:', result.error, 'Status:', result.status);
+        }
       }
     }
     
