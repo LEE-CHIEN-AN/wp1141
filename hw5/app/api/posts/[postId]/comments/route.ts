@@ -116,8 +116,17 @@ export async function POST(
     return handleApiError(parsed.error);
   }
 
+  // 留言必須有內容
+  const content = parsed.data.content ?? '';
+  if (!content.trim()) {
+    return NextResponse.json(
+      { message: 'Comment content is required' },
+      { status: 400 }
+    );
+  }
+
   // 檢查字數
-  const countResult = countPostCharacters(parsed.data.content);
+  const countResult = countPostCharacters(content);
   if (!countResult.isValid) {
     return NextResponse.json(
       { message: `Comment exceeds 280 characters (current: ${countResult.count})` },
@@ -130,7 +139,7 @@ export async function POST(
       data: {
         postId,
         authorId: uid,
-        content: parsed.data.content,
+        content,
         parentId: body.parentId || null, // 如果提供 parentId，則是回覆留言
       },
       include: {
