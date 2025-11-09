@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { Search, ArrowLeft } from 'lucide-react';
 import { PostItem } from './post-item';
 import { PostSkeletonList } from './post-skeleton';
