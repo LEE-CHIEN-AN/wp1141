@@ -8,6 +8,7 @@ interface EditProfileModalProps {
   user: {
     id: string;
     name: string | null;
+    image?: string | null;
     profile: {
       displayName: string | null;
       bio: string | null;
