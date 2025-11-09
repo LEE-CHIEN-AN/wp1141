@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "npx prisma generate || true",
     "db:seed:newpost-notice": "tsx scripts/seed-new-post-notice.ts",
     "db:seed:hw5xclone": "tsx scripts/seed-hw5xclone.ts",
     "simulate:new-posts": "tsx scripts/simulate-new-posts.ts"
@@ -15,7 +15,13 @@
   "dependencies": {
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "next": "16.0.1"
+    "next": "16.0.1",
+    "@prisma/client": "^5.22.0",
+    "@auth/prisma-adapter": "^2.7.2",
+    "next-auth": "^5.0.0-beta.30",
+    "pusher": "^5.2.0",
+    "pusher-js": "^8.4.0",
+    "cloudinary": "^2.0.0"
   },
   "devDependencies": {
     "typescript": "^5",
@@ -25,6 +31,8 @@
     "@tailwindcss/postcss": "^4",
     "tailwindcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "16.0.1"
+    "eslint-config-next": "16.0.1",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2"
   }
 }
