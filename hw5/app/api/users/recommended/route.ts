@@ -18,13 +18,14 @@ export async function GET() {
     });
 
     const followingIds = following.map((f) => f.followingId);
+    // 將當前用戶 ID 也加入排除列表
+    const excludeIds = [...followingIds, uid];
 
     // 取得推薦用戶（排除自己和已關注的用戶，限制 5 個）
     const users = await prisma.user.findMany({
       where: {
-        id: { not: uid },
+        id: { notIn: excludeIds },
         userId: { not: null },
-        id: { notIn: followingIds },
       },
       take: 5,
       select: {
