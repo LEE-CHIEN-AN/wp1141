@@ -21,7 +21,9 @@
     "next-auth": "^5.0.0-beta.30",
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0",
-    "cloudinary": "^2.0.0"
+    "cloudinary": "^2.0.0",
+    "lucide-react": "^0.460.0",
+    "date-fns": "^4.1.0"
   },
   "devDependencies": {
     "typescript": "^5",
