@@ -32,5 +32,5 @@
     "**/*.mts",
     "setupTests.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "playwright.config.ts"]
 }
