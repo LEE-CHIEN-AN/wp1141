@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --sidebar-bg: #000000;
+  --sidebar-hover: #181818;
+  --post-button: #1DA1F2;
+  --post-button-hover: #1a8cd8;
+  --border-color: #2F3336;
+  --text-secondary: #71767A;
+  --hover-bg: #181818;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-noto-sans);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Noto Sans', 'Roboto', Arial, Helvetica, sans-serif;
+}
