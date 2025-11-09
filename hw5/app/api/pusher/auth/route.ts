@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getPusherServerInstance, getPostChannelName, isPusherMockEnabled } from '@/lib/pusher-server';
+import { getPusherServerInstance, isPusherMockEnabled } from '@/lib/pusher-server';
+import { getPostChannelName } from '@/lib/pusher-channels';
 
 function isChannelAllowed(channelName: string, uid: string) {
   if (channelName.startsWith('private-post-')) {
