@@ -353,7 +353,7 @@ export function HomePageClient({ user }: HomePageClientProps) {
           <div className="p-4 text-center">
             <p className="mb-4 text-red-400">{error}</p>
             <button
-              onClick={loadPosts}
+              onClick={() => loadPosts()}
               className="rounded-full bg-[#1DA1F2] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1a8cd8]"
             >
               重試
