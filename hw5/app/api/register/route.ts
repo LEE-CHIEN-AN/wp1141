@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth, update } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { userIdSchema } from '@/lib/validators/user';
 
@@ -24,15 +24,9 @@ export async function POST(req: Request) {
       data: { userId: parsed.data, profile: { upsert: { create: {}, update: {} } } },
     });
     
-    // 更新 session 中的 userId（即使失敗也不影響註冊流程）
-    try {
-      await update({
-        userId: user.userId,
-      });
-    } catch (updateError) {
-      console.error('Error updating session:', updateError);
-      // 即使 session 更新失敗，也繼續返回成功（因為資料庫已經更新了）
-    }
+    // 注意：在 NextAuth v5 中，session 更新通過 JWT callback 中的 trigger: 'update' 處理
+    // 如果需要立即更新 session，客戶端需要重新獲取 session
+    // 這裡我們只更新資料庫，session 會在下次請求時自動更新
     
     return NextResponse.json({ ok: true, userId: user.userId });
   } catch (e: any) {
