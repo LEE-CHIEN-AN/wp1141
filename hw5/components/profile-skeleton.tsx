@@ -1,6 +1,7 @@
 'use client';
 
 import { Skeleton } from './skeleton';
+import { PostSkeletonList } from './post-skeleton';
 
 export function ProfileSkeleton() {
   return (
