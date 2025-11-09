@@ -67,16 +67,14 @@ export default function LoginPage() {
       const provider = providers[0];
       setProviderHint(provider);
 
-      const result = await signIn(provider, {
+      // OAuth 流程通常會直接跳轉
+      await signIn(provider, {
         callbackUrl,
         userId: trimmed,
       });
 
-      // OAuth 流程通常會直接跳轉；若未跳轉、且返回錯誤，顯示提示
-      if (result && result.error) {
-        setError(result.error);
-        setIsLoading(false);
-      }
+      // 如果 signIn 沒有跳轉（例如發生錯誤），稍後會通過 useEffect 處理
+      // 這裡不需要檢查 result，因為 signIn 在 Next.js 16 中返回 void
     } catch (err) {
       console.error('Error resolving provider:', err);
       setError('系統暫時無法登入，請稍後再試');
