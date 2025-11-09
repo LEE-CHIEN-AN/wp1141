@@ -107,10 +107,10 @@ export function EditProfileModal({ user, onClose, onUpdate }: EditProfileModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-black border border-[#2F3336] shadow-xl">
+    <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black p-0 lg:bg-black/80 lg:p-4 overflow-y-auto">
+      <div className="relative w-full h-full lg:h-auto lg:max-h-[90vh] lg:max-w-2xl lg:rounded-2xl bg-black border-0 lg:border border-[#2F3336] shadow-xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#2F3336] px-6 py-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#2F3336] bg-black px-4 lg:px-6 py-4">
           <h2 className="text-xl font-bold text-white">Edit Profile</h2>
           <button
             onClick={onClose}
@@ -121,7 +121,7 @@ export function EditProfileModal({ user, onClose, onUpdate }: EditProfileModalPr
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 lg:p-6 pb-24 lg:pb-6">
           {/* Banner Upload */}
           <div className="mb-6">
             <label className="mb-2 block text-sm font-semibold text-white">Banner</label>
@@ -232,27 +232,29 @@ export function EditProfileModal({ user, onClose, onUpdate }: EditProfileModalPr
               onChange={(e) => setBio(e.target.value)}
               maxLength={280}
               rows={4}
-              className="w-full rounded-lg border border-[#2F3336] bg-[#202327] px-4 py-2 text-white placeholder:text-[#71767A] focus:border-[#1DA1F2] focus:outline-none focus:ring-2 focus:ring-[#1DA1F2]"
+              className="w-full rounded-lg border border-[#2F3336] bg-[#202327] px-4 py-2 text-white placeholder:text-[#71767A] focus:border-[#1DA1F2] focus:outline-none focus:ring-2 focus:ring-[#1DA1F2] resize-none"
             />
             <p className="mt-1 text-right text-sm text-[#71767A]">{bio.length}/280</p>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-[#2F3336] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#181818]"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading || isUploading}
-              className="rounded-lg bg-[#1DA1F2] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#1a8cd8] disabled:opacity-50"
-            >
-              {isLoading ? 'Saving...' : 'Save'}
-            </button>
+          {/* Actions - 固定在底部（手機端），確保在底部導航欄上方 */}
+          <div className="sticky bottom-0 left-0 right-0 bg-black border-t border-[#2F3336] -mx-4 lg:mx-0 lg:border-t-0 lg:static px-4 lg:px-0 py-4 lg:py-0 mt-auto mb-20 lg:mb-0 z-10 shadow-lg lg:shadow-none">
+            <div className="flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg border border-[#2F3336] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#181818]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || isUploading}
+                className="rounded-lg bg-[#1DA1F2] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#1a8cd8] disabled:opacity-50"
+              >
+                {isLoading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
