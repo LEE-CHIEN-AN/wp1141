@@ -41,18 +41,21 @@ export async function POST(req: Request) {
   const uid = (session as any).uid as string;
 
   try {
+    // 確保 content 至少是空字串（草稿可以為空）
+    const content = parsed.data.content ?? '';
+    
     // 如果提供了 draftId，則更新；否則創建新的
     if (body.draftId) {
       const draft = await prisma.draft.update({
         where: { id: body.draftId },
-        data: { content: parsed.data.content },
+        data: { content },
       });
       return NextResponse.json({ ok: true, draft });
     } else {
       const draft = await prisma.draft.create({
         data: {
           authorId: uid,
-          content: parsed.data.content,
+          content,
         },
       });
       return NextResponse.json({ ok: true, draft });
