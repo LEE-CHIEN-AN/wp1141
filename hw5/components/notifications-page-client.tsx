@@ -166,6 +166,9 @@ export function NotificationsPageClient({ user, initialType }: NotificationsPage
       case 'POST_COMMENT':
       case 'COMMENT_REPLY':
         return <MessageCircle className="h-5 w-5 text-[#1DA1F2]" />;
+      case 'POST_MENTION':
+      case 'COMMENT_MENTION':
+        return <MessageCircle className="h-5 w-5 text-[#1DA1F2]" />;
       default:
         return <MessageCircle className="h-5 w-5 text-[#71767A]" />;
     }
@@ -180,12 +183,16 @@ export function NotificationsPageClient({ user, initialType }: NotificationsPage
         return `${actorName} reposted your post`;
       case 'POST_COMMENT':
         return `${actorName} commented on your post`;
+      case 'POST_MENTION':
+        return `${actorName} mentioned you in a post`;
       case 'COMMENT_LIKE':
         return `${actorName} liked your comment`;
       case 'COMMENT_REPOST':
         return `${actorName} reposted your comment`;
       case 'COMMENT_REPLY':
         return `${actorName} replied to your comment`;
+      case 'COMMENT_MENTION':
+        return `${actorName} mentioned you in a comment`;
       default:
         return `${actorName} interacted with your content`;
     }

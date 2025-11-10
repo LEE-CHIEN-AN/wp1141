@@ -21,7 +21,7 @@ const URL_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+|ftp:\/\/[^\s]+)/gi;
 export const HASHTAG_REGEX = /#[\w\u4e00-\u9fa5]+/gi;
 
 // Mention 正則表達式（@ 後跟字母、數字、下劃線）
-const MENTION_REGEX = /@[\w\u4e00-\u9fa5]+/gi;
+export const MENTION_REGEX = /@[\w\u4e00-\u9fa5]+/gi;
 
 export function countPostCharacters(content: string): PostCountResult {
   if (!content) {

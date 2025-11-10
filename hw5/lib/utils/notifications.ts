@@ -132,6 +132,39 @@ export async function createCommentReplyNotification(
   }
 }
 
+/**
+ * 創建貼文 @mention 通知
+ */
+export async function createPostMentionNotification(
+  postId: string,
+  actorId: string,
+  mentionedUserIds: string[]
+) {
+  // 為每個被 @mention 的用戶創建通知
+  const notificationPromises = mentionedUserIds.map((userId) =>
+    createNotification(userId, 'POST_MENTION' as NotificationType, actorId, { postId })
+  );
+
+  await Promise.all(notificationPromises);
+}
+
+/**
+ * 創建留言 @mention 通知
+ */
+export async function createCommentMentionNotification(
+  commentId: string,
+  postId: string,
+  actorId: string,
+  mentionedUserIds: string[]
+) {
+  // 為每個被 @mention 的用戶創建通知
+  const notificationPromises = mentionedUserIds.map((userId) =>
+    createNotification(userId, 'COMMENT_MENTION' as NotificationType, actorId, { postId, commentId })
+  );
+
+  await Promise.all(notificationPromises);
+}
+
 
 
 

@@ -5,6 +5,7 @@ import { createPostSchema } from '@/lib/validators/post';
 import { countPostCharacters } from '@/lib/utils/post-counter';
 import { handleApiError, createErrorResponse } from '@/lib/utils/api-error-handler';
 import { triggerNewPostForFollowers } from '@/lib/pusher-server';
+import { createPostMentionNotification } from '@/lib/utils/notifications';
 
 // GET: 取得文章列表（首頁 feed）
 export async function GET(req: Request) {
@@ -254,6 +255,40 @@ export async function POST(req: Request) {
     } catch (error) {
       // 忽略通知錯誤，不影響貼文創建
       console.error('Error notifying followers:', error);
+    }
+
+    // 處理 @mention 通知
+    try {
+      const content = parsed.data.content ?? '';
+      const countResult = countPostCharacters(content);
+      const mentions = countResult.mentions || [];
+      
+      if (mentions.length > 0) {
+        // 提取所有 @mention 的 userId（移除 @ 符號）
+        const mentionedUserIds = mentions
+          .map((mention) => mention.substring(1)) // 移除 @
+          .filter((userId) => userId.trim() !== ''); // 過濾空字串
+
+        if (mentionedUserIds.length > 0) {
+          // 查詢這些 userId 對應的用戶 ID
+          const mentionedUsers = await prisma.user.findMany({
+            where: {
+              userId: { in: mentionedUserIds },
+            },
+            select: { id: true },
+          });
+
+          const mentionedUserIdsList = mentionedUsers.map((user) => user.id);
+
+          if (mentionedUserIdsList.length > 0) {
+            // 創建 @mention 通知
+            await createPostMentionNotification(post.id, uid, mentionedUserIdsList);
+          }
+        }
+      }
+    } catch (error) {
+      // 忽略 @mention 通知錯誤，不影響貼文創建
+      console.error('Error creating mention notifications:', error);
     }
 
     return NextResponse.json({ ok: true, post });

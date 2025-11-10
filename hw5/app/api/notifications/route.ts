@@ -35,14 +35,15 @@ export async function GET(req: Request) {
         verified: true,
       };
     } else if (type === 'mentions') {
-      // 只顯示提到用戶的通知（需要檢查 post.content 或 comment.content）
-      // 這個過濾會在查詢後進行，因為 Prisma 不支持在關聯的內容中進行文本搜索
-      where.userId = uid;
+      // 只顯示 @mention 通知（POST_MENTION 和 COMMENT_MENTION）
+      where.type = {
+        in: ['POST_MENTION', 'COMMENT_MENTION'],
+      };
     }
 
     const notifications = await prisma.notification.findMany({
       where,
-      take: type === 'mentions' ? limit * 2 : limit, // 對於 mentions，先獲取更多以便過濾
+      take: limit,
       orderBy: { createdAt: 'desc' },
       include: {
         actor: {
@@ -121,30 +122,7 @@ export async function GET(req: Request) {
       },
     });
 
-    // 對於 Mentions 類型，過濾出內容中包含 @userId 的通知
-    let filteredNotifications = notifications;
-    if (type === 'mentions' && currentUserId) {
-      const mentionRegex = new RegExp(`@${currentUserId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      filteredNotifications = notifications.filter((notification) => {
-        // 檢查 post 內容
-        if (notification.post?.content) {
-          if (mentionRegex.test(notification.post.content)) {
-            return true;
-          }
-        }
-        // 檢查 comment 內容
-        if (notification.comment?.content) {
-          if (mentionRegex.test(notification.comment.content)) {
-            return true;
-          }
-        }
-        return false;
-      });
-      // 限制返回數量
-      filteredNotifications = filteredNotifications.slice(0, limit);
-    }
-
-    return NextResponse.json({ ok: true, notifications: filteredNotifications });
+    return NextResponse.json({ ok: true, notifications });
   } catch (error) {
     return handleApiError(error);
   }
