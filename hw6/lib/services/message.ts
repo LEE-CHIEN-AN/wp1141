@@ -4,6 +4,7 @@ import {
   createTextMessage,
   createWelcomeMessage,
   createQuickReply,
+  createTextWithMenuOption,
   type LineMessage,
 } from "@/lib/utils/line-templates";
 import { CONVERSATION_CATEGORIES } from "@/config/conversation";
@@ -14,8 +15,9 @@ export async function processUserMessage(
   category?: ConversationCategory,
   conversationHistory?: Array<{ role: string; content: string }>
 ): Promise<LineMessage> {
-  // 處理特殊指令
-  if (userMessage === "選單" || userMessage === "menu" || userMessage === "功能") {
+  // 處理特殊指令（回主選單）
+  const menuKeywords = ["選單", "menu", "功能", "主選單", "返回", "回主選單", "重新開始"];
+  if (menuKeywords.some((keyword) => userMessage.includes(keyword))) {
     return createWelcomeMessage();
   }
 
@@ -34,8 +36,8 @@ export async function processUserMessage(
     const geminiResponse = await generateResponse({ prompt });
 
     if (geminiResponse.text && !geminiResponse.error) {
-      // 如果 Gemini 成功回應，直接使用
-      return createTextMessage(geminiResponse.text);
+      // 如果 Gemini 成功回應，加上回主選單選項
+      return createTextWithMenuOption(geminiResponse.text);
     }
 
     // 如果 Gemini 失敗，但使用者有提供訊息，嘗試理解簡單的回應
@@ -45,7 +47,7 @@ export async function processUserMessage(
       
       if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
         if (lowerMessage.includes("只有") || lowerMessage.includes("一個人") || lowerMessage.includes("個人")) {
-          return createTextMessage(`了解，這是您個人的網路問題。
+          return createTextWithMenuOption(`了解，這是您個人的網路問題。
 
 建議您：
 1. 檢查網路線和路由器連接是否正常
@@ -59,7 +61,7 @@ export async function processUserMessage(
         }
         
         if (lowerMessage.includes("多人") || lowerMessage.includes("好幾") || lowerMessage.includes("室友")) {
-          return createTextMessage(`了解，這是多人同時遇到的問題。
+          return createTextWithMenuOption(`了解，這是多人同時遇到的問題。
 
 這種情況可能是：
 1. 網路流量過大（多人共用同一條線路）
@@ -88,8 +90,10 @@ export async function processUserMessage(
     return createTextMessage(geminiResponse.text);
   }
 
-  // 降級到歡迎訊息
-  return createWelcomeMessage();
+    // 降級到歡迎訊息（帶有回主選單選項）
+    return createTextWithMenuOption(
+      "抱歉，我無法理解您的問題。\n\n請選擇以下選項，或點選「回主選單」重新開始：\n\n1. 網路連線問題\n2. 資安事件處理\n3. 登入問題\n4. 其他問題"
+    );
 }
 
 function getDefaultResponseForCategory(
@@ -100,21 +104,21 @@ function getDefaultResponseForCategory(
       return createQuickReply(DEFAULT_RESPONSES.NETWORK_ISSUE, [
         { label: "多人問題", data: "network:multiple" },
         { label: "個人問題", data: "network:single" },
-        { label: "返回選單", data: "menu" },
+        { label: "📋 回主選單", data: "menu" },
       ]);
 
     case CONVERSATION_CATEGORIES.SECURITY_INCIDENT:
-      return createTextMessage(DEFAULT_RESPONSES.SECURITY_INCIDENT);
+      return createTextWithMenuOption(DEFAULT_RESPONSES.SECURITY_INCIDENT);
 
     case CONVERSATION_CATEGORIES.REGISTRATION:
       return createQuickReply(DEFAULT_RESPONSES.REGISTRATION, [
         { label: "確認網段", data: "registration:check_segment" },
         { label: "MAC 地址問題", data: "registration:mac" },
-        { label: "返回選單", data: "menu" },
+        { label: "📋 回主選單", data: "menu" },
       ]);
 
     default:
-      return createTextMessage(DEFAULT_RESPONSES.FALLBACK);
+      return createTextWithMenuOption(DEFAULT_RESPONSES.FALLBACK);
   }
 }
 

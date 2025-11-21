@@ -108,6 +108,26 @@ export async function POST(request: NextRequest) {
         console.error("Error fetching user profile:", error);
       }
 
+      // 處理 Follow Event（使用者加好友時）
+      if (event.type === "follow") {
+        const { createWelcomeMessage } = await import("@/lib/utils/line-templates");
+        const { handleLineMessage } = await import("@/lib/bottender/handlers");
+        
+        // 使用 handleLineMessage 來處理，這樣會正確儲存訊息
+        const messages = await handleLineMessage({
+          userId,
+          displayName,
+          pictureUrl,
+          message: "__WELCOME__", // 特殊標記，表示這是歡迎訊息
+          postbackData: "menu", // 觸發主選單
+        });
+        
+        if (event.replyToken) {
+          await replyToLine(event.replyToken, messages as any);
+        }
+        continue;
+      }
+
       if (event.type === "message" && event.message.type === "text") {
         const messages = await handleLineMessage({
           userId,

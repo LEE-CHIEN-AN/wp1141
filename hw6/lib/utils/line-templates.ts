@@ -69,37 +69,117 @@ export function createTextMessage(text: string): LineTextMessage {
   };
 }
 
+/**
+ * 建立主選單（歡迎訊息）
+ * 使用 Button Template 呈現服務項目
+ */
 export function createWelcomeMessage(): LineButtonTemplate {
   return {
     type: "template",
-    altText: "功能選單",
+    altText: "主選單 - 台大宿舍網管助手",
     template: {
       type: "buttons",
-      text: "您好！我是台大宿舍管理助手，請選擇您要協助的服務。",
+      text: "您好！我是台大宿舍網管助手 👋\n\n我可以協助您解決以下問題：\n\n• 網路連線相關問題\n• 資安事件處理\n• 宿舍網路註冊與登入\n• 其他網路相關疑問\n\n請選擇您需要的服務：",
       actions: [
         {
           type: "postback",
-          label: "網路連線問題",
+          label: "🌐 網路連線問題",
           data: "category:network",
           displayText: "網路連線問題",
         },
         {
           type: "postback",
-          label: "資安事件",
+          label: "🔒 資安事件",
           data: "category:security",
           displayText: "資安事件",
         },
         {
           type: "postback",
-          label: "登入問題",
+          label: "🔑 登入問題",
           data: "category:registration",
           displayText: "登入問題",
         },
         {
           type: "postback",
-          label: "其他問題",
+          label: "❓ 其他問題",
           data: "category:other",
           displayText: "其他問題",
+        },
+      ],
+    },
+  };
+}
+
+/**
+ * 建立主選單（使用 Carousel 呈現，更詳細的說明）
+ */
+export function createWelcomeCarousel(): LineCarouselTemplate {
+  return {
+    type: "template",
+    altText: "主選單 - 台大宿舍網管助手",
+    template: {
+      type: "carousel",
+      columns: [
+        {
+          title: "🌐 網路連線問題",
+          text: "協助解決網路相關問題\n\n• 無法連線\n• 網速過慢\n• 網路瞬斷\n• 多人共用問題",
+          actions: [
+            {
+              type: "postback",
+              label: "選擇此服務",
+              data: "category:network",
+              displayText: "網路連線問題",
+            },
+          ],
+        },
+        {
+          title: "🔒 資安事件",
+          text: "協助處理資安相關問題\n\n• 帳號被封鎖\n• 掃毒處理\n• 惡意軟體移除\n• 安全檢查",
+          actions: [
+            {
+              type: "postback",
+              label: "選擇此服務",
+              data: "category:security",
+              displayText: "資安事件",
+            },
+          ],
+        },
+        {
+          title: "🔑 登入問題",
+          text: "協助解決註冊與登入問題\n\n• 無法註冊\n• MAC 地址設定\n• 路由器配置\n• 網段問題",
+          actions: [
+            {
+              type: "postback",
+              label: "選擇此服務",
+              data: "category:registration",
+              displayText: "登入問題",
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+/**
+ * 建立帶有「回主選單」選項的文字訊息
+ */
+export function createTextWithMenuOption(
+  text: string
+): LineQuickReply {
+  return {
+    type: "text",
+    text,
+    quickReply: {
+      items: [
+        {
+          type: "action",
+          action: {
+            type: "postback",
+            label: "📋 回主選單",
+            data: "menu",
+            displayText: "回主選單",
+          },
         },
       ],
     },

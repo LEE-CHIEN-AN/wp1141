@@ -42,6 +42,13 @@ export async function handleLineMessage(
       return await handlePostback(context.postbackData, conversation._id);
     }
 
+    // 處理歡迎訊息（特殊標記）
+    if (context.message === "__WELCOME__") {
+      const welcomeMsg = createWelcomeMessage();
+      await saveMessage(conversation._id, "assistant", "歡迎使用台大宿舍網管助手！");
+      return [welcomeMsg];
+    }
+
     // 儲存使用者訊息
     await saveMessage(
       conversation._id,
@@ -91,7 +98,14 @@ async function handlePostback(
   const { type, value } = parsePostbackData(data);
 
   if (type === "menu") {
-    return [createWelcomeMessage()];
+    // 回主選單時，清除對話類別，讓使用者可以重新選擇
+    await updateConversation(conversationId.toString(), { 
+      category: undefined,
+      status: "active"
+    });
+    const welcomeMsg = createWelcomeMessage();
+    await saveMessage(conversationId, "assistant", "主選單");
+    return [welcomeMsg];
   }
 
   if (type === "category") {
