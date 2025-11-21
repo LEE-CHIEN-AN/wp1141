@@ -1,0 +1,60 @@
+# 台大宿舍網管 Line Chatbot
+
+整合 Line Messaging API 與 Gemini API 的智慧問答機器人系統。
+
+## 技術棧
+
+- Next.js 16+ (App Router) + TypeScript
+- Line Messaging API (直接整合)
+- Google Gemini API
+- MongoDB Atlas + Mongoose
+- NextAuth.js (管理後台身份驗證)
+- SWR (資料獲取與 Polling)
+- Tailwind CSS
+
+## 環境變數設定
+
+複製 `env.example` 為 `.env` 並填入以下變數：
+
+**方式一：** 複製 `env.example` 檔案並重新命名為 `.env`
+**方式二：** 手動建立 `.env` 檔案並參考以下變數：
+
+- `LINE_CHANNEL_ACCESS_TOKEN`: Line Channel Access Token
+- `LINE_CHANNEL_SECRET`: Line Channel Secret
+- `GEMINI_API_KEY`: Google Gemini API Key
+- `MONGODB_URI`: MongoDB Atlas 連線字串
+- `NEXTAUTH_SECRET`: NextAuth 密鑰（可用 `openssl rand -base64 32` 生成）
+- `ADMIN_EMAIL`: 管理後台登入帳號
+- `ADMIN_PASSWORD`: 管理後台登入密碼
+
+## 安裝與執行
+
+```bash
+# 安裝依賴
+yarn install
+
+# 開發模式
+yarn dev
+
+# 建置
+yarn build
+
+# 生產模式
+yarn start
+```
+
+## 部署
+
+專案已配置 Vercel 部署，將程式碼推送到 GitHub 後，Vercel 會自動部署。
+
+## 專案結構
+
+- `app/api/line/webhook/`: Line webhook 端點
+- `app/admin/`: 管理後台
+- `lib/bottender/`: 訊息處理邏輯（直接使用 Line Messaging API）
+- `lib/gemini/`: Gemini API 客戶端
+- `lib/db/`: MongoDB 模型與連線
+- `lib/services/`: 業務邏輯層
+- `config/`: 配置檔案
+
+
