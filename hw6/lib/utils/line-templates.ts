@@ -16,6 +16,7 @@ export interface LineButtonTemplate {
       label: string;
       data?: string;
       text?: string;
+      displayText?: string;
     }>;
   };
 }
@@ -33,6 +34,7 @@ export interface LineCarouselTemplate {
         label: string;
         data?: string;
         text?: string;
+        displayText?: string;
       }>;
     }>;
   };
