@@ -9,12 +9,14 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const conversation = await Conversation.findById(params.id)
+    const { id } = await params;
+
+    const conversation = await Conversation.findById(id)
       .populate("userId", "displayName lineUserId pictureUrl")
       .lean();
 
@@ -26,7 +28,7 @@ export async function GET(
     }
 
     const messages = await Message.find({
-      conversationId: params.id,
+      conversationId: id,
     })
       .sort({ createdAt: 1 })
       .lean();
