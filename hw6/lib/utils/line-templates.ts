@@ -72,7 +72,7 @@ export function createTextMessage(text: string): LineTextMessage {
 
 /**
  * 建立主選單（歡迎訊息）
- * 使用 Button Template 呈現服務項目
+ * 使用 Button Template 呈現核心功能
  */
 export function createWelcomeMessage(): LineButtonTemplate {
   return {
@@ -80,31 +80,31 @@ export function createWelcomeMessage(): LineButtonTemplate {
     altText: "主選單 - 台大宿舍網管助手",
     template: {
       type: "buttons",
-      text: "您好！我是台大宿舍網管助手 👋\n\n我可以協助您解決以下問題：\n\n• 網路連線相關問題\n• 資安事件處理\n• 宿舍網路註冊與登入\n• 其他網路相關疑問\n\n請選擇您需要的服務：",
+      text: "您好！我是台大宿舍網管助手 👋\n\n我可以協助您解決宿舍網路相關問題，請選擇您需要的服務：",
       actions: [
         {
           type: "postback",
-          label: "🌐 網路連線問題",
-          data: "category:network",
-          displayText: "網路連線問題",
+          label: "🚫 無法上網",
+          data: "action:connection_troubleshoot",
+          displayText: "無法上網",
         },
         {
           type: "postback",
-          label: "🔒 資安事件",
-          data: "category:security",
-          displayText: "資安事件",
+          label: "📝 如何註冊",
+          data: "action:registration_guide",
+          displayText: "如何註冊",
         },
         {
           type: "postback",
-          label: "🔑 登入問題",
-          data: "category:registration",
-          displayText: "登入問題",
+          label: "🐢 網速很慢",
+          data: "action:speed_check",
+          displayText: "網速很慢",
         },
         {
           type: "postback",
-          label: "❓ 其他問題",
-          data: "category:other",
-          displayText: "其他問題",
+          label: "📞 聯絡網管",
+          data: "action:contact",
+          displayText: "聯絡網管",
         },
       ],
     },
