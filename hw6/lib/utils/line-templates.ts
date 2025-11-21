@@ -75,7 +75,7 @@ export function createWelcomeMessage(): LineButtonTemplate {
     altText: "功能選單",
     template: {
       type: "buttons",
-      text: "您好！我是台大宿舍網管助手，請選擇您需要的服務：",
+      text: "您好！我是台大宿舍管理助手，請選擇您要協助的服務。",
       actions: [
         {
           type: "postback",
@@ -91,9 +91,9 @@ export function createWelcomeMessage(): LineButtonTemplate {
         },
         {
           type: "postback",
-          label: "註冊問題",
+          label: "登入問題",
           data: "category:registration",
-          displayText: "註冊問題",
+          displayText: "登入問題",
         },
         {
           type: "postback",

@@ -19,11 +19,11 @@ export async function processUserMessage(
     return createWelcomeMessage();
   }
 
-  // 如果有分類，使用對應的預設回應或 Gemini
+  // 如果有分類，優先使用 Gemini 來理解使用者的回應
   if (category) {
     const context = conversationHistory
       ? conversationHistory
-          .slice(-5)
+          .slice(-10) // 增加上下文長度
           .map((msg) => `${msg.role}: ${msg.content}`)
           .join("\n")
       : undefined;
@@ -34,10 +34,49 @@ export async function processUserMessage(
     const geminiResponse = await generateResponse({ prompt });
 
     if (geminiResponse.text && !geminiResponse.error) {
+      // 如果 Gemini 成功回應，直接使用
       return createTextMessage(geminiResponse.text);
     }
 
-    // 降級到預設腳本
+    // 如果 Gemini 失敗，但使用者有提供訊息，嘗試理解簡單的回應
+    if (userMessage && userMessage.trim().length > 0) {
+      // 簡單的關鍵字匹配作為降級方案
+      const lowerMessage = userMessage.toLowerCase();
+      
+      if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
+        if (lowerMessage.includes("只有") || lowerMessage.includes("一個人") || lowerMessage.includes("個人")) {
+          return createTextMessage(`了解，這是您個人的網路問題。
+
+建議您：
+1. 檢查網路線和路由器連接是否正常
+2. 嘗試重新啟動路由器
+3. 如果問題持續，可以使用 PingInfoView 工具檢測網路連線狀況
+
+如需進一步協助，請提供：
+- 問題發生的時間
+- 是否使用路由器
+- 其他裝置（手機、平板）是否也有相同問題`);
+        }
+        
+        if (lowerMessage.includes("多人") || lowerMessage.includes("好幾") || lowerMessage.includes("室友")) {
+          return createTextMessage(`了解，這是多人同時遇到的問題。
+
+這種情況可能是：
+1. 網路流量過大（多人共用同一條線路）
+2. 路由器負載過高
+3. 網路設備異常
+
+建議：
+- 可以嘗試錄製封包分析，找出問題根源
+- 檢查是否有特定時段特別嚴重
+- 聯繫網管協助進一步排查
+
+如需協助，請提供更多詳細資訊。`);
+        }
+      }
+    }
+
+    // 如果都無法處理，降級到預設腳本
     return getDefaultResponseForCategory(category);
   }
 
