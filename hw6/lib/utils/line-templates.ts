@@ -51,6 +51,7 @@ export interface LineQuickReply {
         label: string;
         data?: string;
         text?: string;
+        displayText?: string;
       };
     }>;
   };
