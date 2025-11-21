@@ -17,13 +17,13 @@ export const authConfig: NextAuthConfig = {
         const adminEmail = process.env.ADMIN_EMAIL;
         const adminPassword = process.env.ADMIN_PASSWORD;
 
-        if (
-          credentials.email === adminEmail &&
-          credentials.password === adminPassword
-        ) {
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
+        if (email === adminEmail && password === adminPassword) {
           return {
             id: "admin",
-            email: credentials.email,
+            email: email,
             name: "Admin",
           };
         }
