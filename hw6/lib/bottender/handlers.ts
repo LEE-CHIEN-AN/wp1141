@@ -104,6 +104,16 @@ export async function handleLineMessage(
           await saveMessage(conversation._id, "assistant", getMessageText(response));
           return [response];
         }
+        
+        // 如果關鍵字沒有匹配，且處於 step1 狀態，提示使用者使用按鈕
+        // 避免進入 processUserMessage 導致重複問問題
+        if (conversationStep === "network:step1") {
+          const { createConnectionTroubleshootNode } = await import("@/lib/services/conversation-nodes");
+          const response = createConnectionTroubleshootNode();
+          // 保持 step1 狀態，不更新
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
       }
       
       // 處理第二個問題的回答（完全無法連線還是會斷斷續續？）
@@ -129,6 +139,16 @@ export async function handleLineMessage(
             category,
             metadata: {}
           });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+        
+        // 如果關鍵字沒有匹配，且處於 step2 狀態，重新顯示第二個問題
+        // 避免進入 processUserMessage 導致重複問問題
+        if (conversationStep.startsWith("network:step2")) {
+          const { createSingleUserQuestion2Node } = await import("@/lib/services/conversation-nodes");
+          const response = createSingleUserQuestion2Node();
+          // 保持 step2 狀態，不更新
           await saveMessage(conversation._id, "assistant", getMessageText(response));
           return [response];
         }
