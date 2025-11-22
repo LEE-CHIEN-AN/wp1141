@@ -380,6 +380,7 @@ export function createButtonWithUri(
       altText || text.substring(0, 40),
       [
         {
+          type: "bubble",
           body: {
             type: "box",
             layout: "vertical",
@@ -463,6 +464,7 @@ export function createButtonWithMultipleUris(
       altText || text.substring(0, 40),
       [
         {
+          type: "bubble",
           body: {
             type: "box",
             layout: "vertical",

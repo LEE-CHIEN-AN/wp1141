@@ -497,6 +497,7 @@ export function createRegistrationTypeSelectionNode(): LineButtonTemplate {
 export function createFirstTimeRegistrationPrepNode(): LineFlexMessage {
   return createFlexMessage("第一次註冊 - 前置準備檢查清單", [
     {
+      type: "bubble",
       header: {
         type: "box",
         layout: "vertical",
@@ -534,6 +535,7 @@ export function createFirstTimeRegistrationPrepNode(): LineFlexMessage {
       },
     },
     {
+      type: "bubble",
       header: {
         type: "box",
         layout: "vertical",
@@ -571,6 +573,7 @@ export function createFirstTimeRegistrationPrepNode(): LineFlexMessage {
       },
     },
     {
+      type: "bubble",
       header: {
         type: "box",
         layout: "vertical",
