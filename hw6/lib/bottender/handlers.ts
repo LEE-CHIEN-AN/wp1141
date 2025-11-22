@@ -316,27 +316,40 @@ async function handlePostback(
         // 📝 如何註冊 - 宿網註冊教學（節點 10）
         category = CONVERSATION_CATEGORIES.REGISTRATION;
         response = ConversationNodes.createRegistrationTypeSelectionNode();
+        // 清除對話狀態，避免影響後續處理
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: {}
+        });
         break;
 
       case "speed_check":
         // 🐢 網速很慢 - 網速與流量查詢（節點 20）
         category = CONVERSATION_CATEGORIES.NETWORK_ISSUE;
         response = ConversationNodes.createSpeedCheckNode();
+        // 清除對話狀態，避免影響後續處理
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: {}
+        });
         break;
 
       case "contact":
         // 📞 聯絡網管（節點 30）
         response = ConversationNodes.createContactNode();
+        // 清除對話狀態，避免影響後續處理
+        await updateConversation(conversationId.toString(), { 
+          category: undefined,
+          metadata: {}
+        });
         break;
 
       default:
         response = createWelcomeMessage();
     }
 
-    // 更新對話類別（如果有）
-    if (category) {
-      await updateConversation(conversationId.toString(), { category });
-    }
+    // 更新對話類別（如果還沒有在 switch 中更新）
+    // 注意：所有 action 都已經在 switch 中更新了狀態，這裡不需要再次更新
 
     await saveMessage(conversationId, "assistant", getMessageText(response));
     return [response];
