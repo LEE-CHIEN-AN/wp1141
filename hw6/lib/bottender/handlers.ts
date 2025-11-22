@@ -68,6 +68,40 @@ export async function handleLineMessage(
       category = conversation.category as ConversationCategory;
     }
 
+    // 檢查對話狀態（metadata.step）
+    const conversationStep = conversation.metadata?.step as string | undefined;
+
+    // 如果有對話狀態，優先處理逐步詢問流程
+    if (conversationStep && conversationStep.startsWith("network:step2")) {
+      // 在第二個問題階段，處理使用者的回答
+      const lowerMessage = context.message.toLowerCase();
+      
+      if (lowerMessage.includes("完全無法") || lowerMessage.includes("完全連不上") ||
+          lowerMessage.includes("完全不能") || lowerMessage === "完全無法連線") {
+        // 完全無法連線 → 顯示檢查清單
+        const { createNoConnectionChecklistNode } = await import("@/lib/services/conversation-nodes");
+        const response = createNoConnectionChecklistNode();
+        await updateConversation(conversation._id.toString(), { 
+          category,
+          metadata: {}
+        });
+        await saveMessage(conversation._id, "assistant", getMessageText(response));
+        return [response];
+      } else if (lowerMessage.includes("斷斷續續") || lowerMessage.includes("會斷") ||
+                 lowerMessage.includes("網速慢") || lowerMessage.includes("很慢") ||
+                 lowerMessage.includes("瞬斷")) {
+        // 會斷斷續續/網速慢 → 提供 PingInfoView 教學
+        const { createSingleUserPingInfoViewNode } = await import("@/lib/services/conversation-nodes");
+        const response = createSingleUserPingInfoViewNode();
+        await updateConversation(conversation._id.toString(), { 
+          category,
+          metadata: {}
+        });
+        await saveMessage(conversation._id, "assistant", getMessageText(response));
+        return [response];
+      }
+    }
+
     // 取得對話歷史
     const history = await getConversationMessages(conversation._id.toString());
     const conversationHistory = history.map((msg) => ({
@@ -160,30 +194,80 @@ async function handlePostback(
     let response: LineMessage;
     let category: ConversationCategory | undefined = CONVERSATION_CATEGORIES.NETWORK_ISSUE;
 
-    switch (value) {
-      case "multiple":
+    // 處理逐步詢問流程
+    if (value?.startsWith("step1:")) {
+      // 第一個問題的回答
+      const answer = value.split(":")[1]; // "multiple" 或 "single"
+      
+      if (answer === "multiple") {
+        // 多人問題 → 直接提供錄封包流程
         response = ConversationNodes.createMultipleUsersPacketCaptureNode();
-        break;
-      case "single":
-        response = ConversationNodes.createSingleUserPingInfoViewNode();
-        break;
-      case "no_connection":
-        response = ConversationNodes.createNoConnectionChecklistNode();
-        break;
-      case "hardware_detail":
-        response = ConversationNodes.createHardwareCheckDetailNode();
-        break;
-      case "ip_setting_detail":
-        response = ConversationNodes.createIpSettingDetailNode();
-        break;
-      case "pinginfo_screenshot":
-        response = ConversationNodes.createPingInfoScreenshotGuideNode();
-        break;
-      case "check_blocked":
-        response = ConversationNodes.createNoConnectionChecklistNode();
-        break;
-      default:
+        // 清除對話狀態
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: undefined }
+        });
+      } else if (answer === "single") {
+        // 個人問題 → 問第二個問題
+        response = ConversationNodes.createSingleUserQuestion2Node();
+        // 儲存對話狀態
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: "network:step2", answer1: "single" }
+        });
+      } else {
         response = ConversationNodes.createConnectionTroubleshootNode();
+      }
+    } else if (value?.startsWith("step2:")) {
+      // 第二個問題的回答
+      const answer = value.split(":")[1]; // "no_connection" 或 "intermittent"
+      
+      if (answer === "no_connection") {
+        // 完全無法連線 → 顯示檢查清單
+        response = ConversationNodes.createNoConnectionChecklistNode();
+        // 清除對話狀態
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: undefined }
+        });
+      } else if (answer === "intermittent") {
+        // 會斷斷續續/網速慢 → 提供 PingInfoView 教學
+        response = ConversationNodes.createSingleUserPingInfoViewNode();
+        // 清除對話狀態
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: undefined }
+        });
+      } else {
+        response = ConversationNodes.createSingleUserQuestion2Node();
+      }
+    } else {
+      // 其他網路相關節點（向後兼容）
+      switch (value) {
+        case "multiple":
+          response = ConversationNodes.createMultipleUsersPacketCaptureNode();
+          break;
+        case "single":
+          response = ConversationNodes.createSingleUserPingInfoViewNode();
+          break;
+        case "no_connection":
+          response = ConversationNodes.createNoConnectionChecklistNode();
+          break;
+        case "hardware_detail":
+          response = ConversationNodes.createHardwareCheckDetailNode();
+          break;
+        case "ip_setting_detail":
+          response = ConversationNodes.createIpSettingDetailNode();
+          break;
+        case "pinginfo_screenshot":
+          response = ConversationNodes.createPingInfoScreenshotGuideNode();
+          break;
+        case "check_blocked":
+          response = ConversationNodes.createNoConnectionChecklistNode();
+          break;
+        default:
+          response = ConversationNodes.createConnectionTroubleshootNode();
+      }
     }
 
     await updateConversation(conversationId.toString(), { category });

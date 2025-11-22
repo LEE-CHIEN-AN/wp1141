@@ -11,15 +11,31 @@ import {
 import { DEFAULT_RESPONSES } from "@/lib/gemini/prompts";
 
 /**
- * 節點 2：無法上網 - 問題分類
+ * 節點 2：無法上網 - 第一個問題（是多人還是個人？）
  */
 export function createConnectionTroubleshootNode(): LineMessage {
-  return createQuickReply(DEFAULT_RESPONSES.CONNECTION_TROUBLESHOOT, [
-    { label: "多人問題", data: "network:multiple", displayText: "多人問題" },
-    { label: "個人問題", data: "network:single", displayText: "個人問題" },
-    { label: "完全無法連線", data: "network:no_connection", displayText: "完全無法連線" },
-    { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
-  ]);
+  return createQuickReply(
+    `🚫 無法上網 - 連線故障排除\n\n請告訴我：\n\n是多人同時遇到問題，還是只有您一個人？`,
+    [
+      { label: "多人問題", data: "network:step1:multiple", displayText: "多人問題" },
+      { label: "只有我一個人", data: "network:step1:single", displayText: "只有我一個人" },
+      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+    ]
+  );
+}
+
+/**
+ * 節點 2-1：個人問題 - 第二個問題（是完全無法連線還是會斷斷續續？）
+ */
+export function createSingleUserQuestion2Node(): LineMessage {
+  return createQuickReply(
+    `了解，這是您個人的網路問題。\n\n請告訴我：\n\n是完全無法連線，還是會斷斷續續或網速很慢？`,
+    [
+      { label: "完全無法連線", data: "network:step2:no_connection", displayText: "完全無法連線" },
+      { label: "會斷斷續續/網速慢", data: "network:step2:intermittent", displayText: "會斷斷續續/網速慢" },
+      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+    ]
+  );
 }
 
 /**

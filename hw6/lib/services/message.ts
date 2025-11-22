@@ -71,9 +71,9 @@ export async function processUserMessage(
             lowerMessage.includes("只有我") || lowerMessage.includes("只有我一個人") ||
             lowerMessage.includes("個人") || lowerMessage === "個人" ||
             lowerMessage.includes("我自己") || lowerMessage.includes("個人問題")) {
-          // 導入節點處理函數
-          const { createSingleUserPingInfoViewNode } = await import("./conversation-nodes");
-          return createSingleUserPingInfoViewNode();
+          // 導入節點處理函數 - 問第二個問題
+          const { createSingleUserQuestion2Node } = await import("./conversation-nodes");
+          return createSingleUserQuestion2Node();
         }
         
         // 多人問題關鍵字
@@ -85,12 +85,21 @@ export async function processUserMessage(
           return createMultipleUsersPacketCaptureNode();
         }
         
-        // 完全無法連線關鍵字
+        // 完全無法連線關鍵字（在第二個問題時）
         if (lowerMessage.includes("完全無法") || lowerMessage === "完全無法連線" ||
             lowerMessage.includes("完全連不上") || lowerMessage.includes("完全不能")) {
           // 導入節點處理函數
           const { createNoConnectionChecklistNode } = await import("./conversation-nodes");
           return createNoConnectionChecklistNode();
+        }
+        
+        // 斷斷續續/網速慢關鍵字（在第二個問題時）
+        if (lowerMessage.includes("斷斷續續") || lowerMessage.includes("會斷") ||
+            lowerMessage.includes("網速慢") || lowerMessage.includes("很慢") ||
+            lowerMessage.includes("瞬斷")) {
+          // 導入節點處理函數
+          const { createSingleUserPingInfoViewNode } = await import("./conversation-nodes");
+          return createSingleUserPingInfoViewNode();
         }
       }
       
