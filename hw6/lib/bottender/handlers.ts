@@ -349,16 +349,18 @@ function getMessageText(message: LineMessage): string {
     return message.text;
   }
   if (message.type === "template") {
-    if ("altText" in message) {
-      return message.altText;
-    }
-    // Carousel template
-    if ("columns" in message.template) {
-      return message.altText || "選單選項";
-    }
-    // Button template
-    if ("text" in message.template) {
-      return message.template.text || message.altText;
+    // 確保 message 有 altText 屬性
+    const templateMessage = message as { altText: string; template: any };
+    if (templateMessage.altText) {
+      // Carousel template
+      if ("columns" in templateMessage.template) {
+        return templateMessage.altText || "選單選項";
+      }
+      // Button template
+      if ("text" in templateMessage.template) {
+        return templateMessage.template.text || templateMessage.altText;
+      }
+      return templateMessage.altText;
     }
   }
   return "";
