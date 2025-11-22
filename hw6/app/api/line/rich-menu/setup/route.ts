@@ -115,7 +115,7 @@ async function uploadRichMenuImage(richMenuId: string, imageUrl: string) {
   }
 
   // 如果是 URL，先下載圖片
-  let imageBuffer: ArrayBuffer;
+  let imageBuffer: ArrayBuffer | Buffer;
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
