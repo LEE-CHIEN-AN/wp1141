@@ -80,12 +80,12 @@ export async function handleLineMessage(
             lowerMessage.includes("只有我") || lowerMessage.includes("只有我一個人") ||
             lowerMessage.includes("個人") || lowerMessage === "個人" ||
             lowerMessage.includes("我自己") || lowerMessage.includes("個人問題")) {
-          // 個人問題 → 問第二個問題
-          const { createSingleUserQuestion2Node } = await import("@/lib/services/conversation-nodes");
-          const response = createSingleUserQuestion2Node();
+          // 個人問題 → 詢問連接方式
+          const { createSingleUserConnectionTypeNode } = await import("@/lib/services/conversation-nodes");
+          const response = createSingleUserConnectionTypeNode();
           await updateConversation(conversation._id.toString(), { 
             category,
-            metadata: { step: "network:step2", answer1: "single" }
+            metadata: { step: "network:conn_type", answer1: "single" }
           });
           await saveMessage(conversation._id, "assistant", getMessageText(response));
           return [response];
@@ -94,12 +94,12 @@ export async function handleLineMessage(
         if (lowerMessage.includes("多人") || lowerMessage === "多人" ||
             lowerMessage === "多人問題" || lowerMessage.includes("好幾") ||
             lowerMessage.includes("室友") || lowerMessage.includes("大家一起")) {
-          // 多人問題 → 直接提供錄封包流程
-          const { createMultipleUsersPacketCaptureNode } = await import("@/lib/services/conversation-nodes");
-          const response = createMultipleUsersPacketCaptureNode();
+          // 多人問題 → 詢問路由器
+          const { createMultipleUsersRouterCheckNode } = await import("@/lib/services/conversation-nodes");
+          const response = createMultipleUsersRouterCheckNode();
           await updateConversation(conversation._id.toString(), { 
             category,
-            metadata: {}
+            metadata: { step: "network:multi:router_check" }
           });
           await saveMessage(conversation._id, "assistant", getMessageText(response));
           return [response];
@@ -111,6 +111,101 @@ export async function handleLineMessage(
           const { createConnectionTroubleshootNode } = await import("@/lib/services/conversation-nodes");
           const response = createConnectionTroubleshootNode();
           // 保持 step1 狀態，不更新
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+      }
+      
+      // 處理連接方式判定後的回答
+      if (conversationStep === "network:conn_type") {
+        if (lowerMessage.includes("路由器") || lowerMessage.includes("wifi") || 
+            lowerMessage.includes("無線") || lowerMessage.includes("分享器")) {
+          // 路由器 → 路由器排查流程
+          const { createRouterTroubleshootNode } = await import("@/lib/services/conversation-nodes");
+          const response = createRouterTroubleshootNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: { step: "network:router:troubleshoot" }
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        } else if (lowerMessage.includes("直接") || lowerMessage.includes("插線") || 
+                   lowerMessage.includes("有線") || lowerMessage.includes("網路線") ||
+                   lowerMessage.includes("電腦") || lowerMessage.includes("直連")) {
+          // 電腦直連 → 症狀診斷 Carousel
+          const { createDirectConnectionSymptomNode } = await import("@/lib/services/conversation-nodes");
+          const response = createDirectConnectionSymptomNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: {}
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+        
+        // 如果關鍵字沒有匹配，重新顯示連接方式選擇
+        if (conversationStep === "network:conn_type") {
+          const { createSingleUserConnectionTypeNode } = await import("@/lib/services/conversation-nodes");
+          const response = createSingleUserConnectionTypeNode();
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+      }
+      
+      // 處理多人問題路由器檢查的回答
+      if (conversationStep === "network:multi:router_check") {
+        if (lowerMessage.includes("恢復") || lowerMessage.includes("可以了") || 
+            lowerMessage.includes("好了") || lowerMessage.includes("正常")) {
+          // 路由器問題已解決
+          const { createMultipleUsersRouterResolvedNode } = await import("@/lib/services/conversation-nodes");
+          const response = createMultipleUsersRouterResolvedNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: {}
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        } else if (lowerMessage.includes("不行") || lowerMessage.includes("還是不行") ||
+                   lowerMessage.includes("無效") || lowerMessage.includes("報修")) {
+          // 引導報修/錄封包
+          const { createMultipleUsersReportNode } = await import("@/lib/services/conversation-nodes");
+          const response = createMultipleUsersReportNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: {}
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+        
+        // 如果關鍵字沒有匹配，重新顯示路由器檢查問題
+        if (conversationStep === "network:multi:router_check") {
+          const { createMultipleUsersRouterCheckNode } = await import("@/lib/services/conversation-nodes");
+          const response = createMultipleUsersRouterCheckNode();
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+      }
+      
+      // 處理路由器排查的回答
+      if (conversationStep === "network:router:troubleshoot") {
+        if (lowerMessage.includes("可以了") || lowerMessage.includes("好了") || 
+            lowerMessage.includes("恢復") || lowerMessage.includes("正常")) {
+          // 路由器問題已解決
+          const { createRouterFixedNode } = await import("@/lib/services/conversation-nodes");
+          const response = createRouterFixedNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: {}
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+        
+        // 如果關鍵字沒有匹配，重新顯示路由器排查步驟
+        if (conversationStep === "network:router:troubleshoot") {
+          const { createRouterTroubleshootNode } = await import("@/lib/services/conversation-nodes");
+          const response = createRouterTroubleshootNode();
           await saveMessage(conversation._id, "assistant", getMessageText(response));
           return [response];
         }
@@ -258,24 +353,99 @@ async function handlePostback(
       const answer = value.split(":")[1]; // "multiple" 或 "single"
       
       if (answer === "multiple") {
-        // 多人問題 → 直接提供錄封包流程
-        response = ConversationNodes.createMultipleUsersPacketCaptureNode();
-        // 清除對話狀態
+        // 多人問題 → 詢問路由器
+        response = ConversationNodes.createMultipleUsersRouterCheckNode();
         await updateConversation(conversationId.toString(), { 
           category,
-          metadata: { step: undefined }
+          metadata: { step: "network:multi:router_check" }
         });
       } else if (answer === "single") {
-        // 個人問題 → 問第二個問題
-        response = ConversationNodes.createSingleUserQuestion2Node();
-        // 儲存對話狀態
+        // 個人問題 → 詢問連接方式
+        response = ConversationNodes.createSingleUserConnectionTypeNode();
         await updateConversation(conversationId.toString(), { 
           category,
-          metadata: { step: "network:step2", answer1: "single" }
+          metadata: { step: "network:conn_type", answer1: "single" }
         });
       } else {
         response = ConversationNodes.createConnectionTroubleshootNode();
       }
+    } else if (value?.startsWith("conn:")) {
+      // 連接方式判定
+      const connType = value.split(":")[1]; // "router" 或 "direct"
+      
+      if (connType === "router") {
+        // 路由器 → 路由器排查流程
+        response = ConversationNodes.createRouterTroubleshootNode();
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: "network:router:troubleshoot" }
+        });
+      } else if (connType === "direct") {
+        // 電腦直連 → 症狀診斷 Carousel
+        response = ConversationNodes.createDirectConnectionSymptomNode();
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: {}
+        });
+      } else {
+        response = ConversationNodes.createConnectionTroubleshootNode();
+      }
+    } else if (value?.startsWith("multi:")) {
+      // 多人問題流程
+      const action = value.split(":")[1]; // "report" 或 "resolved"
+      
+      if (action === "report") {
+        // 引導報修/錄封包
+        response = ConversationNodes.createMultipleUsersReportNode();
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: {}
+        });
+      } else if (action === "resolved") {
+        // 路由器問題已解決
+        response = ConversationNodes.createMultipleUsersRouterResolvedNode();
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: {}
+        });
+      } else {
+        response = ConversationNodes.createMultipleUsersRouterCheckNode();
+      }
+    } else if (value?.startsWith("router:")) {
+      // 路由器排查流程
+      const action = value.split(":")[1]; // "fixed"
+      
+      if (action === "fixed") {
+        // 路由器問題已解決
+        response = ConversationNodes.createRouterFixedNode();
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: {}
+        });
+      } else {
+        response = ConversationNodes.createRouterTroubleshootNode();
+      }
+    } else if (value?.startsWith("symptom:")) {
+      // 症狀診斷結果
+      const symptom = value.split(":")[1]; // "hardware", "config", "blocked"
+      
+      if (symptom === "hardware") {
+        // 硬體檢查流程
+        response = ConversationNodes.createHardwareCheckNode();
+      } else if (symptom === "config") {
+        // 設定檢查流程
+        response = ConversationNodes.createConfigCheckNode();
+      } else if (symptom === "blocked") {
+        // 違規查詢流程
+        response = ConversationNodes.createBlockedStatusNode();
+      } else {
+        response = ConversationNodes.createDirectConnectionSymptomNode();
+      }
+      
+      await updateConversation(conversationId.toString(), { 
+        category,
+        metadata: {}
+      });
     } else if (value?.startsWith("step2:")) {
       // 第二個問題的回答
       const answer = value.split(":")[1]; // "no_connection" 或 "intermittent"

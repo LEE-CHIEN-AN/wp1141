@@ -12,17 +12,166 @@ import {
   type LineCarouselTemplate,
   type LineFlexMessage,
 } from "@/lib/utils/line-templates";
+import type { LineCarouselTemplate as CarouselType } from "@/lib/utils/line-templates";
 import { DEFAULT_RESPONSES } from "@/lib/gemini/prompts";
 
 /**
- * 節點 2：無法上網 - 第一個問題（是多人還是個人？）
+ * 節點 1：無法上網 - 起始點（影響範圍判定）
  */
 export function createConnectionTroubleshootNode(): LineMessage {
   return createQuickReply(
-    `🚫 無法上網 - 連線故障排除\n\n請告訴我：\n\n是多人同時遇到問題，還是只有您一個人？`,
+    `收到，宿網小精靈來幫您進行故障排除！🛠️\n\n為了找出原因，請先告訴我這個問題的影響範圍：`,
     [
-      { label: "多人問題", data: "network:step1:multiple", displayText: "多人問題" },
-      { label: "只有我一個人", data: "network:step1:single", displayText: "只有我一個人" },
+      { label: "👥 多人/全寢室都壞", data: "network:step1:multiple", displayText: "多人同時遇到問題" },
+      { label: "👤 只有我一個人", data: "network:step1:single", displayText: "只有我一個人" },
+      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+    ]
+  );
+}
+
+/**
+ * 節點 D：個人問題 - 連接方式判定
+ */
+export function createSingleUserConnectionTypeNode(): LineMessage {
+  return createQuickReply(
+    `好的，針對您個人的連線問題，請問您是透過什麼方式連接宿網的呢？`,
+    [
+      { label: "📶 透過路由器(WiFi)", data: "network:conn:router", displayText: "透過路由器(WiFi)" },
+      { label: "🔌 電腦直接插網路線", data: "network:conn:direct", displayText: "電腦直接插網路線" },
+      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+    ]
+  );
+}
+
+/**
+ * 節點 E：路由器 (WiFi) 排查流程
+ */
+export function createRouterTroubleshootNode(): LineMessage {
+  return createQuickReply(
+    `使用路由器時，請先嘗試這兩個「黃金救援步驟」：\n\n1️⃣ **重啟大法**：\n請拔掉路由器的電源線，心中默數 10 秒，再插回去。等待燈號穩定後再試試。\n\n2️⃣ **檢查接線**：\n請確認牆壁出來的那條網路線，是插在路由器的 **「WAN 孔」**（通常顏色特別，或有標示 Internet）。千萬不能插在 LAN 孔喔！\n\n如果以上都試過還是不行，可能是路由器設定跑掉了。`,
+    [
+      { label: "重啟後可以了", data: "network:router:fixed", displayText: "重啟後可以了" },
+      { label: "還是不行，檢查設定", data: "registration:router", displayText: "還是不行，檢查設定" },
+      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+    ]
+  );
+}
+
+/**
+ * 節點 E1：路由器問題已解決
+ */
+export function createRouterFixedNode(): LineMessage {
+  return createTextWithMenuOption(
+    `太好了！問題解決了！🎉\n\n重啟路由器通常可以解決大部分連線問題。如果之後又遇到類似情況，記得先試試重啟大法！\n\n如果還有其他問題，歡迎隨時詢問！`
+  );
+}
+
+/**
+ * 節點 F：電腦直連 - 症狀診斷 (Carousel Template)
+ */
+export function createDirectConnectionSymptomNode(): LineMessage {
+  const carousel: LineCarouselTemplate = {
+    type: "template",
+    altText: "請選擇您電腦目前的網路狀態圖示",
+    template: {
+      type: "carousel",
+      columns: [
+        {
+          title: "顯示「未連接」或紅叉叉",
+          text: "電腦認為網路線根本沒插好。",
+          actions: [
+            {
+              type: "postback",
+              label: "檢查硬體與線路",
+              data: "network:symptom:hardware",
+              displayText: "檢查硬體與線路",
+            },
+          ],
+        },
+        {
+          title: "已連線但無網路 (黃色驚嘆號)",
+          text: "線有插好，但 IP 或 DNS 設定錯誤。",
+          actions: [
+            {
+              type: "postback",
+              label: "檢查 IP/DNS 設定",
+              data: "network:symptom:config",
+              displayText: "檢查 IP/DNS 設定",
+            },
+          ],
+        },
+        {
+          title: "打開網頁被導向特定頁面",
+          text: "可能尚未註冊，或是因為中毒/違規被鎖卡了。",
+          actions: [
+            {
+              type: "postback",
+              label: "查詢違規狀態",
+              data: "network:symptom:blocked",
+              displayText: "查詢違規狀態",
+            },
+          ],
+        },
+        {
+          title: "網路很慢或一直斷線",
+          text: "可以連線，但速度異常緩慢或不穩定。",
+          actions: [
+            {
+              type: "postback",
+              label: "進行網速與斷線排查",
+              data: "action:speed_check",
+              displayText: "進行網速與斷線排查",
+            },
+          ],
+        },
+      ],
+    },
+  };
+  return carousel;
+}
+
+/**
+ * 節點 G：硬體檢查流程
+ */
+export function createHardwareCheckNode(): LineMessage {
+  return createQuickReply(
+    `硬體層問題排查 🔧\n\n請依序檢查以下項目：\n\n1️⃣ **檢查網路線**\n• 確認網路線有正確插入電腦的網路孔（聽到「喀」一聲）\n• 確認網路線另一端有插入牆壁的網路孔\n• 嘗試更換另一條網路線測試\n\n2️⃣ **檢查網路孔**\n• 確認牆壁的網路孔燈號是否正常（如果有燈號）\n• 嘗試使用其他網路孔測試\n\n3️⃣ **檢查電腦網路卡**\n• 確認電腦的網路卡驅動程式已正確安裝\n• 在裝置管理員中檢查網路卡是否有驚嘆號\n\n如果以上都檢查過還是不行，可能需要聯絡網管檢查牆壁網路孔。`,
+    [
+      { label: "檢查完還是不行", data: "action:contact", displayText: "檢查完還是不行" },
+      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+    ]
+  );
+}
+
+/**
+ * 節點 H：設定檢查流程 (IP/DNS 設定)
+ */
+export function createConfigCheckNode(): LineMessage {
+  return createButtonWithMultipleUris(
+    `黃色驚嘆號通常代表 IP 設定錯誤。台大宿網必須設定為「自動取得 IP」。\n\n請參考下方教學檢查您的電腦設定：`,
+    [
+      {
+        label: "📖 Windows 設定教學",
+        uri: "https://hackmd.io/@RuH9UULLRMuRo2iEsweIqA/H1mFo2-Wll#Windows-%E8%A8%AD%E5%AE%9A",
+      },
+      {
+        label: "📖 Mac 設定教學",
+        uri: "https://hackmd.io/@RuH9UULLRMuRo2iEsweIqA/H1mFo2-Wll#Mac-%E8%A8%AD%E5%AE%9A",
+      },
+    ],
+    "IP/DNS 設定檢查教學"
+  );
+}
+
+/**
+ * 節點 I：違規查詢流程
+ */
+export function createBlockedStatusNode(): LineMessage {
+  return createQuickReply(
+    `帳號/資安層問題 🔒\n\n如果打開網頁被導向特定頁面（如 140.112.2.197），可能的原因有：\n\n1️⃣ **尚未註冊**\n• 請確認您是否已完成宿網註冊\n• 如果還沒註冊，請點選「📝 如何註冊」進行註冊\n\n2️⃣ **帳號被封鎖**\n• 可能因為違規使用（如 BT、P2P 下載）\n• 可能因為電腦中毒導致異常流量\n• 需要聯絡網管查詢封鎖原因\n\n3️⃣ **MAC 地址問題**\n• 可能因為更換設備但未更新 MAC 地址\n• 請點選「📝 如何註冊」→「修改 MAC 地址」進行更新`,
+    [
+      { label: "📝 如何註冊", data: "action:registration", displayText: "如何註冊" },
+      { label: "📞 聯絡網管查詢", data: "action:contact", displayText: "聯絡網管查詢" },
       { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
     ]
   );
@@ -30,6 +179,7 @@ export function createConnectionTroubleshootNode(): LineMessage {
 
 /**
  * 節點 2-1：個人問題 - 第二個問題（是完全無法連線還是會斷斷續續？）
+ * 保留舊版本以向後兼容
  */
 export function createSingleUserQuestion2Node(): LineMessage {
   return createQuickReply(
@@ -43,7 +193,49 @@ export function createSingleUserQuestion2Node(): LineMessage {
 }
 
 /**
- * 節點 3：多人問題 - 錄封包流程
+ * 節點 C：多人問題流程 - 詢問路由器
+ */
+export function createMultipleUsersRouterCheckNode(): LineMessage {
+  return createQuickReply(
+    `了解，多人同時無法上網。這通常有兩種可能：\n\n1. 寢室內某台路由器接錯線，干擾了大家。\n2. 該樓層的網路設備故障。\n\n請先檢查：寢室內是否有人使用路由器（WiFi分享器）？\n\n若有，請先將「所有路由器」的電源拔掉，等待 1 分鐘，看看其他直接插線的電腦是否恢復正常？`,
+    [
+      { label: "拔掉了，還是不行", data: "network:multi:report", displayText: "拔了還是不行，需要報修" },
+      { label: "恢復了！是路由器問題", data: "network:multi:resolved", displayText: "恢復了，是路由器的問題" },
+      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+    ]
+  );
+}
+
+/**
+ * 節點 C1：多人問題 - 路由器問題已解決
+ */
+export function createMultipleUsersRouterResolvedNode(): LineMessage {
+  return createButtonWithUri(
+    `太好了！問題解決了！🎉\n\n這表示是寢室內某台路由器接錯線導致的。\n\n請提醒室友：\n\n✅ 牆壁出來的網路線要插在路由器的「WAN 孔」（通常顏色特別，或有標示 Internet）\n❌ 千萬不能插在 LAN 孔，否則會造成網路風暴，影響整間寢室\n\n如果還有其他問題，歡迎隨時詢問！`,
+    "📖 查看路由器正確接法教學",
+    "https://hackmd.io/@RuH9UULLRMuRo2iEsweIqA/H1mFo2-Wll#%E8%B7%AF%E7%94%B1%E5%99%A8%E6%8E%A5%E7%B7%9A",
+    "路由器正確接法教學"
+  );
+}
+
+/**
+ * 節點 C3：多人問題 - 引導報修/錄封包
+ */
+export function createMultipleUsersReportNode(): LineMessage {
+  return createButtonWithMultipleUris(
+    `看來是棘手的問題 🤔\n\n如果拔掉路由器仍無法解決，可能是寢室網路孔或樓層交換器故障。\n\n請協助進行以下操作，並聯絡網管報修：`,
+    [
+      {
+        label: "📖 進階：學習錄製封包",
+        uri: "https://hackmd.io/@RuH9UULLRMuRo2iEsweIqA/H1mFo2-Wll#%E5%A4%9A%E4%BA%BA%E5%95%8F%E9%A1%8C",
+      },
+    ],
+    "多人網路故障報修指引"
+  );
+}
+
+/**
+ * 節點 3：多人問題 - 錄封包流程（保留舊版本以向後兼容）
  */
 export function createMultipleUsersPacketCaptureNode(): LineMessage {
   return createTextWithMenuOption(`多人反映網路連不到、太慢 → 錄封包
