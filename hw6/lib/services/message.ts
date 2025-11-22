@@ -181,7 +181,14 @@ export function parsePostbackData(data: string): {
   type: string;
   value?: string;
 } {
-  const [type, value] = data.split(":");
+  // 使用 split(":") 但只分割第一個冒號，保留後面的部分作為 value
+  const firstColonIndex = data.indexOf(":");
+  if (firstColonIndex === -1) {
+    // 沒有冒號，整個字串都是 type
+    return { type: data };
+  }
+  const type = data.substring(0, firstColonIndex);
+  const value = data.substring(firstColonIndex + 1); // 保留所有後續內容
   return { type, value };
 }
 
