@@ -297,6 +297,7 @@ export function createRegistrationTypeSelectionNode(): LineButtonTemplate {
 
 /**
  * 節點 11：第一次註冊 - 前置準備（Carousel）
+ * 注意：LINE Carousel Template 的 text 欄位限制為 60 字元
  */
 export function createFirstTimeRegistrationPrepNode(): LineCarouselTemplate {
   return {
@@ -307,7 +308,7 @@ export function createFirstTimeRegistrationPrepNode(): LineCarouselTemplate {
       columns: [
         {
           title: "✅ 確認網段",
-          text: "• 確認您的網段是否正確（例如：女八舍）\n• 是否已向宿舍輔導員報到\n• 報到後等住宿組資料更新\n• 等住宿組資料同步到宿舍網路註冊系統",
+          text: "確認網段是否正確\n已向宿舍輔導員報到\n等住宿組資料更新",
           actions: [
             {
               type: "postback",
@@ -325,7 +326,7 @@ export function createFirstTimeRegistrationPrepNode(): LineCarouselTemplate {
         },
         {
           title: "📋 準備資訊",
-          text: "• 路由器的 MAC 地址（如果要使用路由器）\n• 或電腦的 MAC 地址（如果直接連電腦）\n• 計中帳號（學號）\n• 計中密碼（預設：身分證字號第一個英文字母小寫+末四碼）",
+          text: "路由器或電腦的MAC地址\n計中帳號（學號）\n計中密碼（身分證字號）",
           actions: [
             {
               type: "postback",
@@ -343,7 +344,7 @@ export function createFirstTimeRegistrationPrepNode(): LineCarouselTemplate {
         },
         {
           title: "🔌 連接網路",
-          text: "• 將網路線插入宿舍座位底下的網路孔\n• 將網路線插入電腦或路由器\n• 確認網路線有正確連接（聽到「喀」一聲）",
+          text: "將網路線插入宿舍網路孔\n連接至電腦或路由器\n確認網路線正確連接",
           actions: [
             {
               type: "postback",
