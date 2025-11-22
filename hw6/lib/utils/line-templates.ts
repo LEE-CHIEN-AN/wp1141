@@ -372,7 +372,44 @@ export function createButtonWithUri(
   uriLabel: string,
   uri: string,
   altText?: string
-): LineButtonTemplate {
+): LineMessage {
+  // LINE Button Template 的 text 欄位限制為 120 字元
+  if (text.length > 120) {
+    // 改用 Flex Message
+    return createFlexMessage(
+      altText || text.substring(0, 40),
+      [
+        {
+          body: {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              createFlexText(text, "sm", "regular", "#000000", true),
+            ],
+            spacing: "md",
+          },
+          footer: {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              createFlexButton(uriLabel, {
+                type: "uri",
+                uri: uri,
+              }),
+              createFlexButton("📋 回主選單", {
+                type: "postback",
+                data: "menu",
+                displayText: "回主選單",
+              }, "secondary"),
+            ],
+            spacing: "sm",
+          },
+        },
+      ]
+    );
+  }
+
+  // 文字不超過 120 字元，使用 Button Template
   return {
     type: "template",
     altText: altText || text.substring(0, 40),
@@ -397,13 +434,55 @@ export function createButtonWithUri(
 }
 
 /**
- * 建立帶有多個 URI 按鈕的 Button Template（最多 4 個按鈕）
+ * 建立帶有多個 URI 按鈕的 Button Template 或 Flex Message（最多 4 個按鈕）
+ * 如果文字超過 120 字元，自動改用 Flex Message
  */
 export function createButtonWithMultipleUris(
   text: string,
   uriOptions: Array<{ label: string; uri: string }>,
   altText?: string
-): LineButtonTemplate {
+): LineMessage {
+  // LINE Button Template 的 text 欄位限制為 120 字元
+  if (text.length > 120) {
+    // 改用 Flex Message
+    const buttons = [
+      ...uriOptions.slice(0, 3).map((option) =>
+        createFlexButton(option.label, {
+          type: "uri",
+          uri: option.uri,
+        })
+      ),
+      createFlexButton("📋 回主選單", {
+        type: "postback",
+        data: "menu",
+        displayText: "回主選單",
+      }, "secondary"),
+    ];
+
+    return createFlexMessage(
+      altText || text.substring(0, 40),
+      [
+        {
+          body: {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              createFlexText(text, "sm", "regular", "#000000", true),
+            ],
+            spacing: "md",
+          },
+          footer: {
+            type: "box",
+            layout: "vertical",
+            contents: buttons.slice(0, 4), // Line 最多支援 4 個按鈕
+            spacing: "sm",
+          },
+        },
+      ]
+    );
+  }
+
+  // 文字不超過 120 字元，使用 Button Template
   const actions = [
     ...uriOptions.slice(0, 3).map((option) => ({
       type: "uri" as const,
