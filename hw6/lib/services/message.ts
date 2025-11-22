@@ -133,6 +133,13 @@ export async function processUserMessage(
       return createTextWithMenuOption(geminiResponse.text);
     }
 
+    // 處理 LLM 配額錯誤
+    if (geminiResponse.error === "API_QUOTA_EXCEEDED") {
+      return createTextWithMenuOption(
+        "抱歉，AI 服務目前暫時無法使用（配額已用完）。\n\n請使用下方選單選擇功能，或稍後再試。"
+      );
+    }
+
     // 如果都無法處理，降級到預設腳本
     return getDefaultResponseForCategory(category);
   }
@@ -145,10 +152,17 @@ export async function processUserMessage(
     return createTextMessage(geminiResponse.text);
   }
 
-    // 降級到歡迎訊息（帶有回主選單選項）
+  // 處理 LLM 配額錯誤
+  if (geminiResponse.error === "API_QUOTA_EXCEEDED") {
     return createTextWithMenuOption(
-      "抱歉，我無法理解您的問題。\n\n請選擇以下選項，或點選「回主選單」重新開始：\n\n1. 網路連線問題\n2. 資安事件處理\n3. 登入問題\n4. 其他問題"
+      "抱歉，AI 服務目前暫時無法使用（配額已用完）。\n\n請使用下方選單選擇功能，或稍後再試。"
     );
+  }
+
+  // 降級到歡迎訊息（帶有回主選單選項）
+  return createTextWithMenuOption(
+    "抱歉，我無法理解您的問題。\n\n請選擇以下選項，或點選「回主選單」重新開始：\n\n1. 網路連線問題\n2. 資安事件處理\n3. 登入問題\n4. 其他問題"
+  );
 }
 
 function getDefaultResponseForCategory(
