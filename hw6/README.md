@@ -47,6 +47,22 @@ yarn start
 
 專案已配置 Vercel 部署，將程式碼推送到 GitHub 後，Vercel 會自動部署。
 
+**詳細部署資訊與測試說明：** 請參考 [DEPLOYMENT_INFO.md](./DEPLOYMENT_INFO.md)
+
+### 快速連結
+
+- **LINE Bot Webhook URL：** `https://[your-vercel-project].vercel.app/api/line/webhook`
+- **管理後台 URL：** `https://[your-vercel-project].vercel.app/admin`
+- **登入頁面：** `https://[your-vercel-project].vercel.app/admin/login`
+
+### 測試帳號
+
+管理後台使用環境變數設定的單一管理員帳號：
+- **Email：** 由 `ADMIN_EMAIL` 環境變數設定
+- **Password：** 由 `ADMIN_PASSWORD` 環境變數設定
+
+**注意：** 目前沒有註冊服務，只有預設的管理員帳號。
+
 ## 專案結構
 
 - `app/api/line/webhook/`: Line webhook 端點
