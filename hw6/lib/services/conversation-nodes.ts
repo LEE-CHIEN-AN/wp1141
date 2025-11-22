@@ -383,8 +383,10 @@ export function createRegistrationStepsDetailNode(): LineMessage {
 
 5️⃣ 等待生效
    稍等5至10分鐘
-   若還不能使用，試試看重新開機`,
-    "查看詳細教學文件",
+   若還不能使用，試試看重新開機
+
+📖 詳細教學文件請點擊下方按鈕查看`,
+    "📖 查看詳細教學文件",
     "https://ccnet.ntu.edu.tw/ccnet/pages/student_dorm_content/doc/register.pdf",
     "註冊步驟詳細教學"
   );
@@ -463,8 +465,10 @@ export function createRouterSetupNode(): LineMessage {
 
 6️⃣ 等待生效
    有時候需要等待5-10分鐘的學校資料庫更新
-   可以用電腦或手機試試看能不能連上網路`,
-    "查看詳細教學",
+   可以用電腦或手機試試看能不能連上網路
+
+📖 詳細教學網頁請點擊下方按鈕查看`,
+    "📖 查看詳細教學網頁",
     "https://ut0903.github.io/post/router-install",
     "路由器設定教學"
   );
