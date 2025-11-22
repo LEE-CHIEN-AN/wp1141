@@ -9,7 +9,6 @@ import {
 } from "@/lib/utils/line-templates";
 import { CONVERSATION_CATEGORIES } from "@/config/conversation";
 import type { ConversationCategory } from "@/config/conversation";
-import * as ConversationNodes from "@/lib/services/conversation-nodes";
 
 export async function processUserMessage(
   userMessage: string,
@@ -22,73 +21,101 @@ export async function processUserMessage(
     return createWelcomeMessage();
   }
 
-  // 如果有對話分類，優先使用分類的上下文來理解回應
-  // 不要直接匹配關鍵字，避免誤判
+  // 處理核心功能關鍵字匹配
+  const lowerMessage = userMessage.toLowerCase();
+  
+  // 🚫 無法上網 - 連線故障排除
+  if (lowerMessage.includes("無法上網") || lowerMessage.includes("連不上") || 
+      lowerMessage.includes("連線故障") || lowerMessage.includes("不能上網") ||
+      lowerMessage.includes("網路故障")) {
+    const { createConnectionTroubleshootNode } = await import("./conversation-nodes");
+    return createConnectionTroubleshootNode();
+  }
+
+  // 📝 如何註冊 - 宿網註冊教學
+  if (lowerMessage.includes("如何註冊") || lowerMessage.includes("註冊") || 
+      lowerMessage.includes("宿網註冊") || lowerMessage.includes("註冊教學") ||
+      lowerMessage.includes("註冊流程")) {
+    // 導入節點處理函數
+    const { createRegistrationTypeSelectionNode } = await import("./conversation-nodes");
+    return createRegistrationTypeSelectionNode();
+  }
+
+  // 🐢 網速很慢 - 網速與流量查詢
+  if (lowerMessage.includes("網速") || lowerMessage.includes("很慢") || 
+      lowerMessage.includes("流量") || lowerMessage.includes("速度慢") ||
+      lowerMessage.includes("限速") || lowerMessage.includes("超額")) {
+    // 導入節點處理函數
+    const { createSpeedCheckNode } = await import("./conversation-nodes");
+    return createSpeedCheckNode();
+  }
+
+  // 📞 聯絡網管
+  if (lowerMessage.includes("聯絡") || lowerMessage.includes("聯繫") || 
+      lowerMessage.includes("網管") || lowerMessage.includes("聯繫方式") ||
+      lowerMessage.includes("報修")) {
+    // 導入節點處理函數
+    const { createContactNode } = await import("./conversation-nodes");
+    return createContactNode();
+  }
+
+  // 如果有分類，優先處理關鍵字匹配，然後才使用 Gemini
   if (category) {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // 處理網路連線問題的子分類
-    if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
-      // 檢查是否為回答「多人問題」或「個人問題」
-      // 精確匹配「多人」相關關鍵字
-      if (lowerMessage.includes("多人") || lowerMessage.includes("好幾個人") || 
-          lowerMessage.includes("室友") || lowerMessage.includes("大家一起") ||
-          lowerMessage.includes("好幾") || lowerMessage.includes("很多人")) {
-        return ConversationNodes.createMultipleUsersPacketCaptureNode();
+    // 先處理關鍵字匹配（更精確、更快）
+    if (userMessage && userMessage.trim().length > 0) {
+      const lowerMessage = userMessage.toLowerCase();
+      
+      if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
+        // 個人問題關鍵字（優先匹配）
+        if (lowerMessage.includes("一個人") || lowerMessage === "一個人" ||
+            lowerMessage.includes("只有我") || lowerMessage.includes("只有我一個人") ||
+            lowerMessage.includes("個人") || lowerMessage === "個人" ||
+            lowerMessage.includes("我自己") || lowerMessage.includes("個人問題")) {
+          // 導入節點處理函數
+          const { createSingleUserPingInfoViewNode } = await import("./conversation-nodes");
+          return createSingleUserPingInfoViewNode();
+        }
+        
+        // 多人問題關鍵字
+        if (lowerMessage.includes("多人") || lowerMessage === "多人" ||
+            lowerMessage === "多人問題" || lowerMessage.includes("好幾") ||
+            lowerMessage.includes("室友") || lowerMessage.includes("大家一起")) {
+          // 導入節點處理函數
+          const { createMultipleUsersPacketCaptureNode } = await import("./conversation-nodes");
+          return createMultipleUsersPacketCaptureNode();
+        }
+        
+        // 完全無法連線關鍵字
+        if (lowerMessage.includes("完全無法") || lowerMessage === "完全無法連線" ||
+            lowerMessage.includes("完全連不上") || lowerMessage.includes("完全不能")) {
+          // 導入節點處理函數
+          const { createNoConnectionChecklistNode } = await import("./conversation-nodes");
+          return createNoConnectionChecklistNode();
+        }
       }
       
-      // 精確匹配「一個人」相關關鍵字（避免誤判為「第一次註冊」）
-      if (lowerMessage === "一個人" || lowerMessage === "個人" ||
-          lowerMessage.includes("只有我一個人") || lowerMessage.includes("只有我") || 
-          lowerMessage.includes("一個人") || lowerMessage.includes("我自己") ||
-          (lowerMessage.includes("個人") && !lowerMessage.includes("註冊"))) {
-        return ConversationNodes.createSingleUserPingInfoViewNode();
+      if (category === CONVERSATION_CATEGORIES.REGISTRATION) {
+        // 註冊相關關鍵字匹配
+        if (lowerMessage.includes("第一次") || lowerMessage.includes("初次") ||
+            lowerMessage === "第一次註冊") {
+          const { createFirstTimeRegistrationPrepNode } = await import("./conversation-nodes");
+          return createFirstTimeRegistrationPrepNode();
+        }
+        
+        if (lowerMessage.includes("路由器") || lowerMessage.includes("wifi") ||
+            lowerMessage === "使用路由器") {
+          const { createRouterSetupNode } = await import("./conversation-nodes");
+          return createRouterSetupNode();
+        }
+        
+        if (lowerMessage.includes("修改") && lowerMessage.includes("mac")) {
+          const { createChangeMacAddressNode } = await import("./conversation-nodes");
+          return createChangeMacAddressNode();
+        }
       }
-      
-      if (lowerMessage.includes("完全無法") || lowerMessage.includes("完全連不上") ||
-          lowerMessage.includes("完全不能上網") || lowerMessage.includes("完全無法連線")) {
-        return ConversationNodes.createNoConnectionChecklistNode();
-      }
-      
-      // 如果有對話歷史，使用 Gemini 來理解回應
-      const context = conversationHistory
-        ? conversationHistory
-            .slice(-10)
-            .map((msg) => `${msg.role}: ${msg.content}`)
-            .join("\n")
-        : undefined;
-
-      const prompt = buildPrompt(userMessage, category, context);
-      const geminiResponse = await generateResponse({ prompt });
-
-      if (geminiResponse.text && !geminiResponse.error) {
-        return createTextWithMenuOption(geminiResponse.text);
-      }
-
-      // 降級到預設回應（帶有 Quick Reply）
-      return getDefaultResponseForCategory(category);
     }
-    
-    // 處理註冊問題
-    if (category === CONVERSATION_CATEGORIES.REGISTRATION) {
-      const context = conversationHistory
-        ? conversationHistory
-            .slice(-10)
-            .map((msg) => `${msg.role}: ${msg.content}`)
-            .join("\n")
-        : undefined;
 
-      const prompt = buildPrompt(userMessage, category, context);
-      const geminiResponse = await generateResponse({ prompt });
-
-      if (geminiResponse.text && !geminiResponse.error) {
-        return createTextWithMenuOption(geminiResponse.text);
-      }
-
-      return getDefaultResponseForCategory(category);
-    }
-    
-    // 處理其他分類
+    // 如果關鍵字匹配失敗，嘗試使用 Gemini
     const context = conversationHistory
       ? conversationHistory
           .slice(-10)
@@ -103,46 +130,8 @@ export async function processUserMessage(
       return createTextWithMenuOption(geminiResponse.text);
     }
 
+    // 如果都無法處理，降級到預設腳本
     return getDefaultResponseForCategory(category);
-  }
-
-  // 沒有分類時，才進行關鍵字匹配
-  const lowerMessage = userMessage.toLowerCase();
-  
-  // 🚫 無法上網 - 連線故障排除
-  if (lowerMessage.includes("無法上網") || lowerMessage.includes("連不上") || 
-      lowerMessage.includes("連線故障") || lowerMessage.includes("不能上網") ||
-      lowerMessage.includes("網路故障")) {
-    return ConversationNodes.createConnectionTroubleshootNode();
-  }
-
-  // 📝 如何註冊 - 宿網註冊教學（避免誤判「一個人」為「第一次註冊」）
-  if ((lowerMessage.includes("如何註冊") || lowerMessage.includes("宿網註冊") || 
-       lowerMessage.includes("註冊教學") || lowerMessage.includes("註冊流程")) &&
-      !lowerMessage.includes("一個人") && !lowerMessage.includes("個人問題")) {
-    return ConversationNodes.createRegistrationTypeSelectionNode();
-  }
-  
-  // 如果只是「註冊」且不是「一個人」相關，才進入註冊流程
-  if (lowerMessage.includes("註冊") && 
-      !lowerMessage.includes("一個人") && 
-      !lowerMessage.includes("個人問題") &&
-      !lowerMessage.includes("個人")) {
-    return ConversationNodes.createRegistrationTypeSelectionNode();
-  }
-
-  // 🐢 網速很慢 - 網速與流量查詢
-  if (lowerMessage.includes("網速") || lowerMessage.includes("很慢") || 
-      lowerMessage.includes("流量") || lowerMessage.includes("速度慢") ||
-      lowerMessage.includes("限速") || lowerMessage.includes("超額")) {
-    return ConversationNodes.createSpeedCheckNode();
-  }
-
-  // 📞 聯絡網管
-  if (lowerMessage.includes("聯絡") || lowerMessage.includes("聯繫") || 
-      lowerMessage.includes("網管") || lowerMessage.includes("聯繫方式") ||
-      lowerMessage.includes("報修")) {
-    return ConversationNodes.createContactNode();
   }
 
   // 沒有分類時，使用 Gemini 或預設回應
