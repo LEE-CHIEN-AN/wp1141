@@ -59,17 +59,129 @@ export interface LineQuickReply {
   };
 }
 
+export interface LineFlexMessage {
+  type: "flex";
+  altText: string;
+  contents: {
+    type: "bubble" | "carousel";
+    [key: string]: any;
+  };
+}
+
 export type LineMessage =
   | LineTextMessage
   | LineButtonTemplate
   | LineCarouselTemplate
-  | LineQuickReply;
+  | LineQuickReply
+  | LineFlexMessage;
 
 export function createTextMessage(text: string): LineTextMessage {
   return {
     type: "text",
     text,
   };
+}
+
+/**
+ * 建立 Flex Message（用於長篇內容）
+ * Flex Message 沒有文字長度限制，適合呈現詳細資訊
+ */
+export function createFlexMessage(
+  altText: string,
+  bubbles: Array<any>
+): LineFlexMessage {
+  if (bubbles.length > 1) {
+    return {
+      type: "flex",
+      altText,
+      contents: {
+        type: "carousel",
+        contents: bubbles,
+      } as any,
+    };
+  } else {
+    return {
+      type: "flex",
+      altText,
+      contents: (bubbles[0] || {
+        type: "bubble",
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [],
+        },
+      }) as any,
+    };
+  }
+}
+
+/**
+ * 建立 Flex Bubble 的文字區塊
+ */
+export function createFlexText(
+  text: string,
+  size: "xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "3xl" | "4xl" | "5xl" = "md",
+  weight: "regular" | "bold" = "regular",
+  color: string = "#000000",
+  wrap: boolean = true
+) {
+  return {
+    type: "text",
+    text,
+    size,
+    weight,
+    color,
+    wrap,
+  };
+}
+
+/**
+ * 建立 Flex Bubble 的按鈕
+ */
+export function createFlexButton(
+  label: string,
+  action: {
+    type: "postback" | "message" | "uri";
+    data?: string;
+    text?: string;
+    uri?: string;
+    displayText?: string;
+  },
+  style: "primary" | "secondary" | "link" = "primary",
+  color?: string
+) {
+  const button: any = {
+    type: "button",
+    action: {},
+    style,
+  };
+
+  if (action.type === "postback") {
+    button.action = {
+      type: "postback",
+      label,
+      data: action.data || "",
+      displayText: action.displayText || label,
+    };
+  } else if (action.type === "message") {
+    button.action = {
+      type: "message",
+      label,
+      text: action.text || label,
+    };
+  } else if (action.type === "uri") {
+    button.action = {
+      type: "uri",
+      label,
+      uri: action.uri || "",
+    };
+  }
+
+  if (color) {
+    button.color = color;
+  }
+
+  return button;
 }
 
 /**

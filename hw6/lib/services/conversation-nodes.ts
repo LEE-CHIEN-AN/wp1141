@@ -4,9 +4,13 @@ import {
   createButtonWithUri,
   createButtonWithMultipleUris,
   createWelcomeMessage,
+  createFlexMessage,
+  createFlexText,
+  createFlexButton,
   type LineMessage,
   type LineButtonTemplate,
   type LineCarouselTemplate,
+  type LineFlexMessage,
 } from "@/lib/utils/line-templates";
 import { DEFAULT_RESPONSES } from "@/lib/gemini/prompts";
 
@@ -137,7 +141,7 @@ export function createNoConnectionChecklistNode(): LineCarouselTemplate {
       columns: [
         {
           title: "🔌 硬體檢查",
-          text: "網路線是否正確插入\n網路孔是否有接觸不良\n嘗試更換網路線測試",
+          text: "• 網路線是否正確插入（聽到「喀」一聲）\n• 網路孔是否有接觸不良\n• 嘗試更換網路線測試\n• 借室友的電腦測試網路孔",
           actions: [
             {
               type: "postback",
@@ -155,7 +159,7 @@ export function createNoConnectionChecklistNode(): LineCarouselTemplate {
         },
         {
           title: "⚙️ IP 設定檢查",
-          text: "確認是否為自動取得IP\n確認是否為自動取得DNS\n檢查IP是否為140.112.xxx",
+          text: "• 確認是否為「自動取得 IP 位址」\n• 確認是否為「自動取得 DNS 伺服器位址」\n• 檢查 IP 是否為 140.112.xxx.xxx\n• 如果 IP 為 169.254.xxx.xxx，表示未取得 IP",
           actions: [
             {
               type: "postback",
@@ -229,17 +233,26 @@ export function createIpSettingDetailNode(): LineMessage {
     `⚙️ IP 設定檢查詳細步驟
 
 1. 開啟設定視窗
-   Windows：右下角網路圖示→右鍵→開啟網路和共用中心
-   點擊「乙太網路」→「內容」→「TCP/IPv4」
+   • Windows：右下角網路圖示 → 右鍵 → 「開啟網路和共用中心」
+   • 點擊「乙太網路」→「內容」→「網際網路通訊協定第 4 版（TCP/IPv4）」
 
 2. 確認設定
-   ✅ 自動取得IP位址
-   ✅ 自動取得DNS伺服器位址
+   ✅ 自動取得 IP 位址
+   ✅ 自動取得 DNS 伺服器位址
 
-3. 檢查IP
-   打開cmd，輸入：ipconfig /all
-   確認IP是否為140.112.xxx.xxx
-   如果IP為169.254.xxx.xxx→未取得IP`,
+3. 檢查 IP
+   • 打開 cmd，輸入：ipconfig /all
+   • 確認 IP 是否為 140.112.xxx.xxx
+   • 如果 IP 為 169.254.xxx.xxx → 未取得 IP
+   • 如果 IP 為 192.168.xxx.xxx 或 10.xxx.xxx.xxx
+   → 可能有其他人私接無線分享器但接錯插孔
+
+4. 手動設定 IP（如果自動取得失敗）
+   請參考註冊成功時顯示的 IP 資訊：
+   • IP 位址：140.112.xxx.yyy
+   • 子網路遮罩：255.255.255.0
+   • 預設閘道：140.112.xxx.254
+   • DNS：140.112.254.4 和 140.112.2.2`,
     "查看詳細教學文件",
     "https://ccnet.ntu.edu.tw/ccnet/pages/student_dorm_content/doc/set_ip.pdf",
     "IP 設定檢查詳細步驟"
@@ -288,72 +301,120 @@ export function createRegistrationTypeSelectionNode(): LineButtonTemplate {
 
 /**
  * 節點 11：第一次註冊 - 前置準備（Carousel）
- * 注意：LINE Carousel Template 的 text 欄位限制為 60 字元
  */
-export function createFirstTimeRegistrationPrepNode(): LineCarouselTemplate {
-  return {
-    type: "template",
-    altText: "第一次註冊 - 前置準備檢查清單",
-    template: {
-      type: "carousel",
-      columns: [
-        {
-          title: "✅ 確認網段",
-          text: "確認網段是否正確\n已向宿舍輔導員報到\n等住宿組資料更新",
-          actions: [
-            {
-              type: "postback",
-              label: "下一步：註冊步驟",
-              data: "registration:first_time_steps",
-              displayText: "註冊步驟",
-            },
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-        {
-          title: "📋 準備資訊",
-          text: "路由器或電腦的MAC地址\n計中帳號（學號）\n計中密碼（身分證字號）",
-          actions: [
-            {
-              type: "postback",
-              label: "下一步：註冊步驟",
-              data: "registration:first_time_steps",
-              displayText: "註冊步驟",
-            },
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-        {
-          title: "🔌 連接網路",
-          text: "將網路線插入宿舍網路孔\n連接至電腦或路由器\n確認網路線正確連接",
-          actions: [
-            {
-              type: "postback",
-              label: "下一步：註冊步驟",
-              data: "registration:first_time_steps",
-              displayText: "註冊步驟",
-            },
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-      ],
+export function createFirstTimeRegistrationPrepNode(): LineFlexMessage {
+  return createFlexMessage("第一次註冊 - 前置準備檢查清單", [
+    {
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("✅ 確認網段", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("• 確認您的網段是否正確（例如：女八舍）", "sm"),
+          createFlexText("• 是否已向宿舍輔導員報到", "sm"),
+          createFlexText("• 報到後等住宿組資料更新", "sm"),
+          createFlexText("• 等住宿組資料同步到宿舍網路註冊系統", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("下一步：註冊步驟", {
+            type: "postback",
+            data: "registration:first_time_steps",
+            displayText: "註冊步驟",
+          }),
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
     },
-  };
+    {
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("📋 準備資訊", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("• 路由器的 MAC 地址（如果要使用路由器）", "sm"),
+          createFlexText("• 或電腦的 MAC 地址（如果直接連電腦）", "sm"),
+          createFlexText("• 計中帳號（學號）", "sm"),
+          createFlexText("• 計中密碼（預設：身分證字號第一個英文字母小寫+末四碼）", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("下一步：註冊步驟", {
+            type: "postback",
+            data: "registration:first_time_steps",
+            displayText: "註冊步驟",
+          }),
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
+    },
+    {
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("🔌 連接網路", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("• 將網路線插入宿舍座位底下的網路孔", "sm"),
+          createFlexText("• 將網路線插入電腦或路由器", "sm"),
+          createFlexText("• 確認網路線有正確連接（聽到「喀」一聲）", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("下一步：註冊步驟", {
+            type: "postback",
+            data: "registration:first_time_steps",
+            displayText: "註冊步驟",
+          }),
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
+    },
+  ]);
 }
 
 /**
@@ -364,29 +425,35 @@ export function createRegistrationStepsDetailNode(): LineMessage {
     `📝 註冊步驟詳細教學
 
 1️⃣ 連接網路
-   將網路線連接至宿舍網路孔
-   將網路線連接至電腦或路由器
+   • 將網路線連接至宿舍網路孔
+   • 將網路線連接至電腦或路由器
+   • 確認網路線有正確插入
 
 2️⃣ 進入註冊網站
-   打開瀏覽器
-   在網址列輸入：140.112.2.197
-   ⚠️ 此網站要在有連校內網路才進得去
-   ⚠️ 此時就算顯示無網際網路，依舊可以進入
+   • 打開瀏覽器（Firefox、Chrome、Safari、Edge）
+   • 在網址列輸入：140.112.2.197
+   • 按下 Enter
+   ⚠️ 此網站要在有連校內網路、IP 在校內才進得去
+   ⚠️ 此時就算顯示無網際網路，依舊可以進入到 140.112.2.197
+   ⚠️ 其他網頁打不開是正常的
 
 3️⃣ 登入註冊系統
-   點擊「宿舍網路註冊系統」
-   使用計中帳號密碼登入
+   • 點擊「宿舍網路註冊系統」
+   • 使用計中帳號密碼登入
+   • 帳號：學號
+   • 密碼：註冊計中帳號時的密碼
 
 4️⃣ 完成註冊
-   登入後點擊「註冊電腦於：[您的宿舍]」
-   確認MAC地址是否正確
+   • 登入後點擊「註冊電腦於：[您的宿舍]」
+   • 確認 MAC 地址是否正確
+   • 若填入的為電腦本身的 MAC，將網路線連接電腦應該即可上網
+   • 想用路由器上網須到 140.112.2.197 將 MAC 改為路由器的 MAC
 
 5️⃣ 等待生效
-   稍等5至10分鐘
-   若還不能使用，試試看重新開機
-
-📖 詳細教學文件請點擊下方按鈕查看`,
-    "📖 查看詳細教學文件",
+   • 稍等 5 至 10 分鐘
+   • 若還不能使用，試試看重新開機
+   • 若仍失敗，請參考疑難排解`,
+    "查看詳細教學文件",
     "https://ccnet.ntu.edu.tw/ccnet/pages/student_dorm_content/doc/register.pdf",
     "註冊步驟詳細教學"
   );
@@ -443,32 +510,35 @@ export function createRouterSetupNode(): LineMessage {
    • 輸入帳號和密碼（預設通常為 admin/admin，請參考說明書）
 
 3️⃣ 設定網際網路(WAN)
-   點擊「網路設定」>「網際網路(WAN)」
-   修改以下設定：
+   • 點擊「網路設定」>「網際網路(WAN)」
+   • 修改以下設定：
+   
    ✅ 連線類型：改成「固定IP」
-   ✅ IP位址：改成宿網註冊平台中的註冊IP
+   ✅ IP 位址：改成宿網註冊平台中的註冊 IP
+      ⚠️ 不是登入 IP，是註冊 IP！
    ✅ 子網路遮罩：輸入「255.255.255.0」
-   ✅ 預設閘道：IP位址的最後一碼改成254
-   ✅ 主要DNS：140.112.254.4
-   ✅ 次要DNS：168.95.1.1或8.8.8.8
-   ⚠️ 修改完成後請再三確認沒有打錯
+      （如果要輸入遮罩長度，請輸入「24」）
+   ✅ 預設閘道：IP 位址的最後一碼改成 254
+      例如：140.112.245.100 的閘道就是 140.112.245.254
+   ✅ 主要 DNS：140.112.254.4
+   ✅ 次要 DNS：168.95.1.1 或 8.8.8.8
+   
+   ⚠️ 修改完成後請再三確認沒有打錯，記得按儲存
 
-4️⃣ 修改MAC位址
+4️⃣ 修改 MAC 位址
    有兩種方法，選一種即可：
-   方法1：修改路由器的MAC
-   方法2：修改宿網管理系統的註冊MAC
-   把兩個MAC位址改成一樣的
+   • 方法 1：修改路由器的 MAC
+   • 方法 2：修改宿網管理系統的註冊 MAC
+   → 把兩個 MAC 位址改成一樣的
 
 5️⃣ 連接網路
-   把路由器接上網路線到宿舍網路孔
-   ⚠️ 注意：要接在有寫WAN的網路孔上
+   • 把路由器接上網路線到宿舍網路孔
+   ⚠️ 注意：要接在有寫 WAN 的網路孔上，不要插錯了
 
 6️⃣ 等待生效
-   有時候需要等待5-10分鐘的學校資料庫更新
-   可以用電腦或手機試試看能不能連上網路
-
-📖 詳細教學網頁請點擊下方按鈕查看`,
-    "📖 查看詳細教學網頁",
+   • 有時候需要等待 5-10 分鐘的學校資料庫更新
+   • 可以用電腦或手機試試看能不能連上網路`,
+    "查看詳細教學",
     "https://ut0903.github.io/post/router-install",
     "路由器設定教學"
   );
@@ -486,7 +556,7 @@ export function createMacAddressSetupNode(): LineCarouselTemplate {
       columns: [
         {
           title: "方法 1：修改路由器的 MAC",
-          text: "1. 在路由器管理頁面找到MAC位址設定\n2. 將路由器的MAC改成與註冊系統相同\n3. 儲存設定\n\n💡 找不到MAC：路由器本體下面有",
+          text: "1. 在路由器管理頁面找到「MAC 位址設定」或「MAC 複製」\n2. 將路由器的 MAC 改成與註冊系統中顯示的 MAC 相同\n3. 儲存設定\n\n💡 如果找不到路由器初始的 MAC 位址：\n   路由器本體的下面通常會寫這台機器的詳細資訊",
           actions: [
             {
               type: "postback",
@@ -504,7 +574,7 @@ export function createMacAddressSetupNode(): LineCarouselTemplate {
         },
         {
           title: "方法 2：修改註冊 MAC",
-          text: "1. 進入140.112.2.197\n2. 使用計中帳號登入\n3. 點擊「修改MAC」\n4. MAC那格會自動跳出現在的MAC\n5. 按修改後等5-10分鐘\n6. 連接WiFi測試",
+          text: "1. 進入 140.112.2.197\n2. 使用計中帳號登入\n3. 點擊「修改 MAC」\n4. 修改之 MAC 那格會自動跳出你現在的 MAC\n5. 可以先原封不改，按修改之後等 5-10 分鐘\n6. 連接看看路由器的 WiFi 是否有網路了\n\n⚠️ 適用於有些路由器不能改 MAC（爛路由器）",
           actions: [
             {
               type: "postback",
@@ -625,18 +695,17 @@ export function createChangeComputerNode(): LineMessage {
   return createButtonWithUri(
     `更換電腦 - 修改 MAC 地址
 
-台大宿舍網路系統有綁定「網路卡位址－IP」對應
-電腦更換後必須重新註冊修改網卡MAC位址
+由於台大宿舍網路系統有綁定「網路卡位址－IP」對應，電腦更換後必須重新註冊修改網卡 MAC 位址後才能上網。
 
 📋 修改步驟：
-1. 開啟瀏覽器，輸入：140.112.2.197
-2. 用學校帳號密碼登入
-3. 選「修改」成現在的MAC位址即可
+1. 開啟瀏覽器，自動導到註冊頁面
+   或在瀏覽器網址欄位輸入：140.112.2.197
+2. 用你的學校帳號密碼登入
+3. 選「修改」成現在的 MAC 位址即可
 
 💡 提示：
-如果使用他人註冊過的電腦
-會出現MAC位址與他人重複
-請聯絡網管協助刪除已註冊資料`,
+• 如果使用他人註冊過的電腦，會出現 MAC 位址與他人重複
+• 此時請聯絡網管協助刪除已註冊資料`,
     "查看詳細說明",
     "http://dorm.ntu.edu.tw/register/change_mac.htm",
     "更換電腦 - 修改 MAC 地址"
@@ -652,18 +721,25 @@ export function createMacDuplicateNode(): LineMessage {
 
 可能原因：
 1. 先前有將電腦用其他帳號註冊
-   例如：有用臨時帳號註冊過
-   或將電腦借給其他人註冊過
+   → 例如：有用臨時帳號註冊過
+   → 或將電腦借給其他人註冊過
+   
    解決方法：聯絡網管協助刪除舊帳號資料
 
-2. 網卡MAC位址與其他人相同
-   原則上MAC位址是不會重複的
-   但有些電腦製造商可能使用相同的MAC
-   解決方法：洽詢電腦廠商或手動更改MAC
+2. 網卡 MAC 位址與其他人相同
+   → 原則上 MAC 位址是不會重複的
+   → 但有些電腦製造商可能使用相同的 MAC 位址
+   
+   解決方法：
+   • 洽詢電腦廠商
+   • 或手動更改本機網路卡 MAC 位址
+   • 然後再重新於註冊頁面修改 MAC 位址
 
 3. 宿舍搬遷時的問題
-   新宿舍註冊頁面會自動偵測到搬遷訊息
-   照步驟將舊宿舍資料轉移到新宿舍註冊`,
+   → 新宿舍註冊頁面會自動偵測到搬遷訊息
+   → 照步驟將舊宿舍資料轉移到新宿舍註冊
+   → 如果無法跳出搬遷確認選項
+   → 請通知網管幫忙刪除舊宿舍註冊帳號`,
     "查看詳細說明",
     "http://dorm.ntu.edu.tw/register/change_dorm.htm",
     "MAC 重複問題解決方法"
@@ -851,23 +927,29 @@ export function createSpeedCheckNode(): LineButtonTemplate {
 
 /**
  * 節點 21：查詢流量使用
- * 注意：LINE Button Template 的 text 欄位限制為 160 字元
  */
 export function createQuotaCheckNode(): LineMessage {
   return createButtonWithUri(
     `📊 查詢流量使用
 
 宿舍網路使用規範：
-• 一個IP每天可存取總流量為6GB
-• 超過限制將被限速至1M/256Kbps
-• 每日上午8時重新計算解除
+• 一個 IP 每天可存取（包含上、下傳）總流量為 6GB
+• 所有應用皆列入計算
+• 當日超過此總量限制之個別 IP 的傳輸率將立刻被限制為 1M/256Kbps
+• 並於每日上午 8 時重新計算解除
 
 🔗 查詢流量使用情形：
-最準確查詢：dorminfo.cc.ntu.edu.tw/check_quota/
+
+1. 最準確查詢：
+   http://dorminfo.cc.ntu.edu.tw/check_quota/
+
+2. 其他查詢網站：
+   • http://netmng.cc.ntu.edu.tw/sql_topn/
+   • http://dorm.ntu.edu.tw/quota.html
 
 💡 提示：
-如果流量超過6GB會被限速
-可透過測速網站檢測是否被限速`,
+• 如果流量超過 6GB，會被限速至 1M/256Kbps
+• 可以透過測速網站進一步檢測是否被限速`,
     "查詢流量",
     "http://dorminfo.cc.ntu.edu.tw/check_quota/",
     "查詢流量使用"
@@ -886,7 +968,7 @@ export function createSpeedTestNode(): LineCarouselTemplate {
       columns: [
         {
           title: "校內測速",
-          text: "使用臺大測速網站：\nspeed.ntu.edu.tw\n\n校內測速結果：\n下載和上傳至少70Mbps以上\n如果校內測速也很慢\n可能是其他問題",
+          text: "使用臺大測速網站：\nhttp://speed.ntu.edu.tw/\n\n校內測速的結果：\n• 下載和上傳速度至少會有 70Mbps 以上\n• 因為流量沒有流出入校外網路\n• 如果校內測速也很慢，可能是其他問題",
           actions: [
             {
               type: "uri",
@@ -903,7 +985,7 @@ export function createSpeedTestNode(): LineCarouselTemplate {
         },
         {
           title: "校外測速",
-          text: "使用校外測速網站：\nspeedtest.net\n\n校外測速結果：\n若被限速會降至1Mbps以下\n一般至少都有50Mbps以上\n校外慢但校內正常\n可能是流量超額",
+          text: "使用校外測速網站：\n• https://www.speedtest.net/\n\n校外測速結果：\n• 若有被限速，速度將被明顯下降至 1Mbps 以下\n• 一般來說至少都有 50 Mbps 以上\n• 如果校外測速很慢但校內正常，可能是流量超額",
           actions: [
             {
               type: "uri",
@@ -935,7 +1017,7 @@ export function createSpeedAnalysisNode(): LineCarouselTemplate {
       columns: [
         {
           title: "多人共用問題",
-          text: "可能原因：\n多人同時使用同一條線路\n6G給四個人用當然慢\n\n解決建議：\n檢查是否有室友在下載大檔案\n協調使用時間",
+          text: "可能原因：\n• 多人同時使用同一條線路\n• 6G 給四個人用當然慢\n\n解決建議：\n• 檢查是否有室友在下載大檔案\n• 協調使用時間\n• 如果持續很慢，可能需要錄封包分析",
           actions: [
             {
               type: "postback",

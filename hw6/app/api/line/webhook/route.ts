@@ -60,6 +60,15 @@ async function sendReplyToLine(
       return textMsg;
     }
     
+    // 處理 Flex Message
+    if (msg.type === "flex") {
+      return {
+        type: "flex",
+        altText: msg.altText,
+        contents: msg.contents,
+      };
+    }
+    
     // 處理 Template 訊息（Button Template 或 Carousel Template）
     if (msg.type === "template") {
       const templateMsg: any = {
