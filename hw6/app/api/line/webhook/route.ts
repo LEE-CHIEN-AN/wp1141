@@ -1,65 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import { handleLineMessage } from "@/lib/bottender/handlers";
-import { createTextMessage } from "@/lib/utils/line-templates";
+import bot from "@/lib/bottender";
+import * as crypto from "crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function replyToLine(
-  replyToken: string,
-  messages: Array<{ type: string; text?: string; [key: string]: any }>
-) {
-  const formattedMessages = messages.map((msg) => {
-    if (msg.type === "text") {
-      return { type: "text", text: msg.text };
-    }
-    if (msg.type === "template") {
-      return msg;
-    }
-    // 處理 quickReply
-    if (msg.quickReply) {
-      return {
-        type: "text",
-        text: msg.text,
-        quickReply: msg.quickReply,
-      };
-    }
-    return msg;
-  });
-
-  const response = await fetch("https://api.line.me/v2/bot/message/reply", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({
-      replyToken,
-      messages: formattedMessages,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Line API error: ${error}`);
-  }
-}
-
-function verifySignature(body: string, signature: string): boolean {
-  const channelSecret = process.env.LINE_CHANNEL_SECRET;
-  if (!channelSecret) {
-    return false;
-  }
-
-  const hash = crypto
-    .createHmac("sha256", channelSecret)
-    .update(body)
-    .digest("base64");
-
-  return hash === signature;
-}
-
+/**
+ * LINE Webhook 端點
+ * 使用 Bottender 框架處理 LINE 事件
+ * 
+ * 注意：由於 Next.js App Router 的限制，我們使用 Bottender 的 bot.onEvent 處理器
+ * 但 webhook 路由本身需要手動處理，因為 Bottender 主要設計用於 Express 等傳統框架
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
@@ -73,81 +25,46 @@ export async function POST(request: NextRequest) {
     }
 
     // 驗證簽章
-    if (!verifySignature(body, signature)) {
+    const channelSecret = process.env.LINE_CHANNEL_SECRET;
+    if (!channelSecret) {
+      return NextResponse.json(
+        { error: "Channel secret not configured" },
+        { status: 500 }
+      );
+    }
+
+    const hash = crypto
+      .createHmac("sha256", channelSecret)
+      .update(body)
+      .digest("base64");
+
+    if (hash !== signature) {
       return NextResponse.json(
         { error: "Invalid signature" },
         { status: 401 }
       );
     }
 
+    // 解析事件
     const events = JSON.parse(body).events;
 
+    // 處理每個事件 - 使用 Bottender 的 bot.onEvent 處理器
     for (const event of events) {
-      const userId = event.source.userId;
-      if (!userId) continue;
+      // 建立 Bottender session
+      const session = {
+        id: event.source.userId || "",
+        isFirstSession: false,
+      };
 
-      // 獲取使用者資訊
-      let displayName = "使用者";
-      let pictureUrl: string | undefined;
+      // 使用 Bottender connector 建立 context
+      // 注意：這裡使用 Bottender 的內部 API，因為 Next.js App Router 的限制
+      const context = (bot.connector as any).createContext({
+        event,
+        session,
+      });
 
-      try {
-        const profileResponse = await fetch(
-          `https://api.line.me/v2/bot/profile/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
-            },
-          }
-        );
-        if (profileResponse.ok) {
-          const profile = await profileResponse.json();
-          displayName = profile.displayName || displayName;
-          pictureUrl = profile.pictureUrl;
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      }
-
-      // 處理 Follow Event（使用者加好友時）
-      if (event.type === "follow") {
-        const messages = await handleLineMessage({
-          userId,
-          displayName,
-          pictureUrl,
-          message: "__FOLLOW__", // 特殊標記，表示這是 Follow 事件
-        });
-        
-        if (event.replyToken) {
-          await replyToLine(event.replyToken, messages as any);
-        }
-        continue;
-      }
-
-      if (event.type === "message" && event.message.type === "text") {
-        const messages = await handleLineMessage({
-          userId,
-          displayName,
-          pictureUrl,
-          message: event.message.text,
-          messageId: event.message.id,
-        });
-
-        if (event.replyToken) {
-          await replyToLine(event.replyToken, messages as any);
-        }
-      } else if (event.type === "postback") {
-        const messages = await handleLineMessage({
-          userId,
-          displayName,
-          pictureUrl,
-          message: "",
-          postbackData: event.postback.data,
-        });
-
-        if (event.replyToken) {
-          await replyToLine(event.replyToken, messages as any);
-        }
-      }
+      // 觸發 Bottender 事件處理器
+      await bot.onEvent(context);
     }
 
     return NextResponse.json({ success: true });
@@ -163,4 +80,3 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({ status: "ok" });
 }
-
