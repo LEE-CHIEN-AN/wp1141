@@ -115,7 +115,7 @@ async function uploadRichMenuImage(richMenuId: string, imageUrl: string) {
   }
 
   // 如果是 URL，先下載圖片
-  let imageBuffer: ArrayBuffer | Buffer;
+  let imageBuffer: ArrayBuffer | Uint8Array;
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
@@ -123,9 +123,10 @@ async function uploadRichMenuImage(richMenuId: string, imageUrl: string) {
     }
     imageBuffer = await imageResponse.arrayBuffer();
   } else {
-    // 假設是 base64
+    // 假設是 base64，轉換為 Uint8Array
     const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
-    imageBuffer = Buffer.from(base64Data, "base64");
+    const buffer = Buffer.from(base64Data, "base64");
+    imageBuffer = new Uint8Array(buffer);
   }
 
   const response = await fetch(
