@@ -1171,7 +1171,10 @@ export function createSpeedTestNode(): LineMessage {
         contents: [
           createFlexText("使用臺大測速網站：", "sm", "bold"),
           createFlexText("http://speed.ntu.edu.tw/", "sm", "regular", "#0066CC"),
-          createFlexText("", "xs"), // 空行
+          {
+            type: "separator",
+            margin: "md",
+          },
           createFlexText("校內測速的結果：", "sm", "bold"),
           createFlexText("• 下載和上傳速度至少會有 70Mbps 以上", "sm"),
           createFlexText("• 因為流量沒有流出入校外網路", "sm"),
@@ -1211,7 +1214,10 @@ export function createSpeedTestNode(): LineMessage {
         contents: [
           createFlexText("使用校外測速網站：", "sm", "bold"),
           createFlexText("https://www.speedtest.net/", "sm", "regular", "#0066CC"),
-          createFlexText("", "xs"), // 空行
+          {
+            type: "separator",
+            margin: "md",
+          },
           createFlexText("校外測速結果：", "sm", "bold"),
           createFlexText("• 若有被限速，速度將被明顯下降至 1Mbps 以下", "sm"),
           createFlexText("• 一般來說至少都有 50 Mbps 以上", "sm"),
@@ -1260,7 +1266,10 @@ export function createSpeedAnalysisNode(): LineMessage {
           createFlexText("可能原因：", "sm", "bold"),
           createFlexText("• 多人同時使用同一條線路", "sm"),
           createFlexText("• 6G 給四個人用當然慢", "sm"),
-          createFlexText("", "xs"), // 空行
+          {
+            type: "separator",
+            margin: "md",
+          },
           createFlexText("解決建議：", "sm", "bold"),
           createFlexText("• 檢查是否有室友在下載大檔案", "sm"),
           createFlexText("• 協調使用時間", "sm"),
@@ -1302,7 +1311,10 @@ export function createSpeedAnalysisNode(): LineMessage {
           createFlexText("可能原因：", "sm", "bold"),
           createFlexText("• 路由器負載過高", "sm"),
           createFlexText("• 路由器故障或老化", "sm"),
-          createFlexText("", "xs"), // 空行
+          {
+            type: "separator",
+            margin: "md",
+          },
           createFlexText("解決建議：", "sm", "bold"),
           createFlexText("• 重新啟動路由器（關機後等待約 10 秒再重新開機）", "sm"),
           createFlexText("• 檢查路由器燈號是否為異常顏色（如黃燈、橘燈等）", "sm"),
@@ -1339,7 +1351,10 @@ export function createSpeedAnalysisNode(): LineMessage {
           createFlexText("可能原因：", "sm", "bold"),
           createFlexText("• 網路設備異常", "sm"),
           createFlexText("• 光纖線路故障", "sm"),
-          createFlexText("", "xs"), // 空行
+          {
+            type: "separator",
+            margin: "md",
+          },
           createFlexText("解決建議：", "sm", "bold"),
           createFlexText("• 可以嘗試錄製封包分析，找出問題根源", "sm"),
           createFlexText("• 檢查是否有特定時段特別嚴重", "sm"),
