@@ -7,28 +7,131 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * 發送回應到 LINE
+ * 發送回應到 LINE（使用 Reply API）
+ * 支援所有 LINE 訊息類型：text, template (buttons, carousel), quickReply
  */
 async function sendReplyToLine(
   replyToken: string,
   messages: Array<{ type: string; [key: string]: any }>
 ) {
   const formattedMessages = messages.map((msg) => {
+    // 處理文字訊息
     if (msg.type === "text") {
+      const textMsg: any = {
+        type: "text",
+        text: msg.text,
+      };
+      
+      // 如果有 quickReply，加入 quickReply
       if ("quickReply" in msg && msg.quickReply) {
-        return {
-          type: "text",
-          text: msg.text,
-          quickReply: msg.quickReply,
+        textMsg.quickReply = {
+          items: msg.quickReply.items.map((item: any) => {
+            const quickReplyItem: any = {
+              type: "action",
+              action: {},
+            };
+            
+            if (item.action.type === "postback") {
+              quickReplyItem.action = {
+                type: "postback",
+                label: item.action.label,
+                data: item.action.data || "",
+                displayText: item.action.displayText || item.action.label,
+              };
+            } else if (item.action.type === "message") {
+              quickReplyItem.action = {
+                type: "message",
+                label: item.action.label,
+                text: item.action.text || item.action.label,
+              };
+            } else if (item.action.type === "uri") {
+              quickReplyItem.action = {
+                type: "uri",
+                label: item.action.label,
+                uri: item.action.uri || "",
+              };
+            }
+            
+            return quickReplyItem;
+          }),
         };
       }
-      return { type: "text", text: msg.text };
+      
+      return textMsg;
     }
+    
+    // 處理 Template 訊息（Button Template 或 Carousel Template）
     if (msg.type === "template") {
-      return msg;
+      const templateMsg: any = {
+        type: "template",
+        altText: msg.altText,
+        template: {
+          type: msg.template.type,
+        },
+      };
+      
+      // Button Template
+      if (msg.template.type === "buttons") {
+        templateMsg.template.text = msg.template.text;
+        templateMsg.template.actions = msg.template.actions.map((action: any) => {
+          const formattedAction: any = {
+            type: action.type,
+            label: action.label,
+          };
+          
+          if (action.type === "postback") {
+            formattedAction.data = action.data || "";
+            formattedAction.displayText = action.displayText || action.label;
+          } else if (action.type === "message") {
+            formattedAction.text = action.text || action.label;
+          } else if (action.type === "uri") {
+            formattedAction.uri = action.uri || "";
+          }
+          
+          return formattedAction;
+        });
+      }
+      
+      // Carousel Template
+      if (msg.template.type === "carousel") {
+        templateMsg.template.columns = msg.template.columns.map((column: any) => {
+          const formattedColumn: any = {
+            text: column.text,
+            actions: column.actions.map((action: any) => {
+              const formattedAction: any = {
+                type: action.type,
+                label: action.label,
+              };
+              
+              if (action.type === "postback") {
+                formattedAction.data = action.data || "";
+                formattedAction.displayText = action.displayText || action.label;
+              } else if (action.type === "message") {
+                formattedAction.text = action.text || action.label;
+              } else if (action.type === "uri") {
+                formattedAction.uri = action.uri || "";
+              }
+              
+              return formattedAction;
+            }),
+          };
+          
+          if (column.title) {
+            formattedColumn.title = column.title;
+          }
+          
+          return formattedColumn;
+        });
+      }
+      
+      return templateMsg;
     }
+    
+    // 其他類型的訊息直接返回
     return msg;
   });
+
+  console.log("Sending messages to LINE API:", JSON.stringify(formattedMessages, null, 2));
 
   const response = await fetch("https://api.line.me/v2/bot/message/reply", {
     method: "POST",
@@ -44,8 +147,11 @@ async function sendReplyToLine(
 
   if (!response.ok) {
     const error = await response.text();
+    console.error("LINE API error:", error);
     throw new Error(`Line API error: ${error}`);
   }
+  
+  console.log("Messages sent successfully via LINE API");
 }
 
 /**
