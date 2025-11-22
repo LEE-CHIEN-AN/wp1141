@@ -485,6 +485,12 @@ function getMessageText(message: LineMessage): string {
       return templateMessage.altText;
     }
   }
-  return "";
+  if (message.type === "flex") {
+    // Flex Message 使用 altText 作為文字內容
+    const flexMessage = message as { altText: string; contents: any };
+    return flexMessage.altText || "Flex 訊息";
+  }
+  // 如果無法取得文字，返回預設值（避免資料庫驗證失敗）
+  return "訊息內容";
 }
 
