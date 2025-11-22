@@ -66,15 +66,9 @@ export async function processUserMessage(
       const lowerMessage = userMessage.toLowerCase();
       
       if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
-        // 個人問題關鍵字（優先匹配）
-        if (lowerMessage.includes("一個人") || lowerMessage === "一個人" ||
-            lowerMessage.includes("只有我") || lowerMessage.includes("只有我一個人") ||
-            lowerMessage.includes("個人") || lowerMessage === "個人" ||
-            lowerMessage.includes("我自己") || lowerMessage.includes("個人問題")) {
-          // 導入節點處理函數 - 問第二個問題
-          const { createSingleUserQuestion2Node } = await import("./conversation-nodes");
-          return createSingleUserQuestion2Node();
-        }
+        // 注意：個人問題和多人問題的關鍵字匹配已經移到 handlers.ts 中處理
+        // 這裡只處理第二個問題的回答（完全無法連線、斷斷續續等）
+        // 個人問題關鍵字匹配已移除，改由 handlers.ts 統一處理對話狀態
         
         // 多人問題關鍵字
         if (lowerMessage.includes("多人") || lowerMessage === "多人" ||

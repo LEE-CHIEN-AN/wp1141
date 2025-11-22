@@ -70,35 +70,68 @@ export async function handleLineMessage(
 
     // 檢查對話狀態（metadata.step）
     const conversationStep = conversation.metadata?.step as string | undefined;
+    const lowerMessage = context.message.toLowerCase();
 
     // 如果有對話狀態，優先處理逐步詢問流程
-    if (conversationStep && conversationStep.startsWith("network:step2")) {
-      // 在第二個問題階段，處理使用者的回答
-      const lowerMessage = context.message.toLowerCase();
+    if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
+      // 處理第一個問題的回答（多人還是個人？）
+      if (!conversationStep || conversationStep === "network:step1") {
+        if (lowerMessage.includes("一個人") || lowerMessage === "一個人" ||
+            lowerMessage.includes("只有我") || lowerMessage.includes("只有我一個人") ||
+            lowerMessage.includes("個人") || lowerMessage === "個人" ||
+            lowerMessage.includes("我自己") || lowerMessage.includes("個人問題")) {
+          // 個人問題 → 問第二個問題
+          const { createSingleUserQuestion2Node } = await import("@/lib/services/conversation-nodes");
+          const response = createSingleUserQuestion2Node();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: { step: "network:step2", answer1: "single" }
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+        
+        if (lowerMessage.includes("多人") || lowerMessage === "多人" ||
+            lowerMessage === "多人問題" || lowerMessage.includes("好幾") ||
+            lowerMessage.includes("室友") || lowerMessage.includes("大家一起")) {
+          // 多人問題 → 直接提供錄封包流程
+          const { createMultipleUsersPacketCaptureNode } = await import("@/lib/services/conversation-nodes");
+          const response = createMultipleUsersPacketCaptureNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: {}
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
+      }
       
-      if (lowerMessage.includes("完全無法") || lowerMessage.includes("完全連不上") ||
-          lowerMessage.includes("完全不能") || lowerMessage === "完全無法連線") {
-        // 完全無法連線 → 顯示檢查清單
-        const { createNoConnectionChecklistNode } = await import("@/lib/services/conversation-nodes");
-        const response = createNoConnectionChecklistNode();
-        await updateConversation(conversation._id.toString(), { 
-          category,
-          metadata: {}
-        });
-        await saveMessage(conversation._id, "assistant", getMessageText(response));
-        return [response];
-      } else if (lowerMessage.includes("斷斷續續") || lowerMessage.includes("會斷") ||
-                 lowerMessage.includes("網速慢") || lowerMessage.includes("很慢") ||
-                 lowerMessage.includes("瞬斷")) {
-        // 會斷斷續續/網速慢 → 提供 PingInfoView 教學
-        const { createSingleUserPingInfoViewNode } = await import("@/lib/services/conversation-nodes");
-        const response = createSingleUserPingInfoViewNode();
-        await updateConversation(conversation._id.toString(), { 
-          category,
-          metadata: {}
-        });
-        await saveMessage(conversation._id, "assistant", getMessageText(response));
-        return [response];
+      // 處理第二個問題的回答（完全無法連線還是會斷斷續續？）
+      if (conversationStep && conversationStep.startsWith("network:step2")) {
+        if (lowerMessage.includes("完全無法") || lowerMessage.includes("完全連不上") ||
+            lowerMessage.includes("完全不能") || lowerMessage === "完全無法連線") {
+          // 完全無法連線 → 顯示檢查清單
+          const { createNoConnectionChecklistNode } = await import("@/lib/services/conversation-nodes");
+          const response = createNoConnectionChecklistNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: {}
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        } else if (lowerMessage.includes("斷斷續續") || lowerMessage.includes("會斷") ||
+                   lowerMessage.includes("網速慢") || lowerMessage.includes("很慢") ||
+                   lowerMessage.includes("瞬斷")) {
+          // 會斷斷續續/網速慢 → 提供 PingInfoView 教學
+          const { createSingleUserPingInfoViewNode } = await import("@/lib/services/conversation-nodes");
+          const response = createSingleUserPingInfoViewNode();
+          await updateConversation(conversation._id.toString(), { 
+            category,
+            metadata: {}
+          });
+          await saveMessage(conversation._id, "assistant", getMessageText(response));
+          return [response];
+        }
       }
     }
 
@@ -157,6 +190,11 @@ async function handlePostback(
         // 🚫 無法上網 - 連線故障排除（節點 2）
         category = CONVERSATION_CATEGORIES.NETWORK_ISSUE;
         response = ConversationNodes.createConnectionTroubleshootNode();
+        // 設置對話狀態為第一個問題階段
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: "network:step1" }
+        });
         break;
 
       case "registration_guide":
