@@ -229,26 +229,17 @@ export function createIpSettingDetailNode(): LineMessage {
     `⚙️ IP 設定檢查詳細步驟
 
 1. 開啟設定視窗
-   • Windows：右下角網路圖示 → 右鍵 → 「開啟網路和共用中心」
-   • 點擊「乙太網路」→「內容」→「網際網路通訊協定第 4 版（TCP/IPv4）」
+   Windows：右下角網路圖示→右鍵→開啟網路和共用中心
+   點擊「乙太網路」→「內容」→「TCP/IPv4」
 
 2. 確認設定
-   ✅ 自動取得 IP 位址
-   ✅ 自動取得 DNS 伺服器位址
+   ✅ 自動取得IP位址
+   ✅ 自動取得DNS伺服器位址
 
-3. 檢查 IP
-   • 打開 cmd，輸入：ipconfig /all
-   • 確認 IP 是否為 140.112.xxx.xxx
-   • 如果 IP 為 169.254.xxx.xxx → 未取得 IP
-   • 如果 IP 為 192.168.xxx.xxx 或 10.xxx.xxx.xxx
-   → 可能有其他人私接無線分享器但接錯插孔
-
-4. 手動設定 IP（如果自動取得失敗）
-   請參考註冊成功時顯示的 IP 資訊：
-   • IP 位址：140.112.xxx.yyy
-   • 子網路遮罩：255.255.255.0
-   • 預設閘道：140.112.xxx.254
-   • DNS：140.112.254.4 和 140.112.2.2`,
+3. 檢查IP
+   打開cmd，輸入：ipconfig /all
+   確認IP是否為140.112.xxx.xxx
+   如果IP為169.254.xxx.xxx→未取得IP`,
     "查看詳細教學文件",
     "https://ccnet.ntu.edu.tw/ccnet/pages/student_dorm_content/doc/set_ip.pdf",
     "IP 設定檢查詳細步驟"
@@ -373,34 +364,26 @@ export function createRegistrationStepsDetailNode(): LineMessage {
     `📝 註冊步驟詳細教學
 
 1️⃣ 連接網路
-   • 將網路線連接至宿舍網路孔
-   • 將網路線連接至電腦或路由器
-   • 確認網路線有正確插入
+   將網路線連接至宿舍網路孔
+   將網路線連接至電腦或路由器
 
 2️⃣ 進入註冊網站
-   • 打開瀏覽器（Firefox、Chrome、Safari、Edge）
-   • 在網址列輸入：140.112.2.197
-   • 按下 Enter
-   ⚠️ 此網站要在有連校內網路、IP 在校內才進得去
-   ⚠️ 此時就算顯示無網際網路，依舊可以進入到 140.112.2.197
-   ⚠️ 其他網頁打不開是正常的
+   打開瀏覽器
+   在網址列輸入：140.112.2.197
+   ⚠️ 此網站要在有連校內網路才進得去
+   ⚠️ 此時就算顯示無網際網路，依舊可以進入
 
 3️⃣ 登入註冊系統
-   • 點擊「宿舍網路註冊系統」
-   • 使用計中帳號密碼登入
-   • 帳號：學號
-   • 密碼：註冊計中帳號時的密碼
+   點擊「宿舍網路註冊系統」
+   使用計中帳號密碼登入
 
 4️⃣ 完成註冊
-   • 登入後點擊「註冊電腦於：[您的宿舍]」
-   • 確認 MAC 地址是否正確
-   • 若填入的為電腦本身的 MAC，將網路線連接電腦應該即可上網
-   • 想用路由器上網須到 140.112.2.197 將 MAC 改為路由器的 MAC
+   登入後點擊「註冊電腦於：[您的宿舍]」
+   確認MAC地址是否正確
 
 5️⃣ 等待生效
-   • 稍等 5 至 10 分鐘
-   • 若還不能使用，試試看重新開機
-   • 若仍失敗，請參考疑難排解`,
+   稍等5至10分鐘
+   若還不能使用，試試看重新開機`,
     "查看詳細教學文件",
     "https://ccnet.ntu.edu.tw/ccnet/pages/student_dorm_content/doc/register.pdf",
     "註冊步驟詳細教學"
@@ -643,17 +626,18 @@ export function createChangeComputerNode(): LineMessage {
   return createButtonWithUri(
     `更換電腦 - 修改 MAC 地址
 
-由於台大宿舍網路系統有綁定「網路卡位址－IP」對應，電腦更換後必須重新註冊修改網卡 MAC 位址後才能上網。
+台大宿舍網路系統有綁定「網路卡位址－IP」對應
+電腦更換後必須重新註冊修改網卡MAC位址
 
 📋 修改步驟：
-1. 開啟瀏覽器，自動導到註冊頁面
-   或在瀏覽器網址欄位輸入：140.112.2.197
-2. 用你的學校帳號密碼登入
-3. 選「修改」成現在的 MAC 位址即可
+1. 開啟瀏覽器，輸入：140.112.2.197
+2. 用學校帳號密碼登入
+3. 選「修改」成現在的MAC位址即可
 
 💡 提示：
-• 如果使用他人註冊過的電腦，會出現 MAC 位址與他人重複
-• 此時請聯絡網管協助刪除已註冊資料`,
+如果使用他人註冊過的電腦
+會出現MAC位址與他人重複
+請聯絡網管協助刪除已註冊資料`,
     "查看詳細說明",
     "http://dorm.ntu.edu.tw/register/change_mac.htm",
     "更換電腦 - 修改 MAC 地址"
@@ -669,25 +653,18 @@ export function createMacDuplicateNode(): LineMessage {
 
 可能原因：
 1. 先前有將電腦用其他帳號註冊
-   → 例如：有用臨時帳號註冊過
-   → 或將電腦借給其他人註冊過
-   
+   例如：有用臨時帳號註冊過
+   或將電腦借給其他人註冊過
    解決方法：聯絡網管協助刪除舊帳號資料
 
-2. 網卡 MAC 位址與其他人相同
-   → 原則上 MAC 位址是不會重複的
-   → 但有些電腦製造商可能使用相同的 MAC 位址
-   
-   解決方法：
-   • 洽詢電腦廠商
-   • 或手動更改本機網路卡 MAC 位址
-   • 然後再重新於註冊頁面修改 MAC 位址
+2. 網卡MAC位址與其他人相同
+   原則上MAC位址是不會重複的
+   但有些電腦製造商可能使用相同的MAC
+   解決方法：洽詢電腦廠商或手動更改MAC
 
 3. 宿舍搬遷時的問題
-   → 新宿舍註冊頁面會自動偵測到搬遷訊息
-   → 照步驟將舊宿舍資料轉移到新宿舍註冊
-   → 如果無法跳出搬遷確認選項
-   → 請通知網管幫忙刪除舊宿舍註冊帳號`,
+   新宿舍註冊頁面會自動偵測到搬遷訊息
+   照步驟將舊宿舍資料轉移到新宿舍註冊`,
     "查看詳細說明",
     "http://dorm.ntu.edu.tw/register/change_dorm.htm",
     "MAC 重複問題解決方法"
@@ -875,29 +852,23 @@ export function createSpeedCheckNode(): LineButtonTemplate {
 
 /**
  * 節點 21：查詢流量使用
+ * 注意：LINE Button Template 的 text 欄位限制為 160 字元
  */
 export function createQuotaCheckNode(): LineMessage {
   return createButtonWithUri(
     `📊 查詢流量使用
 
 宿舍網路使用規範：
-• 一個 IP 每天可存取（包含上、下傳）總流量為 6GB
-• 所有應用皆列入計算
-• 當日超過此總量限制之個別 IP 的傳輸率將立刻被限制為 1M/256Kbps
-• 並於每日上午 8 時重新計算解除
+• 一個IP每天可存取總流量為6GB
+• 超過限制將被限速至1M/256Kbps
+• 每日上午8時重新計算解除
 
 🔗 查詢流量使用情形：
-
-1. 最準確查詢：
-   http://dorminfo.cc.ntu.edu.tw/check_quota/
-
-2. 其他查詢網站：
-   • http://netmng.cc.ntu.edu.tw/sql_topn/
-   • http://dorm.ntu.edu.tw/quota.html
+最準確查詢：dorminfo.cc.ntu.edu.tw/check_quota/
 
 💡 提示：
-• 如果流量超過 6GB，會被限速至 1M/256Kbps
-• 可以透過測速網站進一步檢測是否被限速`,
+如果流量超過6GB會被限速
+可透過測速網站檢測是否被限速`,
     "查詢流量",
     "http://dorminfo.cc.ntu.edu.tw/check_quota/",
     "查詢流量使用"
