@@ -1,9 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
 import bot from "@/lib/bottender";
+import { handleLineMessage } from "@/lib/bottender/handlers";
 import * as crypto from "crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/**
+ * 發送回應到 LINE
+ */
+async function sendReplyToLine(
+  replyToken: string,
+  messages: Array<{ type: string; [key: string]: any }>
+) {
+  const formattedMessages = messages.map((msg) => {
+    if (msg.type === "text") {
+      if ("quickReply" in msg && msg.quickReply) {
+        return {
+          type: "text",
+          text: msg.text,
+          quickReply: msg.quickReply,
+        };
+      }
+      return { type: "text", text: msg.text };
+    }
+    if (msg.type === "template") {
+      return msg;
+    }
+    return msg;
+  });
+
+  const response = await fetch("https://api.line.me/v2/bot/message/reply", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      replyToken,
+      messages: formattedMessages,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Line API error: ${error}`);
+  }
+}
 
 /**
  * LINE Webhook 端點
@@ -47,28 +90,81 @@ export async function POST(request: NextRequest) {
 
     // 解析事件
     const events = JSON.parse(body).events;
+    
+    console.log("Received events:", events.length);
+    events.forEach((event: any) => {
+      console.log("Event type:", event.type, "Reply token:", event.replyToken);
+    });
 
-    // 處理每個事件 - 使用 Bottender 的 bot.onEvent 處理器
+    // 處理每個事件
     for (const event of events) {
       try {
-        // 建立 Bottender session
-        const session = {
-          id: event.source.userId || "",
-          isFirstSession: false,
+        const userId = event.source.userId;
+        if (!userId) {
+          console.log("No userId in event, skipping");
+          continue;
+        }
+
+        // 獲取使用者資訊
+        let displayName = "使用者";
+        let pictureUrl: string | undefined;
+
+        try {
+          const profileResponse = await fetch(
+            `https://api.line.me/v2/bot/profile/${userId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
+              },
+            }
+          );
+          if (profileResponse.ok) {
+            const profile = await profileResponse.json();
+            displayName = profile.displayName || displayName;
+            pictureUrl = profile.pictureUrl;
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+
+        // 建立訊息上下文
+        const messageContext: any = {
+          userId,
+          displayName,
+          pictureUrl,
+          message: "",
+          postbackData: undefined as string | undefined,
         };
 
-        // 使用 Bottender connector 的 createContext 方法建立 context
-        // createContext 存在於 connector 的原型中
-        const context = bot.connector.createContext({
-          event,
-          session,
-        });
+        // 處理不同類型的事件
+        if (event.type === "message" && event.message.type === "text") {
+          messageContext.message = event.message.text;
+          messageContext.messageId = event.message.id;
+        } else if (event.type === "postback") {
+          messageContext.message = "";
+          messageContext.postbackData = event.postback.data;
+          console.log("Postback event received:", event.postback.data);
+        } else if (event.type === "follow") {
+          messageContext.message = "__FOLLOW__";
+        } else {
+          console.log("Unhandled event type:", event.type);
+          continue;
+        }
 
-        // 觸發 Bottender 事件處理器
-        await bot.onEvent(context);
+        // 處理訊息並取得回應
+        const responses = await handleLineMessage(messageContext);
+        console.log("Responses generated:", responses.length);
+
+        // 如果有 replyToken，使用 LINE API 發送回應
+        if (event.replyToken && responses.length > 0) {
+          await sendReplyToLine(event.replyToken, responses);
+          console.log("Reply sent successfully");
+        } else {
+          console.log("No replyToken or no responses");
+        }
       } catch (error) {
-        console.error("Error processing event:", error, event);
-        // 繼續處理下一個事件
+        console.error("Error processing event:", error);
+        console.error("Event details:", JSON.stringify(event, null, 2));
         continue;
       }
     }

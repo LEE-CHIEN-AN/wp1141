@@ -41,9 +41,14 @@ bot.onEvent(async (context) => {
 
     // 處理訊息並取得回應
     const responses = await handleLineMessage(messageContext);
+    
+    console.log("Responses generated:", responses.length, "responses");
+    console.log("Event type:", context.event.type);
+    console.log("Reply token:", (context.event as any).replyToken);
 
     // 發送回應
     for (const response of responses) {
+      console.log("Sending response type:", response.type);
       if (response.type === "text" && !("quickReply" in response)) {
         await context.sendText(response.text);
       } else if (response.type === "template") {
