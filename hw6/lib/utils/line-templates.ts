@@ -30,11 +30,12 @@ export interface LineCarouselTemplate {
       title?: string;
       text: string;
       actions: Array<{
-        type: "postback" | "message";
+        type: "postback" | "message" | "uri";
         label: string;
         data?: string;
         text?: string;
         displayText?: string;
+        uri?: string;
       }>;
     }>;
   };
