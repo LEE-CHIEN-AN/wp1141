@@ -1154,113 +1154,219 @@ export function createQuotaCheckNode(): LineMessage {
 /**
  * 節點 22：測速檢測（Carousel）
  */
-export function createSpeedTestNode(): LineCarouselTemplate {
-  return {
-    type: "template",
-    altText: "測速檢測 - 選擇測速方式",
-    template: {
-      type: "carousel",
-      columns: [
-        {
-          title: "校內測速",
-          text: "使用臺大測速網站：\nhttp://speed.ntu.edu.tw/\n\n校內測速的結果：\n• 下載和上傳速度至少會有 70Mbps 以上\n• 因為流量沒有流出入校外網路\n• 如果校內測速也很慢，可能是其他問題",
-          actions: [
-            {
-              type: "uri",
-              label: "開啟測速網站",
-              uri: "http://speed.ntu.edu.tw/",
-            },
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-        {
-          title: "校外測速",
-          text: "使用校外測速網站：\n• https://www.speedtest.net/\n\n校外測速結果：\n• 若有被限速，速度將被明顯下降至 1Mbps 以下\n• 一般來說至少都有 50 Mbps 以上\n• 如果校外測速很慢但校內正常，可能是流量超額",
-          actions: [
-            {
-              type: "uri",
-              label: "開啟測速網站",
-              uri: "https://www.speedtest.net/",
-            },
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-      ],
+export function createSpeedTestNode(): LineMessage {
+  return createFlexMessage("測速檢測 - 選擇測速方式", [
+    {
+      type: "bubble",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("校內測速", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("使用臺大測速網站：", "sm", "bold"),
+          createFlexText("http://speed.ntu.edu.tw/", "sm", "regular", "#0066CC"),
+          createFlexText("", "xs"), // 空行
+          createFlexText("校內測速的結果：", "sm", "bold"),
+          createFlexText("• 下載和上傳速度至少會有 70Mbps 以上", "sm"),
+          createFlexText("• 因為流量沒有流出入校外網路", "sm"),
+          createFlexText("• 如果校內測速也很慢，可能是其他問題", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("開啟測速網站", {
+            type: "uri",
+            uri: "http://speed.ntu.edu.tw/",
+          }, "primary"),
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
     },
-  };
+    {
+      type: "bubble",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("校外測速", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("使用校外測速網站：", "sm", "bold"),
+          createFlexText("https://www.speedtest.net/", "sm", "regular", "#0066CC"),
+          createFlexText("", "xs"), // 空行
+          createFlexText("校外測速結果：", "sm", "bold"),
+          createFlexText("• 若有被限速，速度將被明顯下降至 1Mbps 以下", "sm"),
+          createFlexText("• 一般來說至少都有 50 Mbps 以上", "sm"),
+          createFlexText("• 如果校外測速很慢但校內正常，可能是流量超額", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("開啟測速網站", {
+            type: "uri",
+            uri: "https://www.speedtest.net/",
+          }, "primary"),
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
+    },
+  ]);
 }
 
 /**
- * 節點 23：可能原因分析（Carousel）
+ * 節點 23：可能原因分析（Flex Message）
  */
-export function createSpeedAnalysisNode(): LineCarouselTemplate {
-  return {
-    type: "template",
-    altText: "網速很慢 - 可能原因分析",
-    template: {
-      type: "carousel",
-      columns: [
-        {
-          title: "多人共用問題",
-          text: "可能原因：\n• 多人同時使用同一條線路\n• 6G 給四個人用當然慢\n\n解決建議：\n• 檢查是否有室友在下載大檔案\n• 協調使用時間\n• 如果持續很慢，可能需要錄封包分析",
-          actions: [
-            {
-              type: "postback",
-              label: "查看詳細解決方法",
-              data: "network:multiple",
-              displayText: "錄封包分析",
-            },
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-        {
-          title: "路由器問題",
-          text: "可能原因：\n• 路由器負載過高\n• 路由器故障或老化\n\n解決建議：\n• 重新啟動路由器（關機後等待約 10 秒再重新開機）\n• 檢查路由器燈號是否為異常顏色（如黃燈、橘燈等）\n• 如果問題持續，可能需要更換路由器",
-          actions: [
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-        {
-          title: "設備異常",
-          text: "可能原因：\n• 網路設備異常\n• 光纖線路故障\n\n解決建議：\n• 可以嘗試錄製封包分析，找出問題根源\n• 檢查是否有特定時段特別嚴重\n• 如果全寢室皆無法上網，可能是網路設備或光纖線路故障\n• 請聯絡網管協助進一步排查",
-          actions: [
-            {
-              type: "postback",
-              label: "查看詳細解決方法",
-              data: "network:multiple",
-              displayText: "錄封包分析",
-            },
-            {
-              type: "postback",
-              label: "📋 回主選單",
-              data: "menu",
-              displayText: "回主選單",
-            },
-          ],
-        },
-      ],
+export function createSpeedAnalysisNode(): LineMessage {
+  return createFlexMessage("網速很慢 - 可能原因分析", [
+    {
+      type: "bubble",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("多人共用問題", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("可能原因：", "sm", "bold"),
+          createFlexText("• 多人同時使用同一條線路", "sm"),
+          createFlexText("• 6G 給四個人用當然慢", "sm"),
+          createFlexText("", "xs"), // 空行
+          createFlexText("解決建議：", "sm", "bold"),
+          createFlexText("• 檢查是否有室友在下載大檔案", "sm"),
+          createFlexText("• 協調使用時間", "sm"),
+          createFlexText("• 如果持續很慢，可能需要錄封包分析", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("查看詳細解決方法", {
+            type: "postback",
+            data: "network:multiple",
+            displayText: "錄封包分析",
+          }, "primary"),
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
     },
-  };
+    {
+      type: "bubble",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("路由器問題", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("可能原因：", "sm", "bold"),
+          createFlexText("• 路由器負載過高", "sm"),
+          createFlexText("• 路由器故障或老化", "sm"),
+          createFlexText("", "xs"), // 空行
+          createFlexText("解決建議：", "sm", "bold"),
+          createFlexText("• 重新啟動路由器（關機後等待約 10 秒再重新開機）", "sm"),
+          createFlexText("• 檢查路由器燈號是否為異常顏色（如黃燈、橘燈等）", "sm"),
+          createFlexText("• 如果問題持續，可能需要更換路由器", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
+    },
+    {
+      type: "bubble",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("設備異常", "lg", "bold", "#1DB446"),
+        ],
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexText("可能原因：", "sm", "bold"),
+          createFlexText("• 網路設備異常", "sm"),
+          createFlexText("• 光纖線路故障", "sm"),
+          createFlexText("", "xs"), // 空行
+          createFlexText("解決建議：", "sm", "bold"),
+          createFlexText("• 可以嘗試錄製封包分析，找出問題根源", "sm"),
+          createFlexText("• 檢查是否有特定時段特別嚴重", "sm"),
+          createFlexText("• 如果全寢室皆無法上網，可能是網路設備或光纖線路故障", "sm"),
+          createFlexText("• 請聯絡網管協助進一步排查", "sm"),
+        ],
+        spacing: "sm",
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          createFlexButton("查看詳細解決方法", {
+            type: "postback",
+            data: "network:multiple",
+            displayText: "錄封包分析",
+          }, "primary"),
+          createFlexButton("📋 回主選單", {
+            type: "postback",
+            data: "menu",
+            displayText: "回主選單",
+          }, "secondary"),
+        ],
+        spacing: "sm",
+      },
+    },
+  ]);
 }
 
 /**
