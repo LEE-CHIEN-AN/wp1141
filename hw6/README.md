@@ -2,6 +2,14 @@
 
 整合 Line Messaging API 與 Gemini API 的智慧問答機器人系統。
 
+## URL
+LINE Bot URL : https://lin.ee/uitjKQX
+管理後台 Production URL : https://hw6-linebot.vercel.app/admin
+
+後台管理員登入帳密
+帳號=f8@ntu.edu.tw
+密碼=f8networkadmin
+
 ## 技術棧
 
 - Next.js 16+ (App Router) + TypeScript
