@@ -157,10 +157,167 @@ async function sendReplyToLine(
   if (!response.ok) {
     const error = await response.text();
     console.error("LINE API error:", error);
+    
+    // 如果是 Invalid reply token 錯誤，可能是重新投遞的事件
+    // 這種情況下 reply token 已失效，無法使用 Reply API
+    if (error.includes("Invalid reply token")) {
+      throw new Error("INVALID_REPLY_TOKEN");
+    }
+    
     throw new Error(`Line API error: ${error}`);
   }
   
   console.log("Messages sent successfully via LINE API");
+}
+
+/**
+ * 使用 Push Message API 發送訊息（當 reply token 失效時使用）
+ */
+async function sendPushMessage(
+  userId: string,
+  messages: Array<{ type: string; [key: string]: any }>
+) {
+  // 使用與 sendReplyToLine 相同的格式化邏輯
+  const formattedMessages = messages.map((msg) => {
+    if (msg.type === "text") {
+      const textMsg: any = {
+        type: "text",
+        text: msg.text,
+      };
+      
+      if ("quickReply" in msg && msg.quickReply) {
+        textMsg.quickReply = {
+          items: msg.quickReply.items.map((item: any) => {
+            const quickReplyItem: any = {
+              type: "action",
+              action: {},
+            };
+            
+            if (item.action.type === "postback") {
+              quickReplyItem.action = {
+                type: "postback",
+                label: item.action.label,
+                data: item.action.data || "",
+                displayText: item.action.displayText || item.action.label,
+              };
+            } else if (item.action.type === "message") {
+              quickReplyItem.action = {
+                type: "message",
+                label: item.action.label,
+                text: item.action.text || item.action.label,
+              };
+            } else if (item.action.type === "uri") {
+              quickReplyItem.action = {
+                type: "uri",
+                label: item.action.label,
+                uri: item.action.uri || "",
+              };
+            }
+            
+            return quickReplyItem;
+          }),
+        };
+      }
+      
+      return textMsg;
+    }
+    
+    if (msg.type === "flex") {
+      return {
+        type: "flex",
+        altText: msg.altText,
+        contents: msg.contents,
+      };
+    }
+    
+    if (msg.type === "template") {
+      const templateMsg: any = {
+        type: "template",
+        altText: msg.altText,
+        template: {
+          type: msg.template.type,
+        },
+      };
+      
+      if (msg.template.type === "buttons") {
+        templateMsg.template.text = msg.template.text;
+        templateMsg.template.actions = msg.template.actions.map((action: any) => {
+          const formattedAction: any = {
+            type: action.type,
+            label: action.label,
+          };
+          
+          if (action.type === "postback") {
+            formattedAction.data = action.data || "";
+            formattedAction.displayText = action.displayText || action.label;
+          } else if (action.type === "message") {
+            formattedAction.text = action.text || action.label;
+          } else if (action.type === "uri") {
+            formattedAction.uri = action.uri || "";
+          }
+          
+          return formattedAction;
+        });
+      }
+      
+      if (msg.template.type === "carousel") {
+        templateMsg.template.columns = msg.template.columns.map((column: any) => {
+          const formattedColumn: any = {
+            text: column.text,
+            actions: column.actions.map((action: any) => {
+              const formattedAction: any = {
+                type: action.type,
+                label: action.label,
+              };
+              
+              if (action.type === "postback") {
+                formattedAction.data = action.data || "";
+                formattedAction.displayText = action.displayText || action.label;
+              } else if (action.type === "message") {
+                formattedAction.text = action.text || action.label;
+              } else if (action.type === "uri") {
+                formattedAction.uri = action.uri || "";
+              }
+              
+              return formattedAction;
+            }),
+          };
+          
+          if (column.title) {
+            formattedColumn.title = column.title;
+          }
+          
+          return formattedColumn;
+        });
+      }
+      
+      return templateMsg;
+    }
+    
+    return msg;
+  });
+
+  console.log("Sending push message to LINE API for user:", userId);
+
+  const response = await fetch("https://api.line.me/v2/bot/message/push", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      to: userId,
+      messages: formattedMessages,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error("LINE Push API error:", error);
+    throw new Error(`Line Push API error: ${error}`);
+  }
+  
+  console.log("Push message sent successfully via LINE API");
 }
 
 /**
@@ -272,8 +429,20 @@ export async function POST(request: NextRequest) {
 
         // 如果有 replyToken，使用 LINE API 發送回應
         if (event.replyToken && responses.length > 0) {
-          await sendReplyToLine(event.replyToken, responses);
-          console.log("Reply sent successfully");
+          try {
+            await sendReplyToLine(event.replyToken, responses);
+            console.log("Reply sent successfully");
+          } catch (error: any) {
+            // 如果是 reply token 失效（通常是重新投遞的事件），改用 Push Message API
+            if (error.message === "INVALID_REPLY_TOKEN" || error.message?.includes("Invalid reply token")) {
+              console.log("Reply token invalid, using Push Message API instead");
+              await sendPushMessage(userId, responses);
+              console.log("Push message sent successfully");
+            } else {
+              // 其他錯誤，重新拋出
+              throw error;
+            }
+          }
         } else {
           console.log("No replyToken or no responses");
         }
