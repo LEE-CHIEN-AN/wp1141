@@ -139,7 +139,7 @@ function getDefaultResponseForCategory(
 ): LineMessage {
   switch (category) {
     case CONVERSATION_CATEGORIES.NETWORK_ISSUE:
-      return createQuickReply(DEFAULT_RESPONSES.NETWORK_ISSUE, [
+      return createQuickReply(DEFAULT_RESPONSES.CONNECTION_TROUBLESHOOT, [
         { label: "多人問題", data: "network:multiple" },
         { label: "個人問題", data: "network:single" },
         { label: "📋 回主選單", data: "menu" },
@@ -149,7 +149,7 @@ function getDefaultResponseForCategory(
       return createTextWithMenuOption(DEFAULT_RESPONSES.SECURITY_INCIDENT);
 
     case CONVERSATION_CATEGORIES.REGISTRATION:
-      return createQuickReply(DEFAULT_RESPONSES.REGISTRATION, [
+      return createQuickReply(DEFAULT_RESPONSES.REGISTRATION_GUIDE, [
         { label: "確認網段", data: "registration:check_segment" },
         { label: "MAC 地址問題", data: "registration:mac" },
         { label: "📋 回主選單", data: "menu" },
