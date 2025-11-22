@@ -137,7 +137,7 @@ export function createNoConnectionChecklistNode(): LineCarouselTemplate {
       columns: [
         {
           title: "🔌 硬體檢查",
-          text: "• 網路線是否正確插入（聽到「喀」一聲）\n• 網路孔是否有接觸不良\n• 嘗試更換網路線測試\n• 借室友的電腦測試網路孔",
+          text: "網路線是否正確插入\n網路孔是否有接觸不良\n嘗試更換網路線測試",
           actions: [
             {
               type: "postback",
@@ -155,7 +155,7 @@ export function createNoConnectionChecklistNode(): LineCarouselTemplate {
         },
         {
           title: "⚙️ IP 設定檢查",
-          text: "• 確認是否為「自動取得 IP 位址」\n• 確認是否為「自動取得 DNS 伺服器位址」\n• 檢查 IP 是否為 140.112.xxx.xxx\n• 如果 IP 為 169.254.xxx.xxx，表示未取得 IP",
+          text: "確認是否為自動取得IP\n確認是否為自動取得DNS\n檢查IP是否為140.112.xxx",
           actions: [
             {
               type: "postback",
@@ -504,7 +504,7 @@ export function createMacAddressSetupNode(): LineCarouselTemplate {
       columns: [
         {
           title: "方法 1：修改路由器的 MAC",
-          text: "1. 在路由器管理頁面找到「MAC 位址設定」或「MAC 複製」\n2. 將路由器的 MAC 改成與註冊系統中顯示的 MAC 相同\n3. 儲存設定\n\n💡 如果找不到路由器初始的 MAC 位址：\n   路由器本體的下面通常會寫這台機器的詳細資訊",
+          text: "1. 在路由器管理頁面找到MAC位址設定\n2. 將路由器的MAC改成與註冊系統相同\n3. 儲存設定\n\n💡 找不到MAC：路由器本體下面有",
           actions: [
             {
               type: "postback",
@@ -522,7 +522,7 @@ export function createMacAddressSetupNode(): LineCarouselTemplate {
         },
         {
           title: "方法 2：修改註冊 MAC",
-          text: "1. 進入 140.112.2.197\n2. 使用計中帳號登入\n3. 點擊「修改 MAC」\n4. 修改之 MAC 那格會自動跳出你現在的 MAC\n5. 可以先原封不改，按修改之後等 5-10 分鐘\n6. 連接看看路由器的 WiFi 是否有網路了\n\n⚠️ 適用於有些路由器不能改 MAC（爛路由器）",
+          text: "1. 進入140.112.2.197\n2. 使用計中帳號登入\n3. 點擊「修改MAC」\n4. MAC那格會自動跳出現在的MAC\n5. 按修改後等5-10分鐘\n6. 連接WiFi測試",
           actions: [
             {
               type: "postback",
@@ -916,7 +916,7 @@ export function createSpeedTestNode(): LineCarouselTemplate {
       columns: [
         {
           title: "校內測速",
-          text: "使用臺大測速網站：\nhttp://speed.ntu.edu.tw/\n\n校內測速的結果：\n• 下載和上傳速度至少會有 70Mbps 以上\n• 因為流量沒有流出入校外網路\n• 如果校內測速也很慢，可能是其他問題",
+          text: "使用臺大測速網站：\nspeed.ntu.edu.tw\n\n校內測速結果：\n下載和上傳至少70Mbps以上\n如果校內測速也很慢\n可能是其他問題",
           actions: [
             {
               type: "uri",
@@ -933,7 +933,7 @@ export function createSpeedTestNode(): LineCarouselTemplate {
         },
         {
           title: "校外測速",
-          text: "使用校外測速網站：\n• https://www.speedtest.net/\n\n校外測速結果：\n• 若有被限速，速度將被明顯下降至 1Mbps 以下\n• 一般來說至少都有 50 Mbps 以上\n• 如果校外測速很慢但校內正常，可能是流量超額",
+          text: "使用校外測速網站：\nspeedtest.net\n\n校外測速結果：\n若被限速會降至1Mbps以下\n一般至少都有50Mbps以上\n校外慢但校內正常\n可能是流量超額",
           actions: [
             {
               type: "uri",
@@ -965,7 +965,7 @@ export function createSpeedAnalysisNode(): LineCarouselTemplate {
       columns: [
         {
           title: "多人共用問題",
-          text: "可能原因：\n• 多人同時使用同一條線路\n• 6G 給四個人用當然慢\n\n解決建議：\n• 檢查是否有室友在下載大檔案\n• 協調使用時間\n• 如果持續很慢，可能需要錄封包分析",
+          text: "可能原因：\n多人同時使用同一條線路\n6G給四個人用當然慢\n\n解決建議：\n檢查是否有室友在下載大檔案\n協調使用時間",
           actions: [
             {
               type: "postback",
