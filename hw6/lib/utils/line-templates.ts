@@ -77,10 +77,10 @@ export function createTextMessage(text: string): LineTextMessage {
 export function createWelcomeMessage(): LineButtonTemplate {
   return {
     type: "template",
-    altText: "主選單 - 台大宿舍網管助手",
+    altText: "主選單 - 台大女八舍宿網小精靈",
     template: {
       type: "buttons",
-      text: "您好！我是台大宿舍網管助手 👋\n\n我可以協助您解決宿舍網路相關問題，請選擇您需要的服務：",
+      text: "您好！我是台大女八舍宿網小精靈 👋\n\n我可以協助您解決宿舍網路相關問題，請選擇您需要的服務：",
       actions: [
         {
           type: "postback",
@@ -231,7 +231,7 @@ export function createCategoryCarousel(): LineCarouselTemplate {
 
 export function createQuickReply(
   text: string,
-  options: Array<{ label: string; data: string }>
+  options: Array<{ label: string; data: string; displayText?: string }>
 ): LineQuickReply {
   return {
     type: "text",
@@ -243,8 +243,74 @@ export function createQuickReply(
           type: "postback",
           label: option.label,
           data: option.data,
+          displayText: option.displayText || option.label,
         },
       })),
+    },
+  };
+}
+
+/**
+ * 建立帶有 URI 按鈕的 Button Template
+ */
+export function createButtonWithUri(
+  text: string,
+  uriLabel: string,
+  uri: string,
+  altText?: string
+): LineButtonTemplate {
+  return {
+    type: "template",
+    altText: altText || text.substring(0, 40),
+    template: {
+      type: "buttons",
+      text,
+      actions: [
+        {
+          type: "uri",
+          label: uriLabel,
+          uri: uri,
+        },
+        {
+          type: "postback",
+          label: "📋 回主選單",
+          data: "menu",
+          displayText: "回主選單",
+        },
+      ],
+    },
+  };
+}
+
+/**
+ * 建立帶有多個 URI 按鈕的 Button Template（最多 4 個按鈕）
+ */
+export function createButtonWithMultipleUris(
+  text: string,
+  uriOptions: Array<{ label: string; uri: string }>,
+  altText?: string
+): LineButtonTemplate {
+  const actions = [
+    ...uriOptions.slice(0, 3).map((option) => ({
+      type: "uri" as const,
+      label: option.label,
+      uri: option.uri,
+    })),
+    {
+      type: "postback" as const,
+      label: "📋 回主選單",
+      data: "menu",
+      displayText: "回主選單",
+    },
+  ];
+
+  return {
+    type: "template",
+    altText: altText || text.substring(0, 40),
+    template: {
+      type: "buttons",
+      text,
+      actions: actions.slice(0, 4), // Line 最多支援 4 個按鈕
     },
   };
 }

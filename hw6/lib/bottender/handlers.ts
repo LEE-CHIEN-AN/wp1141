@@ -17,6 +17,7 @@ import {
   createTextWithMenuOption 
 } from "@/lib/utils/line-templates";
 import type { LineMessage } from "@/lib/utils/line-templates";
+import * as ConversationNodes from "@/lib/services/conversation-nodes";
 
 export interface MessageContext {
   userId: string;
@@ -46,10 +47,10 @@ export async function handleLineMessage(
       return await handlePostback(context.postbackData, conversation._id);
     }
 
-    // 處理歡迎訊息（特殊標記）
-    if (context.message === "__WELCOME__") {
+    // 處理 Follow 事件 (使用者加好友)
+    if (context.message === "__FOLLOW__") {
       const welcomeMsg = createWelcomeMessage();
-      await saveMessage(conversation._id, "assistant", "歡迎使用台大宿舍網管助手！");
+      await saveMessage(conversation._id, "assistant", "歡迎使用台大女八舍宿網小精靈！");
       return [welcomeMsg];
     }
 
@@ -119,99 +120,26 @@ async function handlePostback(
 
     switch (value) {
       case "connection_troubleshoot":
-        // 🚫 無法上網 - 連線故障排除
+        // 🚫 無法上網 - 連線故障排除（節點 2）
         category = CONVERSATION_CATEGORIES.NETWORK_ISSUE;
-        response = createTextWithMenuOption(`🚫 無法上網 - 連線故障排除
-
-關於無法上網的問題，我需要了解以下資訊：
-
-• 是多人同時遇到問題，還是只有您一個人？
-• 是完全無法連線，還是會斷斷續續？
-• 您有使用路由器嗎？
-• 其他裝置（手機、平板）是否也無法上網？
-
-請提供更多詳細資訊，以便我協助您解決問題。`);
+        response = ConversationNodes.createConnectionTroubleshootNode();
         break;
 
       case "registration_guide":
-        // 📝 如何註冊 - 宿網註冊教學
+        // 📝 如何註冊 - 宿網註冊教學（節點 10）
         category = CONVERSATION_CATEGORIES.REGISTRATION;
-        response = createTextWithMenuOption(`📝 如何註冊 - 宿網註冊教學
-
-宿舍網路註冊步驟：
-
-1️⃣ 確認網段
-   • 確認您的網段是否正確（例如：女八舍）
-   • 是否已向宿舍輔導員報到
-
-2️⃣ 準備資訊
-   • 路由器的 MAC 地址（非電腦 MAC）
-   • 計中帳號
-
-3️⃣ 註冊步驟
-   • 將網路線連接至路由器或電腦
-   • 進入註冊網站：https://140.112.2.197
-   （需在校內網路環境下才能進入）
-   • 使用計中帳號登入並註冊
-
-4️⃣ 路由器設定
-   • 將路由器的 WAN 設置改成浮動 IP
-   • 等待 5-10 分鐘後測試連線
-
-如需進一步協助，請提供您的姓名、學號、房位等資訊。`);
+        response = ConversationNodes.createRegistrationTypeSelectionNode();
         break;
 
       case "speed_check":
-        // 🐢 網速很慢 - 網速與流量查詢
+        // 🐢 網速很慢 - 網速與流量查詢（節點 20）
         category = CONVERSATION_CATEGORIES.NETWORK_ISSUE;
-        response = createTextWithMenuOption(`🐢 網速很慢 - 網速與流量查詢
-
-關於網速慢的問題，可能的原因包括：
-
-1️⃣ 多人共用問題
-   • 多人同時使用同一條線路
-   • 建議：檢查是否有室友在下載大檔案
-
-2️⃣ 路由器問題
-   • 路由器負載過高或故障
-   • 建議：重新啟動路由器
-
-3️⃣ 網路設備異常
-   • 可能需要錄製封包分析
-   • 建議：聯繫網管協助排查
-
-4️⃣ 流量限制
-   • 檢查是否超過流量上限
-   • 建議：查看流量使用情況
-
-請告訴我：
-• 是持續很慢，還是特定時段？
-• 是多人共用還是個人使用？
-• 是否有使用 VPN 或其他軟體？`);
+        response = ConversationNodes.createSpeedCheckNode();
         break;
 
       case "contact":
-        // 📞 聯絡網管
-        response = createTextWithMenuOption(`📞 聯絡網管
-
-如需進一步協助，您可以：
-
-📧 電子郵件
-   • dormnet@ntu.edu.tw
-   • 請詳細描述問題並附上相關資訊
-
-📍 計中服務
-   • 地址：計中四樓
-   • 開放時間：請參考計中網站
-
-💡 提供資訊
-   聯絡時請準備：
-   • 姓名、學號、房位
-   • 問題描述
-   • 已嘗試的解決方法
-   • 相關截圖或錯誤訊息
-
-我會盡力協助您解決問題！`);
+        // 📞 聯絡網管（節點 30）
+        response = ConversationNodes.createContactNode();
         break;
 
       default:
@@ -223,6 +151,169 @@ async function handlePostback(
       await updateConversation(conversationId.toString(), { category });
     }
 
+    await saveMessage(conversationId, "assistant", getMessageText(response));
+    return [response];
+  }
+
+  // 處理網路問題相關節點
+  if (type === "network") {
+    let response: LineMessage;
+    let category: ConversationCategory | undefined = CONVERSATION_CATEGORIES.NETWORK_ISSUE;
+
+    switch (value) {
+      case "multiple":
+        response = ConversationNodes.createMultipleUsersPacketCaptureNode();
+        break;
+      case "single":
+        response = ConversationNodes.createSingleUserPingInfoViewNode();
+        break;
+      case "no_connection":
+        response = ConversationNodes.createNoConnectionChecklistNode();
+        break;
+      case "hardware_detail":
+        response = ConversationNodes.createHardwareCheckDetailNode();
+        break;
+      case "ip_setting_detail":
+        response = ConversationNodes.createIpSettingDetailNode();
+        break;
+      case "pinginfo_screenshot":
+        response = ConversationNodes.createPingInfoScreenshotGuideNode();
+        break;
+      case "check_blocked":
+        response = ConversationNodes.createNoConnectionChecklistNode();
+        break;
+      default:
+        response = ConversationNodes.createConnectionTroubleshootNode();
+    }
+
+    await updateConversation(conversationId.toString(), { category });
+    await saveMessage(conversationId, "assistant", getMessageText(response));
+    return [response];
+  }
+
+  // 處理註冊相關節點
+  if (type === "registration") {
+    let response: LineMessage;
+    let category: ConversationCategory | undefined = CONVERSATION_CATEGORIES.REGISTRATION;
+
+    switch (value) {
+      case "first_time":
+        response = ConversationNodes.createFirstTimeRegistrationPrepNode();
+        break;
+      case "first_time_steps":
+        response = ConversationNodes.createRegistrationStepsDetailNode();
+        break;
+      case "post_registration":
+        response = ConversationNodes.createPostRegistrationSetupNode();
+        break;
+      case "router":
+        response = ConversationNodes.createRouterSetupNode();
+        break;
+      case "router_mac":
+        response = ConversationNodes.createMacAddressSetupNode();
+        break;
+      case "router_faq":
+        response = ConversationNodes.createRouterFAQNode();
+        break;
+      case "router_wan":
+        response = ConversationNodes.createRouterWANSetupNode();
+        break;
+      case "router_mac_issue":
+        response = ConversationNodes.createMacAddressSetupNode();
+        break;
+      case "router_no_internet":
+        response = ConversationNodes.createRouterFAQNode();
+        break;
+      case "change_mac":
+        response = ConversationNodes.createChangeMacAddressNode();
+        break;
+      case "change_computer":
+        response = ConversationNodes.createChangeComputerNode();
+        break;
+      case "mac_duplicate":
+        response = ConversationNodes.createMacDuplicateNode();
+        break;
+      case "troubleshoot":
+        response = ConversationNodes.createRegistrationTroubleshootNode();
+        break;
+      case "cant_access":
+        response = ConversationNodes.createCantAccessRegistrationNode();
+        break;
+      case "data_issue":
+        response = ConversationNodes.createRegistrationDataIssueNode();
+        break;
+      case "no_internet_after":
+        response = ConversationNodes.createNoInternetAfterRegistrationNode();
+        break;
+      default:
+        response = ConversationNodes.createRegistrationTypeSelectionNode();
+    }
+
+    await updateConversation(conversationId.toString(), { category });
+    await saveMessage(conversationId, "assistant", getMessageText(response));
+    return [response];
+  }
+
+  // 處理網速相關節點
+  if (type === "speed") {
+    let response: LineMessage;
+    let category: ConversationCategory | undefined = CONVERSATION_CATEGORIES.NETWORK_ISSUE;
+
+    switch (value) {
+      case "quota":
+        response = ConversationNodes.createQuotaCheckNode();
+        break;
+      case "test":
+        response = ConversationNodes.createSpeedTestNode();
+        break;
+      case "analysis":
+        response = ConversationNodes.createSpeedAnalysisNode();
+        break;
+      case "advanced":
+        response = ConversationNodes.createAdvancedTroubleshootNode();
+        break;
+      default:
+        response = ConversationNodes.createSpeedCheckNode();
+    }
+
+    await updateConversation(conversationId.toString(), { category });
+    await saveMessage(conversationId, "assistant", getMessageText(response));
+    return [response];
+  }
+
+  // 處理聯絡網管相關節點
+  if (type === "contact") {
+    let response: LineMessage;
+
+    switch (value) {
+      case "info":
+        response = ConversationNodes.createContactInfoNode();
+        break;
+      case "info_list":
+        response = ConversationNodes.createContactInfoListNode();
+        break;
+      default:
+        response = ConversationNodes.createContactNode();
+    }
+
+    await saveMessage(conversationId, "assistant", getMessageText(response));
+    return [response];
+  }
+
+  // 處理資安事件
+  if (type === "security") {
+    let response: LineMessage;
+    let category: ConversationCategory | undefined = CONVERSATION_CATEGORIES.SECURITY_INCIDENT;
+
+    switch (value) {
+      case "incident":
+        response = ConversationNodes.createSecurityIncidentNode();
+        break;
+      default:
+        response = ConversationNodes.createSecurityIncidentNode();
+    }
+
+    await updateConversation(conversationId.toString(), { category });
     await saveMessage(conversationId, "assistant", getMessageText(response));
     return [response];
   }
@@ -258,7 +349,17 @@ function getMessageText(message: LineMessage): string {
     return message.text;
   }
   if (message.type === "template") {
-    return message.altText;
+    if ("altText" in message) {
+      return message.altText;
+    }
+    // Carousel template
+    if ("columns" in message.template) {
+      return message.altText || "選單選項";
+    }
+    // Button template
+    if ("text" in message.template) {
+      return message.template.text || message.altText;
+    }
   }
   return "";
 }
