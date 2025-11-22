@@ -3,7 +3,8 @@
 import { usePolling } from "@/lib/hooks/usePolling";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { CONVERSATION_CATEGORIES } from "@/config/conversation";
 
 interface Stats {
   totalConversations: number;
@@ -27,15 +28,54 @@ interface Conversation {
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // 篩選狀態
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [category, setCategory] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  // 建立 API URL（包含篩選參數）
+  const conversationsUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("limit", "20");
+    params.set("page", String(page));
+    
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
+    if (category && category !== "all") params.set("category", category);
+    if (statusFilter && statusFilter !== "all") params.set("status", statusFilter);
+    if (search.trim()) params.set("search", search.trim());
+
+    return `/api/conversations?${params.toString()}`;
+  }, [startDate, endDate, category, statusFilter, search, page]);
+
+  // 當篩選條件改變時，重置到第一頁
+  useEffect(() => {
+    setPage(1);
+  }, [startDate, endDate, category, statusFilter, search]);
+
   const { data: stats, isLoading: statsLoading } = usePolling<Stats>(
     "/api/stats",
     5000
   );
   const { data: conversationsData, isLoading: conversationsLoading } =
     usePolling<{ conversations: Conversation[]; pagination: any }>(
-      "/api/conversations?limit=10",
+      conversationsUrl,
       5000
     );
+
+  // 重置篩選
+  const handleResetFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    setCategory("all");
+    setStatusFilter("all");
+    setSearch("");
+    setPage(1);
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -107,7 +147,118 @@ export default function AdminPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">最近對話</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">對話列表</h2>
+            <button
+              onClick={handleResetFilters}
+              className="rounded-md bg-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-300"
+            >
+              重置篩選
+            </button>
+          </div>
+
+          {/* 篩選表單 */}
+          <div className="mb-4 rounded-lg bg-white p-4 shadow">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+              {/* 日期範圍 - 開始日期 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  開始日期
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                />
+              </div>
+
+              {/* 日期範圍 - 結束日期 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  結束日期
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                />
+              </div>
+
+              {/* 類別篩選 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  類別
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                >
+                  <option value="all">全部</option>
+                  <option value={CONVERSATION_CATEGORIES.NETWORK_ISSUE}>
+                    {CONVERSATION_CATEGORIES.NETWORK_ISSUE}
+                  </option>
+                  <option value={CONVERSATION_CATEGORIES.SECURITY_INCIDENT}>
+                    {CONVERSATION_CATEGORIES.SECURITY_INCIDENT}
+                  </option>
+                  <option value={CONVERSATION_CATEGORIES.REGISTRATION}>
+                    {CONVERSATION_CATEGORIES.REGISTRATION}
+                  </option>
+                  <option value={CONVERSATION_CATEGORIES.OTHER}>
+                    {CONVERSATION_CATEGORIES.OTHER}
+                  </option>
+                </select>
+              </div>
+
+              {/* 狀態篩選 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  狀態
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                >
+                  <option value="all">全部</option>
+                  <option value="active">進行中</option>
+                  <option value="completed">已完成</option>
+                  <option value="archived">已封存</option>
+                </select>
+              </div>
+
+              {/* 搜尋框 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  搜尋（使用者/內容）
+                </label>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="輸入關鍵字..."
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 顯示篩選結果數量 */}
+          {conversationsData && (
+            <div className="mb-4 text-sm text-gray-600">
+              找到 {conversationsData.pagination.total} 筆對話
+              {conversationsData.pagination.totalPages > 1 && (
+                <span>
+                  {" "}
+                  （第 {conversationsData.pagination.page} /{" "}
+                  {conversationsData.pagination.totalPages} 頁）
+                </span>
+              )}
+            </div>
+          )}
+
           {conversationsLoading ? (
             <p className="mt-4">載入中...</p>
           ) : (
@@ -146,10 +297,16 @@ export default function AdminPage() {
                           className={`inline-flex rounded-full px-2 text-xs font-semibold ${
                             conv.status === "active"
                               ? "bg-green-100 text-green-800"
+                              : conv.status === "completed"
+                              ? "bg-blue-100 text-blue-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {conv.status === "active" ? "進行中" : "已完成"}
+                          {conv.status === "active"
+                            ? "進行中"
+                            : conv.status === "completed"
+                            ? "已完成"
+                            : "已封存"}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
@@ -167,6 +324,102 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
+              
+              {/* 分頁控制 */}
+              {conversationsData && conversationsData.pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+                  <div className="flex flex-1 justify-between sm:hidden">
+                    <button
+                      onClick={() => {
+                        if (page > 1) {
+                          setPage(page - 1);
+                        }
+                      }}
+                      disabled={page === 1}
+                      className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      上一頁
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (
+                          conversationsData &&
+                          page < conversationsData.pagination.totalPages
+                        ) {
+                          setPage(page + 1);
+                        }
+                      }}
+                      disabled={
+                        !conversationsData ||
+                        page === conversationsData.pagination.totalPages
+                      }
+                      className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      下一頁
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        顯示第{" "}
+                        <span className="font-medium">
+                          {(conversationsData.pagination.page - 1) *
+                            conversationsData.pagination.limit +
+                            1}
+                        </span>{" "}
+                        到{" "}
+                        <span className="font-medium">
+                          {Math.min(
+                            conversationsData.pagination.page *
+                              conversationsData.pagination.limit,
+                            conversationsData.pagination.total
+                          )}
+                        </span>{" "}
+                        筆，共{" "}
+                        <span className="font-medium">
+                          {conversationsData.pagination.total}
+                        </span>{" "}
+                        筆
+                      </p>
+                    </div>
+                    <div>
+                      <nav
+                        className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                        aria-label="Pagination"
+                      >
+                        <button
+                          onClick={() => {
+                            if (page > 1) {
+                              setPage(page - 1);
+                            }
+                          }}
+                          disabled={page === 1}
+                          className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                        >
+                          上一頁
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (
+                              conversationsData &&
+                              page < conversationsData.pagination.totalPages
+                            ) {
+                              setPage(page + 1);
+                            }
+                          }}
+                          disabled={
+                            !conversationsData ||
+                            page === conversationsData.pagination.totalPages
+                          }
+                          className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                        >
+                          下一頁
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
