@@ -50,21 +50,27 @@ export async function POST(request: NextRequest) {
 
     // 處理每個事件 - 使用 Bottender 的 bot.onEvent 處理器
     for (const event of events) {
-      // 建立 Bottender session
-      const session = {
-        id: event.source.userId || "",
-        isFirstSession: false,
-      };
+      try {
+        // 建立 Bottender session
+        const session = {
+          id: event.source.userId || "",
+          isFirstSession: false,
+        };
 
-      // 使用 Bottender connector 建立 context
-      // 注意：這裡使用 Bottender 的內部 API，因為 Next.js App Router 的限制
-      const context = (bot.connector as any).createContext({
-        event,
-        session,
-      });
+        // 使用 Bottender connector 的 createContext 方法建立 context
+        // createContext 存在於 connector 的原型中
+        const context = bot.connector.createContext({
+          event,
+          session,
+        });
 
-      // 觸發 Bottender 事件處理器
-      await bot.onEvent(context);
+        // 觸發 Bottender 事件處理器
+        await bot.onEvent(context);
+      } catch (error) {
+        console.error("Error processing event:", error, event);
+        // 繼續處理下一個事件
+        continue;
+      }
     }
 
     return NextResponse.json({ success: true });

@@ -29,11 +29,13 @@ bot.onEvent(async (context) => {
     } else if (context.event.type === "postback") {
       messageContext.message = "";
       messageContext.postbackData = context.event.postback.data;
+      console.log("Postback event received:", context.event.postback.data);
     } else if (context.event.type === "follow") {
       messageContext.message = "__FOLLOW__";
       messageContext.postbackData = undefined;
     } else {
-      // 其他事件類型，不處理
+      // 其他事件類型，記錄但不處理
+      console.log("Unhandled event type:", context.event.type);
       return;
     }
 
