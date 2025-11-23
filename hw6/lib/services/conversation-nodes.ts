@@ -193,44 +193,377 @@ export function createSingleUserQuestion2Node(): LineMessage {
 }
 
 /**
- * 節點 C：多人問題流程 - 詢問路由器
+ * 節點 C：多人問題流程 - 系統化排查（改進版）
+ * 根據台大宿網實務經驗，多人同時無法上網的三大原因：
+ * 1. 路由器接錯孔（DHCP 衝突）- 最常見
+ * 2. 流量超額（多人共用同一 IP）
+ * 3. 學校基礎設施故障
  */
 export function createMultipleUsersRouterCheckNode(): LineMessage {
-  return createQuickReply(
-    `了解，多人同時無法上網。這通常有兩種可能：\n\n1. 寢室內某台路由器接錯線，干擾了大家。\n2. 該樓層的網路設備故障。\n\n請先檢查：寢室內是否有人使用路由器（WiFi分享器）？\n\n若有，請先將「所有路由器」的電源拔掉，等待 1 分鐘，看看其他直接插線的電腦是否恢復正常？`,
+  return createFlexMessage(
+    "多人同時無法上網 - 系統化排查",
     [
-      { label: "拔掉了，還是不行", data: "network:multi:report", displayText: "拔了還是不行，需要報修" },
-      { label: "恢復了！是路由器問題", data: "network:multi:resolved", displayText: "恢復了，是路由器的問題" },
-      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("👥 多人同時無法上網", "xl", "bold", "#1DB446"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("根據台大宿網經驗，多人同時斷線通常有三大原因，請依序檢查：", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("🔴 最常見：路由器接錯孔", "lg", "bold", "#FF0000"),
+            createFlexText("• 檢查寢室內所有路由器", "sm"),
+            createFlexText("• 確認牆壁網路線是否插在「WAN 孔」", "sm"),
+            createFlexText("• 如果插在 LAN 孔，會造成 DHCP 衝突", "sm"),
+            createFlexText("• 導致附近同學抓到錯誤的 IP（192.168.x.x）", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("🟡 次常見：流量超額", "lg", "bold", "#FFA500"),
+            createFlexText("• 多人共用同一台路由器 = 共用同一個 IP", "sm"),
+            createFlexText("• 台大宿網每日流量上限：6GB", "sm"),
+            createFlexText("• 超過後會被限速或封鎖", "sm"),
+            createFlexText("• 可至計中網站查詢該 IP 流量", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("🟢 較少見：學校設備故障", "lg", "bold", "#1DB446"),
+            createFlexText("• 樓層交換器故障", "sm"),
+            createFlexText("• 光纖線路異常", "sm"),
+            createFlexText("• 需要聯絡網管報修", "sm"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("🔍 第一步：檢查路由器接線", {
+              type: "postback",
+              data: "network:multi:check_router",
+              displayText: "檢查路由器接線",
+            }, "primary"),
+            createFlexButton("📊 第二步：檢查流量", {
+              type: "postback",
+              data: "network:multi:check_traffic",
+              displayText: "檢查流量",
+            }, "secondary"),
+            createFlexButton("📞 第三步：報修", {
+              type: "postback",
+              data: "network:multi:report",
+              displayText: "報修",
+            }, "secondary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
     ]
   );
 }
 
 /**
- * 節點 C1：多人問題 - 路由器問題已解決
+ * 節點 C1：多人問題 - 路由器接線檢查（第一步）
  */
-export function createMultipleUsersRouterResolvedNode(): LineMessage {
-  return createButtonWithUri(
-    `太好了！問題解決了！🎉\n\n這表示是寢室內某台路由器接錯線導致的。\n\n請提醒室友：\n\n✅ 牆壁出來的網路線要插在路由器的「WAN 孔」（通常顏色特別，或有標示 Internet）\n❌ 千萬不能插在 LAN 孔，否則會造成網路風暴，影響整間寢室\n\n如果還有其他問題，歡迎隨時詢問！`,
-    "📖 查看路由器正確接法教學",
-    "https://hackmd.io/@RuH9UULLRMuRo2iEsweIqA/H1mFo2-Wll#%E8%B7%AF%E7%94%B1%E5%99%A8%E6%8E%A5%E7%B7%9A",
-    "路由器正確接法教學"
+export function createMultipleUsersRouterCheckWiringNode(): LineMessage {
+  return createFlexMessage(
+    "第一步：檢查路由器接線",
+    [
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("🔴 最常見原因：路由器接錯孔", "xl", "bold", "#FF0000"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("請立即檢查寢室內所有路由器：", "md", "bold", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("✅ 正確接法：", "lg", "bold", "#1DB446"),
+            createFlexText("• 牆壁網路孔 → 路由器的「WAN 孔」", "sm"),
+            createFlexText("• WAN 孔通常顏色特別（藍色/黃色）", "sm"),
+            createFlexText("• 或有標示「Internet」或「WAN」", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("❌ 錯誤接法（會造成 DHCP 衝突）：", "lg", "bold", "#FF0000"),
+            createFlexText("• 牆壁網路孔 → 路由器的「LAN 孔」", "sm"),
+            createFlexText("• LAN 孔通常有 1-4 號標示", "sm"),
+            createFlexText("• 會導致附近同學抓到 192.168.x.x 錯誤 IP", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("🔧 立即處理步驟：", "lg", "bold", "#000000"),
+            createFlexText("1. 拔掉所有路由器的電源", "sm"),
+            createFlexText("2. 等待 1 分鐘", "sm"),
+            createFlexText("3. 檢查直接插線的電腦是否恢復正常", "sm"),
+            createFlexText("4. 如果恢復了，找出接錯的路由器並修正", "sm"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("✅ 拔掉後恢復了", {
+              type: "postback",
+              data: "network:multi:resolved",
+              displayText: "恢復了，是路由器的問題",
+            }, "primary"),
+            createFlexButton("❌ 拔掉後還是不行", {
+              type: "postback",
+              data: "network:multi:check_traffic",
+              displayText: "還是不行，檢查流量",
+            }, "secondary"),
+            createFlexButton("📖 查看接線教學", {
+              type: "uri",
+              uri: "https://ut0903.github.io/2024/09/01/ntu-dorm-router-setup/",
+            }, "secondary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
+    ]
   );
 }
 
 /**
- * 節點 C3：多人問題 - 引導報修/錄封包
+ * 節點 C1-1：多人問題 - 路由器問題已解決
  */
-export function createMultipleUsersReportNode(): LineMessage {
-  return createButtonWithMultipleUris(
-    `看來是棘手的問題 🤔\n\n如果拔掉路由器仍無法解決，可能是寢室網路孔或樓層交換器故障。\n\n請協助進行以下操作，並聯絡網管報修：`,
+export function createMultipleUsersRouterResolvedNode(): LineMessage {
+  return createFlexMessage(
+    "問題解決了！",
     [
       {
-        label: "📖 進階：學習錄製封包",
-        uri: "https://hackmd.io/@RuH9UULLRMuRo2iEsweIqA/H1mFo2-Wll#%E5%A4%9A%E4%BA%BA%E5%95%8F%E9%A1%8C",
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("🎉 太好了！問題解決了！", "xl", "bold", "#1DB446"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("這表示寢室內有某台路由器接錯線，導致 DHCP 衝突。", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("📋 接下來請：", "lg", "bold", "#000000"),
+            createFlexText("1. 找出是哪台路由器接錯", "sm"),
+            createFlexText("2. 將牆壁網路線改插到「WAN 孔」", "sm"),
+            createFlexText("3. 重新啟動路由器", "sm"),
+            createFlexText("4. 確認所有同學都能正常上網", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("💡 預防措施：", "lg", "bold", "#000000"),
+            createFlexText("• 提醒室友正確接線方式", "sm"),
+            createFlexText("• 定期檢查路由器接線", "sm"),
+            createFlexText("• 如果不知道如何接線，請參考教學", "sm"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("📖 查看路由器接線教學", {
+              type: "uri",
+              uri: "https://ut0903.github.io/2024/09/01/ntu-dorm-router-setup/",
+            }, "primary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
       },
-    ],
-    "多人網路故障報修指引"
+    ]
+  );
+}
+
+/**
+ * 節點 C2：多人問題 - 檢查流量（第二步）
+ */
+export function createMultipleUsersTrafficCheckNode(): LineMessage {
+  return createFlexMessage(
+    "第二步：檢查流量是否超額",
+    [
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("🟡 次常見原因：流量超額", "xl", "bold", "#FFA500"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("如果多人共用同一台路由器，會共用同一個 IP 的流量額度。", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("📊 台大宿網流量限制：", "lg", "bold", "#000000"),
+            createFlexText("• 每個 IP 每日流量上限：6GB", "sm"),
+            createFlexText("• 超過後會被自動限速（降至 1Mbps 以下）", "sm"),
+            createFlexText("• 甚至可能被暫時封鎖", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("🔍 檢查方式：", "lg", "bold", "#000000"),
+            createFlexText("1. 登入計中網站查詢該 IP 的流量", "sm"),
+            createFlexText("2. 如果流量已超過 6GB，需要等待隔日重置", "sm"),
+            createFlexText("3. 或考慮分散使用（部分同學改用其他路由器）", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("💡 解決方案：", "lg", "bold", "#000000"),
+            createFlexText("• 如果流量未超額，可能是其他問題", "sm"),
+            createFlexText("• 如果流量已超額，請等待隔日重置", "sm"),
+            createFlexText("• 或聯絡網管協助處理", "sm"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("✅ 流量正常，還是不行", {
+              type: "postback",
+              data: "network:multi:report",
+              displayText: "流量正常，需要報修",
+            }, "primary"),
+            createFlexButton("📊 查看流量查詢網站", {
+              type: "uri",
+              uri: "https://140.112.2.197",
+            }, "secondary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
+    ]
+  );
+}
+
+/**
+ * 節點 C3：多人問題 - 引導報修（第三步）
+ */
+export function createMultipleUsersReportNode(): LineMessage {
+  return createFlexMessage(
+    "第三步：報修流程",
+    [
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("🟢 較少見原因：學校設備故障", "xl", "bold", "#1DB446"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("如果已排除路由器接錯和流量問題，可能是學校基礎設施故障。", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("🔍 可能原因：", "lg", "bold", "#000000"),
+            createFlexText("• 該樓層的網路交換器（Switch）當機", "sm"),
+            createFlexText("• 整棟宿舍的光纖線路異常", "sm"),
+            createFlexText("• 計中機房端的設備問題", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("📞 報修步驟：", "lg", "bold", "#000000"),
+            createFlexText("1. 聯絡宿舍網管", "sm"),
+            createFlexText("2. 說明情況：多人同時無法上網", "sm"),
+            createFlexText("3. 提供資訊：寢室號碼、樓層", "sm"),
+            createFlexText("4. 網管會協助錄製封包或直接報修", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("📖 進階：學習錄製封包", "lg", "bold", "#000000"),
+            createFlexText("如果網管需要封包分析，可參考以下教學：", "sm"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("📖 封包錄製教學", {
+              type: "uri",
+              uri: "https://hackmd.io/@ntu-dorm-network/rJ8XqQZ8H",
+            }, "primary"),
+            createFlexButton("📧 聯絡網管", {
+              type: "postback",
+              data: "action:contact",
+              displayText: "聯絡網管",
+            }, "secondary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
+    ]
   );
 }
 

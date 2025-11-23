@@ -405,10 +405,24 @@ async function handlePostback(
       }
     } else if (value?.startsWith("multi:")) {
       // 多人問題流程
-      const action = value.split(":")[1]; // "report" 或 "resolved"
+      const action = value.split(":")[1]; // "report", "resolved", "check_router", "check_traffic"
       
-      if (action === "report") {
-        // 引導報修/錄封包
+      if (action === "check_router") {
+        // 第一步：檢查路由器接線
+        response = ConversationNodes.createMultipleUsersRouterCheckWiringNode();
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: "network:multi:check_router" }
+        });
+      } else if (action === "check_traffic") {
+        // 第二步：檢查流量
+        response = ConversationNodes.createMultipleUsersTrafficCheckNode();
+        await updateConversation(conversationId.toString(), { 
+          category,
+          metadata: { step: "network:multi:check_traffic" }
+        });
+      } else if (action === "report") {
+        // 第三步：引導報修/錄封包
         response = ConversationNodes.createMultipleUsersReportNode();
         await updateConversation(conversationId.toString(), { 
           category,
