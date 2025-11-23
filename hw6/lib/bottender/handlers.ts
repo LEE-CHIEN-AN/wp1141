@@ -584,6 +584,12 @@ async function handlePostback(
       case "no_internet_after":
         response = ConversationNodes.createNoInternetAfterRegistrationNode();
         break;
+      case "show_email":
+        // 顯示網管 Email 地址
+        response = createTextWithMenuOption(
+          "📧 女八舍網管 Email 地址：\n\nb12705041@ntu.edu.tw\n\n請複製此 Email 地址，並在您的郵件應用程式中寄信給網管。\n\n📋 信件內容請包含：\n• 學號\n• 姓名\n• MAC 地址\n• 目前的網段在哪間宿舍"
+        );
+        break;
       default:
         response = ConversationNodes.createRegistrationTypeSelectionNode();
     }

@@ -1404,6 +1404,7 @@ export function createWrongDormSegmentNode(): LineMessage {
             },
             createFlexText("📧 請寄信給女八舍網管：", "lg", "bold", "#000000"),
             createFlexText("b12705041@ntu.edu.tw", "md", "bold", "#1DB446"),
+            createFlexText("（請手動複製 Email 地址）", "xs", "regular", "#666666"),
             {
               type: "separator",
               margin: "md",
@@ -1428,9 +1429,10 @@ export function createWrongDormSegmentNode(): LineMessage {
           type: "box",
           layout: "vertical",
           contents: [
-            createFlexButton("📧 開啟郵件應用程式", {
-              type: "uri",
-              uri: "mailto:b12705041@ntu.edu.tw?subject=網域不在女八舍問題&body=學號：%0D%0A姓名：%0D%0AMAC 地址：%0D%0A目前的網段在哪間宿舍：",
+            createFlexButton("📧 複製 Email 地址", {
+              type: "postback",
+              data: "registration:show_email",
+              displayText: "b12705041@ntu.edu.tw",
             }, "primary"),
             createFlexButton("📋 回主選單", {
               type: "postback",
