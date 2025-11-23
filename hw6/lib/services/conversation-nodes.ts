@@ -47,12 +47,68 @@ export function createSingleUserConnectionTypeNode(): LineMessage {
  * 節點 E：路由器 (WiFi) 排查流程
  */
 export function createRouterTroubleshootNode(): LineMessage {
-  return createQuickReply(
-    `使用路由器時，請先嘗試這兩個「黃金救援步驟」：\n\n1️⃣ **重啟大法**：\n請拔掉路由器的電源線，心中默數 10 秒，再插回去。等待燈號穩定後再試試。\n\n2️⃣ **檢查接線**：\n請確認牆壁出來的那條網路線，是插在路由器的 **「WAN 孔」**（通常顏色特別，或有標示 Internet）。千萬不能插在 LAN 孔喔！\n\n如果以上都試過還是不行，可能是路由器設定跑掉了。`,
+  // 改用 Flex Message 以支援粗體文字
+  return createFlexMessage(
+    "使用路由器時的黃金救援步驟",
     [
-      { label: "重啟後可以了", data: "network:router:fixed", displayText: "重啟後可以了" },
-      { label: "還是不行，檢查設定", data: "registration:router", displayText: "還是不行，檢查設定" },
-      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("使用路由器時的黃金救援步驟", "xl", "bold", "#1DB446"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("請先嘗試這兩個「黃金救援步驟」：", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("1️⃣ 重啟大法", "lg", "bold", "#000000"),
+            createFlexText("請拔掉路由器的電源線，心中默數 10 秒，再插回去。等待燈號穩定後再試試。", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("2️⃣ 檢查接線", "lg", "bold", "#000000"),
+            createFlexText("請確認牆壁出來的那條網路線，是插在路由器的「WAN 孔」（通常顏色特別，或有標示 Internet）。", "sm"),
+            createFlexText("⚠️ 千萬不能插在 LAN 孔喔！", "sm", "bold", "#FF0000"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("如果以上都試過還是不行，可能是路由器設定跑掉了。", "sm", "regular", "#666666"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("重啟後可以了", {
+              type: "postback",
+              data: "network:router:fixed",
+              displayText: "重啟後可以了",
+            }, "primary"),
+            createFlexButton("還是不行，檢查設定", {
+              type: "postback",
+              data: "registration:router",
+              displayText: "還是不行，檢查設定",
+            }, "secondary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
     ]
   );
 }
@@ -134,11 +190,72 @@ export function createDirectConnectionSymptomNode(): LineMessage {
  * 節點 G：硬體檢查流程
  */
 export function createHardwareCheckNode(): LineMessage {
-  return createQuickReply(
-    `硬體層問題排查 🔧\n\n請依序檢查以下項目：\n\n1️⃣ **檢查網路線**\n• 確認網路線有正確插入電腦的網路孔（聽到「喀」一聲）\n• 確認網路線另一端有插入牆壁的網路孔\n• 嘗試更換另一條網路線測試\n\n2️⃣ **檢查網路孔**\n• 確認牆壁的網路孔燈號是否正常（如果有燈號）\n• 嘗試使用其他網路孔測試\n\n3️⃣ **檢查電腦網路卡**\n• 確認電腦的網路卡驅動程式已正確安裝\n• 在裝置管理員中檢查網路卡是否有驚嘆號\n\n如果以上都檢查過還是不行，可能需要聯絡網管檢查牆壁網路孔。`,
+  // 改用 Flex Message 以支援粗體文字
+  return createFlexMessage(
+    "硬體層問題排查",
     [
-      { label: "檢查完還是不行", data: "action:contact", displayText: "檢查完還是不行" },
-      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("硬體層問題排查 🔧", "xl", "bold", "#1DB446"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("請依序檢查以下項目：", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("1️⃣ 檢查網路線", "lg", "bold", "#000000"),
+            createFlexText("• 確認網路線有正確插入電腦的網路孔（聽到「喀」一聲）", "sm"),
+            createFlexText("• 確認網路線另一端有插入牆壁的網路孔", "sm"),
+            createFlexText("• 嘗試更換另一條網路線測試", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("2️⃣ 檢查網路孔", "lg", "bold", "#000000"),
+            createFlexText("• 確認牆壁的網路孔燈號是否正常（如果有燈號）", "sm"),
+            createFlexText("• 嘗試使用其他網路孔測試", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("3️⃣ 檢查電腦網路卡", "lg", "bold", "#000000"),
+            createFlexText("• 確認電腦的網路卡驅動程式已正確安裝", "sm"),
+            createFlexText("• 在裝置管理員中檢查網路卡是否有驚嘆號", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("如果以上都檢查過還是不行，可能需要聯絡網管檢查牆壁網路孔。", "sm", "regular", "#666666"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("檢查完還是不行", {
+              type: "postback",
+              data: "action:contact",
+              displayText: "檢查完還是不行",
+            }, "primary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
     ]
   );
 }
@@ -167,12 +284,72 @@ export function createConfigCheckNode(): LineMessage {
  * 節點 I：違規查詢流程
  */
 export function createBlockedStatusNode(): LineMessage {
-  return createQuickReply(
-    `帳號/資安層問題 🔒\n\n如果打開網頁被導向特定頁面（如 140.112.2.197），可能的原因有：\n\n1️⃣ **尚未註冊**\n• 請確認您是否已完成宿網註冊\n• 如果還沒註冊，請點選「📝 如何註冊」進行註冊\n\n2️⃣ **帳號被封鎖**\n• 可能因為違規使用（如 BT、P2P 下載）\n• 可能因為電腦中毒導致異常流量\n• 需要聯絡網管查詢封鎖原因\n\n3️⃣ **MAC 地址問題**\n• 可能因為更換設備但未更新 MAC 地址\n• 請點選「📝 如何註冊」→「修改 MAC 地址」進行更新`,
+  // 改用 Flex Message 以支援粗體文字
+  return createFlexMessage(
+    "帳號/資安層問題",
     [
-      { label: "📝 如何註冊", data: "action:registration", displayText: "如何註冊" },
-      { label: "📞 聯絡網管查詢", data: "action:contact", displayText: "聯絡網管查詢" },
-      { label: "📋 回主選單", data: "menu", displayText: "回主選單" },
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("帳號/資安層問題 🔒", "xl", "bold", "#1DB446"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("如果打開網頁被導向特定頁面（如 140.112.2.197），可能的原因有：", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("1️⃣ 尚未註冊", "lg", "bold", "#000000"),
+            createFlexText("• 請確認您是否已完成宿網註冊", "sm"),
+            createFlexText("• 如果還沒註冊，請點選「📝 如何註冊」進行註冊", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("2️⃣ 帳號被封鎖", "lg", "bold", "#000000"),
+            createFlexText("• 可能因為違規使用（如 BT、P2P 下載）", "sm"),
+            createFlexText("• 可能因為電腦中毒導致異常流量", "sm"),
+            createFlexText("• 需要聯絡網管查詢封鎖原因", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("3️⃣ MAC 地址問題", "lg", "bold", "#000000"),
+            createFlexText("• 可能因為更換設備但未更新 MAC 地址", "sm"),
+            createFlexText("• 請點選「📝 如何註冊」→「修改 MAC 地址」進行更新", "sm"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("📝 如何註冊", {
+              type: "postback",
+              data: "action:registration",
+              displayText: "如何註冊",
+            }, "primary"),
+            createFlexButton("📞 聯絡網管查詢", {
+              type: "postback",
+              data: "action:contact",
+              displayText: "聯絡網管查詢",
+            }, "secondary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
     ]
   );
 }
