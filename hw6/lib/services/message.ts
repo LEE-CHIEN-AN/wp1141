@@ -41,11 +41,17 @@ export async function processUserMessage(
     return createRegistrationTypeSelectionNode();
   }
 
-  // 網域不在女八舍問題（無分類時也能匹配）
+  // 網域/網段相關問題（無分類時也能匹配）
+  // 包括：網域不在、網段不在、網段在、網域在等各種變體
   if (lowerMessage.includes("網域不在") || lowerMessage.includes("網段不在") ||
       lowerMessage.includes("不在女八舍") || lowerMessage.includes("網域錯誤") ||
       (lowerMessage.includes("網域") && lowerMessage.includes("女八舍")) ||
-      (lowerMessage.includes("網段") && lowerMessage.includes("女八舍"))) {
+      (lowerMessage.includes("網段") && lowerMessage.includes("女八舍")) ||
+      // 新增：網段在其他宿舍的情況
+      (lowerMessage.includes("網段") && (lowerMessage.includes("女六") || lowerMessage.includes("女七") || 
+       lowerMessage.includes("男一") || lowerMessage.includes("男二") || lowerMessage.includes("宿舍"))) ||
+      (lowerMessage.includes("網域") && (lowerMessage.includes("女六") || lowerMessage.includes("女七") || 
+       lowerMessage.includes("男一") || lowerMessage.includes("男二") || lowerMessage.includes("宿舍")))) {
     const { createWrongDormSegmentNode } = await import("./conversation-nodes");
     return createWrongDormSegmentNode();
   }
@@ -158,6 +164,31 @@ export async function processUserMessage(
       );
     }
 
+    // 處理模型不存在錯誤
+    if (geminiResponse.error === "MODEL_NOT_FOUND") {
+      console.log("Gemini model not found, falling back to keyword matching or default response");
+      // 嘗試更寬鬆的關鍵字匹配
+      const lowerMessage = userMessage.toLowerCase();
+      
+      // 檢查是否提到網段/網域相關問題
+      if (lowerMessage.includes("網段") || lowerMessage.includes("網域") || 
+          lowerMessage.includes("宿舍") || lowerMessage.includes("女六") || 
+          lowerMessage.includes("女八")) {
+        // 如果是網段相關問題，引導到註冊問題
+        const { createWrongDormSegmentNode } = await import("./conversation-nodes");
+        return createWrongDormSegmentNode();
+      }
+      
+      // 降級到預設腳本
+      return getDefaultResponseForCategory(category);
+    }
+
+    // 處理其他 Gemini 錯誤（但仍有部分回應）
+    if (geminiResponse.error && geminiResponse.text) {
+      // 如果有部分回應，使用它
+      return createTextWithMenuOption(geminiResponse.text);
+    }
+
     // 如果都無法處理，降級到預設腳本
     return getDefaultResponseForCategory(category);
   }
@@ -175,6 +206,28 @@ export async function processUserMessage(
     return createTextWithMenuOption(
       "抱歉，AI 服務目前暫時無法使用（配額已用完）。\n\n請使用下方選單選擇功能，或稍後再試。"
     );
+  }
+
+  // 處理模型不存在錯誤
+  if (geminiResponse.error === "MODEL_NOT_FOUND") {
+    console.log("Gemini model not found, trying keyword matching...");
+    // 嘗試更寬鬆的關鍵字匹配
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // 檢查是否提到網段/網域相關問題
+    if (lowerMessage.includes("網段") || lowerMessage.includes("網域") || 
+        lowerMessage.includes("宿舍") || lowerMessage.includes("女六") || 
+        lowerMessage.includes("女八")) {
+      // 如果是網段相關問題，引導到註冊問題
+      const { createWrongDormSegmentNode } = await import("./conversation-nodes");
+      return createWrongDormSegmentNode();
+    }
+  }
+
+  // 處理其他 Gemini 錯誤（但仍有部分回應）
+  if (geminiResponse.error && geminiResponse.text) {
+    // 如果有部分回應，使用它
+    return createTextMessage(geminiResponse.text);
   }
 
   // 降級到歡迎訊息（帶有回主選單選項）
