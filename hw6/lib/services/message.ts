@@ -41,6 +41,15 @@ export async function processUserMessage(
     return createRegistrationTypeSelectionNode();
   }
 
+  // 網域不在女八舍問題（無分類時也能匹配）
+  if (lowerMessage.includes("網域不在") || lowerMessage.includes("網段不在") ||
+      lowerMessage.includes("不在女八舍") || lowerMessage.includes("網域錯誤") ||
+      (lowerMessage.includes("網域") && lowerMessage.includes("女八舍")) ||
+      (lowerMessage.includes("網段") && lowerMessage.includes("女八舍"))) {
+    const { createWrongDormSegmentNode } = await import("./conversation-nodes");
+    return createWrongDormSegmentNode();
+  }
+
   // 🐢 網速很慢 - 網速與流量查詢
   if (lowerMessage.includes("網速") || lowerMessage.includes("很慢") || 
       lowerMessage.includes("流量") || lowerMessage.includes("速度慢") ||
@@ -114,6 +123,15 @@ export async function processUserMessage(
         if (lowerMessage.includes("修改") && lowerMessage.includes("mac")) {
           const { createChangeMacAddressNode } = await import("./conversation-nodes");
           return createChangeMacAddressNode();
+        }
+
+        // 網域不在女八舍問題
+        if (lowerMessage.includes("網域不在") || lowerMessage.includes("網段不在") ||
+            lowerMessage.includes("不在女八舍") || lowerMessage.includes("網域錯誤") ||
+            (lowerMessage.includes("網域") && lowerMessage.includes("女八舍")) ||
+            (lowerMessage.includes("網段") && lowerMessage.includes("女八舍"))) {
+          const { createWrongDormSegmentNode } = await import("./conversation-nodes");
+          return createWrongDormSegmentNode();
         }
       }
     }

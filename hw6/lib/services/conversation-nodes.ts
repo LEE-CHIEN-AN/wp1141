@@ -1378,6 +1378,74 @@ export function createRegistrationDataIssueNode(): LineMessage {
 }
 
 /**
+ * 節點 18-4：網域不在女八舍問題
+ */
+export function createWrongDormSegmentNode(): LineMessage {
+  return createFlexMessage(
+    "網域不在女八舍 - 解決方法",
+    [
+      {
+        type: "bubble",
+        header: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("📍 網域不在女八舍", "xl", "bold", "#1DB446"),
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexText("如果您的網域不在女八舍，需要先刪除其他宿舍的註冊資料才能註冊女八舍。", "md", "regular", "#000000", true),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("📧 請寄信給女八舍網管：", "lg", "bold", "#000000"),
+            createFlexText("b12705041@ntu.edu.tw", "md", "bold", "#1DB446"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("📋 信件內容請包含：", "lg", "bold", "#000000"),
+            createFlexText("• 學號", "sm"),
+            createFlexText("• 姓名", "sm"),
+            createFlexText("• MAC 地址", "sm"),
+            createFlexText("• 目前的網段在哪間宿舍", "sm"),
+            {
+              type: "separator",
+              margin: "md",
+            },
+            createFlexText("💡 處理流程：", "lg", "bold", "#000000"),
+            createFlexText("1. 女八舍網管會聯繫該宿舍網管", "sm"),
+            createFlexText("2. 協助刪除您之前的註冊資料", "sm"),
+            createFlexText("3. 刪除後即可順利註冊女八舍網段", "sm"),
+          ],
+          spacing: "sm",
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            createFlexButton("📧 開啟郵件應用程式", {
+              type: "uri",
+              uri: "mailto:b12705041@ntu.edu.tw?subject=網域不在女八舍問題&body=學號：%0D%0A姓名：%0D%0AMAC 地址：%0D%0A目前的網段在哪間宿舍：",
+            }, "primary"),
+            createFlexButton("📋 回主選單", {
+              type: "postback",
+              data: "menu",
+              displayText: "回主選單",
+            }, "secondary"),
+          ],
+          spacing: "sm",
+        },
+      },
+    ]
+  );
+}
+
+/**
  * 節點 18-3：註冊完無法上網
  */
 export function createNoInternetAfterRegistrationNode(): LineMessage {
