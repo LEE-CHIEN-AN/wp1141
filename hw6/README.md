@@ -79,6 +79,17 @@
 | `ADMIN_PASSWORD` | 管理後台登入密碼 | 自訂 |
 
 
+## 本地開發
+
+### 前置需求
+
+- Node.js 18+ 
+- Yarn 1.22+
+- MongoDB Atlas 帳號（或本地 MongoDB）
+- LINE Developers 帳號
+- Google Gemini API Key
+- ngrok（用於建立 Webhook Tunnel）
+
 ### 安裝步驟
 
 1. **安裝依賴**
@@ -89,6 +100,7 @@
 2. **設定環境變數**
    - 建立`.env`
    - 填入必要的環境變數（參考上方「環境變數設定」）
+   - 本地開發時，`NEXTAUTH_URL` 應設定為 `http://localhost:3000`
 
 3. **啟動開發伺服器**
    ```bash
