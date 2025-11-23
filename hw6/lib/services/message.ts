@@ -10,6 +10,55 @@ import {
 import { CONVERSATION_CATEGORIES } from "@/config/conversation";
 import type { ConversationCategory } from "@/config/conversation";
 
+/**
+ * 使用 Gemini 分類使用者訊息
+ * 判斷是：打招呼/感謝、與宿舍網路相關、或完全無關
+ */
+async function classifyUserMessage(userMessage: string): Promise<"greeting" | "related" | "unrelated"> {
+  const classificationPrompt = `你是一個訊息分類器，專門判斷使用者訊息是否與「台大宿舍網路管理」相關。
+
+請將使用者訊息分類為以下三類之一：
+1. "greeting" - 打招呼、感謝、問候語（如：你好、謝謝、再見、早安等）
+2. "related" - 與宿舍網路相關的問題（如：無法上網、註冊問題、網速慢、路由器設定等）
+3. "unrelated" - 完全無關的問題（如：天氣、作業、課程、其他生活問題等）
+
+使用者訊息：「${userMessage}」
+
+請只回答分類結果（greeting、related 或 unrelated），不要有其他文字。`;
+
+  try {
+    const response = await generateResponse({ prompt: classificationPrompt });
+    if (response.text && !response.error) {
+      const classification = response.text.trim().toLowerCase();
+      if (classification.includes("greeting")) {
+        return "greeting";
+      } else if (classification.includes("unrelated")) {
+        return "unrelated";
+      } else {
+        // 預設為相關（包括 "related" 或其他情況）
+        return "related";
+      }
+    }
+  } catch (error) {
+    console.error("Error classifying message:", error);
+  }
+
+  // 如果分類失敗，使用簡單的關鍵字匹配作為降級方案
+  const lowerMessage = userMessage.toLowerCase();
+  const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
+  const relatedKeywords = ["網路", "網速", "註冊", "路由器", "連線", "上網", "mac", "ip", "網段", "網域", "宿網", "宿舍"];
+  
+  if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    return "greeting";
+  }
+  
+  if (relatedKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    return "related";
+  }
+  
+  return "unrelated";
+}
+
 export async function processUserMessage(
   userMessage: string,
   category?: ConversationCategory,
@@ -74,8 +123,25 @@ export async function processUserMessage(
     return createContactNode();
   }
 
-  // 如果有分類，優先處理關鍵字匹配，然後才使用 Gemini
+  // 如果有分類，先檢查是否為無關訊息（溫柔引導）
   if (category) {
+    // 先使用分類器判斷是否為無關訊息
+    const messageClassification = await classifyUserMessage(userMessage);
+    
+    // 如果分類為無關，即使有分類也進行溫柔引導
+    if (messageClassification === "unrelated") {
+      return createTextWithMenuOption(
+        "不好意思，我是專門協助處理「台大宿舍網路問題」的小精靈，對於您提到的問題可能無法提供幫助。😅\n\n不過，如果您遇到以下問題，我很樂意協助：\n\n• 🚫 無法上網或連線故障\n• 📝 宿網註冊相關問題\n• 🐢 網速很慢或流量查詢\n• 📞 需要聯絡網管\n\n請點選「回主選單」選擇您需要的服務，或直接告訴我您的網路問題！"
+      );
+    }
+    
+    // 如果分類為打招呼，友善回應並引導
+    if (messageClassification === "greeting") {
+      return createTextWithMenuOption(
+        "您好！很高興為您服務！👋\n\n我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
+      );
+    }
+    
     // 先處理關鍵字匹配（更精確、更快）
     if (userMessage && userMessage.trim().length > 0) {
       const lowerMessage = userMessage.toLowerCase();
@@ -193,7 +259,24 @@ export async function processUserMessage(
     return getDefaultResponseForCategory(category);
   }
 
-  // 沒有分類時，使用 Gemini 或預設回應
+  // 沒有分類時，先使用 Gemini 分類器判斷訊息類型
+  const messageClassification = await classifyUserMessage(userMessage);
+  
+  // 處理打招呼/感謝
+  if (messageClassification === "greeting") {
+    return createTextWithMenuOption(
+      "您好！我是台大女八舍宿網小精靈 👋\n\n很高興為您服務！我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
+    );
+  }
+  
+  // 處理完全無關的問題（溫柔引導）
+  if (messageClassification === "unrelated") {
+    return createTextWithMenuOption(
+      "不好意思，我是專門協助處理「台大宿舍網路問題」的小精靈，對於您提到的問題可能無法提供幫助。😅\n\n不過，如果您遇到以下問題，我很樂意協助：\n\n• 🚫 無法上網或連線故障\n• 📝 宿網註冊相關問題\n• 🐢 網速很慢或流量查詢\n• 📞 需要聯絡網管\n\n請點選「回主選單」選擇您需要的服務，或直接告訴我您的網路問題！"
+    );
+  }
+  
+  // 如果分類為相關，繼續使用 Gemini 處理
   const prompt = buildPrompt(userMessage);
   const geminiResponse = await generateResponse({ prompt });
 
@@ -232,7 +315,7 @@ export async function processUserMessage(
 
   // 降級到歡迎訊息（帶有回主選單選項）
   return createTextWithMenuOption(
-    "抱歉，我無法理解您的問題。\n\n請選擇以下選項，或點選「回主選單」重新開始：\n\n1. 網路連線問題\n2. 資安事件處理\n3. 登入問題\n4. 其他問題"
+    "抱歉，我無法完全理解您的問題。\n\n請選擇以下選項，或點選「回主選單」重新開始：\n\n• 🚫 無法上網\n• 📝 如何註冊\n• 🐢 網速很慢\n• 📞 聯絡網管"
   );
 }
 
