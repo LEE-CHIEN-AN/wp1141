@@ -71,19 +71,31 @@ handleLineMessage (lib/bottender/handlers.ts)
 - 關鍵字：聯絡、聯繫、網管、聯繫方式
 - 回應：聯絡資訊與注意事項
 
-#### 3. 對話上下文處理
+#### 3. 智慧分類
+
+系統使用 Gemini API 作為分類器，判斷使用者訊息類型：
+- **greeting**：打招呼、感謝、問候語 → 友善回應並引導到主選單
+- **related**：與宿舍網路相關的問題 → 繼續處理
+- **unrelated**：完全無關的問題 → 溫柔引導，說明能力範圍
+
+#### 4. 對話上下文處理
 
 如果使用者已經選擇了某個功能（有對話類別），系統會：
-1. 使用 Gemini API 理解使用者的自由文字回應
-2. 結合對話歷史（最近 10 條訊息）
-3. 產生智能回應
-4. 如果 Gemini 失敗，使用關鍵字匹配作為降級方案
+1. 先檢查是否為打招呼或無關訊息（優先處理）
+2. 檢查對話狀態（`metadata.step`），根據狀態提供對應回應
+3. 使用關鍵字匹配處理特定問題
+4. 使用 Gemini API 理解使用者的自由文字回應
+5. 結合對話歷史（最近 10 條訊息）
+6. 產生智能回應
+7. 如果 Gemini 失敗，使用關鍵字匹配作為降級方案
 
-#### 4. 一般文字處理
+#### 5. 一般文字處理
 
 如果無法匹配關鍵字，系統會：
-1. 嘗試使用 Gemini API 理解
-2. 如果失敗，顯示錯誤訊息並提供回主選單選項
+1. 使用 Gemini 分類器判斷訊息類型
+2. 根據分類結果提供適當回應
+3. 如果分類失敗，降級到關鍵字匹配
+4. 如果還是無法處理，顯示錯誤訊息並提供回主選單選項
 
 ### 方式三：加好友時（Follow Event）
 
@@ -158,7 +170,51 @@ handleLineMessage (lib/bottender/handlers.ts)
 - 快速回覆選項方便操作
 - 隨時可以回主選單
 
-### 3. 純文字訊息
+### 3. Flex Message（彈性訊息）
+
+**使用時機：**
+- 需要豐富格式、長篇內容、結構化資訊
+- 需要粗體文字（LINE Text Message 不支援 Markdown）
+
+**結構：**
+```typescript
+{
+  type: "flex",
+  altText: "訊息摘要",
+  contents: {
+    type: "bubble",
+    header: { ... },
+    body: { ... },
+    footer: { ... }
+  }
+}
+```
+
+**優點：**
+- 支援粗體、顏色、間距等豐富格式
+- 結構化內容，易於閱讀
+- 可包含多個按鈕
+
+### 4. Carousel Template（輪播模板）
+
+**使用時機：**
+- 多個相關選項
+- 分類說明
+- 步驟清單
+
+**結構：**
+```typescript
+{
+  type: "template",
+  altText: "選項列表",
+  template: {
+    type: "carousel",
+    columns: [ ... ]
+  }
+}
+```
+
+### 5. 純文字訊息
 
 **使用時機：**
 - Gemini API 回應
@@ -249,17 +305,28 @@ handleLineMessage (lib/bottender/handlers.ts)
 ### 1. Gemini API 失敗
 
 **處理方式：**
-1. 嘗試使用 Gemini API
-2. 如果失敗（配額限制、API 錯誤等）
-3. 降級到關鍵字匹配
-4. 如果還是無法處理，顯示錯誤訊息 + 回主選單
+1. 嘗試使用主要模型（gemini-1.5-flash）
+2. 如果失敗（404 Not Found），嘗試備用模型（gemini-pro, gemini-1.0-pro）
+3. 如果配額限制（429），顯示明確的錯誤訊息並引導使用選單
+4. 如果所有模型都失敗，降級到關鍵字匹配
+5. 如果還是無法處理，顯示錯誤訊息 + 回主選單
 
-### 2. 無法理解使用者輸入
+### 2. LINE API 錯誤
 
 **處理方式：**
-1. 顯示友善的錯誤訊息
-2. 提供回主選單選項
-3. 列出可用的服務項目
+1. 嘗試使用 Reply API 回覆
+2. 如果 Reply Token 無效（常見於重送事件），使用 Push Message API 作為備用
+3. 記錄錯誤日誌
+
+### 3. 無法理解使用者輸入
+
+**處理方式：**
+1. 使用 Gemini 分類器判斷訊息類型
+2. 如果是無關訊息，溫柔引導並說明能力範圍
+3. 如果是打招呼，友善回應並引導到主選單
+4. 如果無法分類，顯示友善的錯誤訊息
+5. 提供回主選單選項
+6. 列出可用的服務項目
 
 ## 主要功能特點
 
@@ -277,32 +344,40 @@ handleLineMessage (lib/bottender/handlers.ts)
 
 3. **智能對話**
    - 對話上下文理解
+   - 對話狀態管理（多步驟對話流程）
    - 自由文字回應處理
    - 關鍵字匹配降級
+   - 智慧分類（greeting/related/unrelated）
+   - 溫柔引導（無關訊息處理）
 
 4. **資料持久化**
    - 所有對話記錄儲存
    - 使用者資訊管理
-   - 對話狀態追蹤
+   - 對話狀態追蹤（metadata.step）
+   - 對話分類追蹤（category）
 
 5. **管理後台**
    - 對話列表查看
    - 對話詳情查看
    - 統計資料顯示
-   - 即時更新（SWR Polling）
+   - 即時更新（SWR Polling，每 5 秒）
+   - 篩選功能（日期、類別、狀態、關鍵字）
+   - 分頁功能
 
 6. **錯誤處理**
-   - API 錯誤降級
+   - API 錯誤降級（模型降級、Push Message 備用）
    - 友善的錯誤訊息
+   - 明確的配額錯誤提示
    - 回主選單機制
 
 ## 技術架構
 
 - **框架**: Next.js 16 (App Router) + TypeScript
-- **Line API**: 直接整合 Line Messaging API
-- **LLM**: Google Gemini API (gemini-1.5-flash)
+- **Line API**: 直接整合 Line Messaging API（Reply API + Push Message API 備用）
+- **LLM**: Google Gemini API (gemini-1.5-flash，備用：gemini-pro, gemini-1.0-pro)
 - **資料庫**: MongoDB Atlas + Mongoose
-- **身份驗證**: NextAuth.js
+- **身份驗證**: NextAuth.js v5
 - **資料獲取**: SWR (Polling 每 5 秒)
+- **樣式**: Tailwind CSS
 - **部署**: Vercel
 

@@ -1,6 +1,6 @@
 # 台大女八舍宿網 Line Chatbot
 
-整合 Line Messaging API 與 Gemini API 的智慧問答機器人系統，專門協助學生解決宿舍網路相關問題。
+整合 Line Messaging API 與 Gemini API 的智慧問答機器人系統，專門協助學生解決女八舍網路相關問題。
 
 ## 部署連結
 
@@ -34,10 +34,7 @@
 
 1. **複製環境變數範例檔**
    ```bash
-   # 方式一：複製 env.example 檔案
-   cp env.example .env
-   
-   # 方式二：如果沒有 env.example，手動建立 .env 檔案
+   手動建立 .env 檔案
    touch .env
    ```
 
@@ -47,22 +44,22 @@
 
    ```env
    # LINE Messaging API
-   LINE_CHANNEL_ACCESS_TOKEN=your_line_channel_access_token
-   LINE_CHANNEL_SECRET=your_line_channel_secret
+   LINE_CHANNEL_ACCESS_TOKEN=
+   LINE_CHANNEL_SECRET=
 
    # Google Gemini API
-   GEMINI_API_KEY=your_gemini_api_key
+   GEMINI_API_KEY=
 
    # MongoDB Atlas
-   MONGODB_URI=your_mongodb_atlas_connection_string
+   MONGODB_URI=
 
    # NextAuth.js
-   NEXTAUTH_SECRET=your_nextauth_secret
-   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=
+   NEXTAUTH_URL=
 
    # 管理後台登入資訊
-   ADMIN_EMAIL=your_admin_email
-   ADMIN_PASSWORD=your_admin_password
+   ADMIN_EMAIL=
+   ADMIN_PASSWORD=
    ```
 
 ### 環境變數說明
@@ -107,7 +104,7 @@
    ```
 
 2. **設定環境變數**
-   - 複製 `env.example` 為 `.env`
+   - 建立`.env`
    - 填入必要的環境變數（參考上方「環境變數設定」）
 
 3. **啟動開發伺服器**
@@ -136,51 +133,6 @@ yarn type-check
 # Lint 檢查
 yarn lint
 ```
-
-## 部署到 Vercel
-
-### 前置準備
-
-1. **GitHub Repository**
-   - 將程式碼推送到 GitHub
-   - 確保 `.env` 檔案已加入 `.gitignore`
-
-2. **Vercel 專案**
-   - 在 [Vercel](https://vercel.com) 建立新專案
-   - 連接 GitHub Repository
-
-### 部署步驟
-
-1. **設定環境變數**
-   - 在 Vercel 專案設定中，將所有環境變數加入 **Environment Variables**
-   - 確保 `NEXTAUTH_URL` 設定為您的 Vercel URL
-
-2. **設定 LINE Webhook**
-   - 在 [LINE Developers Console](https://developers.line.biz/console/) 設定 Webhook URL
-   - Webhook URL: `https://[your-vercel-project].vercel.app/api/line/webhook`
-   - 啟用 Webhook
-
-3. **部署**
-   - Vercel 會自動偵測 Next.js 專案並部署
-   - 或手動觸發部署：`vercel --prod`
-
-### 部署後設定
-
-1. **驗證 Webhook**
-   - 在 LINE Developers Console 中驗證 Webhook 是否正常運作
-   - 測試發送訊息給 LINE Bot
-
-2. **測試管理後台**
-   - 訪問 `https://[your-vercel-project].vercel.app/admin`
-   - 使用設定的管理員帳號登入
-
-### 快速連結
-
-部署完成後，您可以使用以下連結：
-
-- **LINE Bot Webhook URL**: `https://[your-vercel-project].vercel.app/api/line/webhook`
-- **管理後台 URL**: `https://[your-vercel-project].vercel.app/admin`
-- **登入頁面**: `https://[your-vercel-project].vercel.app/admin/login`
 
 ## 專案結構
 
