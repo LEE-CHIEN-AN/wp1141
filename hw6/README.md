@@ -18,15 +18,18 @@
 
 **注意**：目前沒有註冊服務，只有預設的管理員帳號。
 
-## 技術棧
 
-- Next.js 16+ (App Router) + TypeScript
-- Line Messaging API (直接整合)
-- Google Gemini API
-- MongoDB Atlas + Mongoose
-- NextAuth.js (管理後台身份驗證)
-- SWR (資料獲取與 Polling)
-- Tailwind CSS
+## 技術架構
+
+- **框架**: Next.js 16 (App Router) + TypeScript
+- **Line API**: 直接整合 Line Messaging API（Reply API + Push Message API 備用）
+- **LLM**: Google Gemini API (gemini-1.5-flash，備用：gemini-pro, gemini-1.0-pro)
+- **資料庫**: MongoDB Atlas + Mongoose
+- **身份驗證**: NextAuth.js v5
+- **資料獲取**: SWR (Polling 每 5 秒)
+- **樣式**: Tailwind CSS
+- **部署**: Vercel
+
 
 ## 環境變數設定
 
@@ -75,26 +78,6 @@
 | `ADMIN_EMAIL` | 管理後台登入帳號 | 自訂 |
 | `ADMIN_PASSWORD` | 管理後台登入密碼 | 自訂 |
 
-### Vercel 部署環境設定
-
-在 Vercel 專案設定中，將上述環境變數加入 **Environment Variables**：
-
-1. 進入 Vercel 專案設定
-2. 選擇 **Settings** → **Environment Variables**
-3. 逐一新增上述環境變數
-4. 確保所有環境（Production、Preview、Development）都已設定
-
-**重要**：請勿將 `.env` 檔案提交到 Git 版本控制中。
-
-## 本地開發
-
-### 前置需求
-
-- Node.js 18+ 
-- Yarn 1.22+
-- MongoDB Atlas 帳號（或本地 MongoDB）
-- LINE Developers 帳號
-- Google Gemini API Key
 
 ### 安裝步驟
 
@@ -111,28 +94,88 @@
    ```bash
    yarn dev
    ```
+   - 開發伺服器會在 `http://localhost:3000` 啟動
 
-4. **開啟應用程式**
+4. **設定 ngrok Tunnel（用於 LINE Webhook）**
+
+   由於 LINE Webhook 需要公開的 HTTPS URL，本地開發時需要使用 ngrok 建立 tunnel：
+
+   **安裝 ngrok：**
+   ```bash
+   # 方式一：使用 npm 全域安裝
+   npm install -g ngrok
+   
+   # 方式二：下載並解壓縮
+   # 訪問 https://ngrok.com/download 下載對應平台的版本
+   ```
+
+   **啟動 ngrok：**
+   ```bash
+   ngrok http 3000
+   ```
+
+   ngrok 會顯示類似以下的資訊：
+   ```
+   Forwarding  https://xxxx-xxxx-xxxx.ngrok-free.app -> http://localhost:3000
+   ```
+
+   **複製 HTTPS URL**（例如：`https://xxxx-xxxx-xxxx.ngrok-free.app`）
+
+5. **設定 LINE Webhook URL**
+
+   在 [LINE Developers Console](https://developers.line.biz/console/) 中：
+
+   1. 選擇您的 Channel
+   2. 進入 **Messaging API** 設定頁面
+   3. 找到 **Webhook URL** 設定
+   4. 輸入您的 ngrok URL + `/api/line/webhook`：
+      ```
+      https://xxxx-xxxx-xxxx.ngrok-free.app/api/line/webhook
+      ```
+   5. 點選 **Update** 儲存
+   6. 啟用 **Webhook**（切換開關為 ON）
+   7. 點選 **Verify** 驗證 Webhook 是否正常運作
+
+   **注意事項：**
+   - 每次重新啟動 ngrok，URL 會改變（除非使用付費版設定固定網域）
+   - 需要重新在 LINE Developers Console 更新 Webhook URL
+   - 建議使用 ngrok 的固定網域功能（需要註冊帳號）
+
+6. **測試 LINE Bot**
+
+   - 在 LINE 中搜尋您的 Bot 並加為好友
+   - 發送測試訊息，確認 Bot 能正常回應
+   - 檢查終端機的日誌，確認 Webhook 請求正常接收
+
+7. **開啟應用程式**
    - 開啟瀏覽器訪問 `http://localhost:3000`
+   - 管理後台：`http://localhost:3000/admin`
 
-### 開發指令
+### 本地開發注意事項
 
-```bash
-# 開發模式（熱重載）
-yarn dev
+1. **ngrok URL 變更**
+   - 每次重新啟動 ngrok，URL 會改變
+   - 需要重新在 LINE Developers Console 更新 Webhook URL
+   - 建議使用 ngrok 的固定網域功能（需要註冊 ngrok 帳號）
 
-# 建置生產版本
-yarn build
+2. **環境變數**
+   - 確保 `.env` 檔案中的 `NEXTAUTH_URL` 設定為 `http://localhost:3000`
+   - 確保所有必要的環境變數都已設定
 
-# 啟動生產模式（需要先建置）
-yarn start
+3. **Webhook 驗證**
+   - 在 LINE Developers Console 中點選 **Verify** 驗證 Webhook
+   - 如果驗證失敗，檢查：
+     - ngrok 是否正常運行
+     - Webhook URL 是否正確（包含 `/api/line/webhook`）
+     - 開發伺服器是否在 `http://localhost:3000` 運行
+     - 環境變數 `LINE_CHANNEL_SECRET` 是否正確
 
-# 型別檢查
-yarn type-check
-
-# Lint 檢查
-yarn lint
-```
+4. **測試流程**
+   - 先啟動開發伺服器：`yarn dev`
+   - 再啟動 ngrok：`ngrok http 3000`
+   - 更新 LINE Webhook URL
+   - 驗證 Webhook
+   - 在 LINE 中測試 Bot
 
 ## 專案結構
 
@@ -189,13 +232,46 @@ hw6/
 - **溫柔引導**：對於無關訊息，禮貌地說明能力範圍並提供功能入口
 - **Rich Menu**：提供常駐選單，方便使用者快速選擇功能
 
-### 管理後台功能
 
-- **對話紀錄檢視**：查看所有對話紀錄
-- **對話詳情**：查看單一對話的完整內容
-- **統計資料**：顯示總對話數、活躍對話、總使用者、總訊息數
-- **篩選功能**：依日期、分類、狀態、關鍵字篩選對話
-- **即時更新**：使用 SWR Polling 每 5 秒自動更新資料
+### 主要功能特點
+1. **主選單系統**
+   - 歡迎訊息（加好友時自動發送）
+   - 四個核心功能按鈕
+   - 回主選單機制
+
+2. **多種輸入方式**
+   - 按鈕點選（Postback）
+   - 文字輸入（關鍵字匹配）
+   - 自由文字（Gemini 理解）
+
+3. **智能對話**
+   - 對話上下文理解
+   - 對話狀態管理（多步驟對話流程）
+   - 自由文字回應處理
+   - 關鍵字匹配降級
+   - 智慧分類（greeting/related/unrelated）
+   - 溫柔引導（無關訊息處理）
+
+4. **資料持久化**
+   - 所有對話記錄儲存
+   - 使用者資訊管理
+   - 對話狀態追蹤（metadata.step）
+   - 對話分類追蹤（category）
+
+5. **管理後台**
+   - 對話列表查看
+   - 對話詳情查看
+   - 統計資料顯示
+   - 即時更新（SWR Polling，每 5 秒）
+   - 篩選功能（日期、類別、狀態、關鍵字）
+   - 分頁功能
+
+
+6. **錯誤處理**
+   - API 錯誤降級（模型降級、Push Message 備用）
+   - 友善的錯誤訊息
+   - 明確的配額錯誤提示
+   - 回主選單機制
 
 ## 技術細節
 
@@ -217,18 +293,57 @@ hw6/
 - `network:router:troubleshoot`：路由器故障排除
 - 等等...
 
-### 降級機制
+### MongoDB 模型
 
-1. 關鍵字匹配（最快、最精確）
-2. 對話狀態處理（維持脈絡）
-3. Gemini AI 理解（處理複雜問題）
-4. 預設腳本回應（最後降級方案）
+**User（使用者）**
+- `lineUserId`: Line 使用者 ID
+- `displayName`: 顯示名稱
+- `pictureUrl`: 頭像 URL
+
+**Conversation（對話）**
+- `userId`: 使用者 ID
+- `status`: 狀態（active/completed/archived）
+- `category`: 對話類別（網路連線問題/資安事件/註冊問題）
+- `metadata`: 額外資訊
+
+**Message（訊息）**
+- `conversationId`: 對話 ID
+- `role`: 角色（user/assistant）
+- `content`: 訊息內容
+- `lineMessageId`: Line 訊息 ID
+
+## 錯誤處理與降級機制
+
+### 1. Gemini API 失敗
+
+**處理方式：**
+1. 嘗試使用主要模型（gemini-1.5-flash）
+2. 如果失敗（404 Not Found），嘗試備用模型（gemini-pro, gemini-1.0-pro）
+3. 如果配額限制（429），顯示明確的錯誤訊息並引導使用選單
+4. 如果所有模型都失敗，降級到關鍵字匹配
+5. 如果還是無法處理，顯示錯誤訊息 + 回主選單
+
+### 2. LINE API 錯誤
+
+**處理方式：**
+1. 嘗試使用 Reply API 回覆
+2. 如果 Reply Token 無效（常見於重送事件），使用 Push Message API 作為備用
+3. 記錄錯誤日誌
+
+### 3. 無法理解使用者輸入
+
+**處理方式：**
+1. 使用 Gemini 分類器判斷訊息類型
+2. 如果是無關訊息，溫柔引導並說明能力範圍
+3. 如果是打招呼，友善回應並引導到主選單
+4. 如果無法分類，顯示友善的錯誤訊息
+5. 提供回主選單選項
+6. 列出可用的服務項目
 
 ## 相關文件
 
 - **Chatbot 設計文件**: [chatbot-design.md](./chatbot-design.md)
 - **對話腳本設計**: [CONVERSATION_SCRIPT_DESIGN.md](./CONVERSATION_SCRIPT_DESIGN.md)
-- **功能檢查清單**: [FEATURE_CHECKLIST.md](./FEATURE_CHECKLIST.md)
 - **系統設計說明**: [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md)
 
 ## 注意事項
