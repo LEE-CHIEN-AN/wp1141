@@ -101,11 +101,60 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean();
 
+    const conversationIds = conversations.map((conv) => conv._id);
+
+    let latestMessagesMap = new Map<
+      string,
+      { lastMessage: string; lastMessageTime: Date; lastMessageRole: string }
+    >();
+
+    if (conversationIds.length > 0) {
+      const latestMessages = await Message.aggregate([
+        {
+          $match: {
+            conversationId: {
+              $in: conversationIds.map((id) => new Types.ObjectId(id)),
+            },
+          },
+        },
+        { $sort: { createdAt: -1 } },
+        {
+          $group: {
+            _id: "$conversationId",
+            lastMessage: { $first: "$content" },
+            lastMessageTime: { $first: "$createdAt" },
+            lastMessageRole: { $first: "$role" },
+          },
+        },
+      ]);
+
+      latestMessagesMap = new Map(
+        latestMessages.map((item) => [
+          item._id.toString(),
+          {
+            lastMessage: item.lastMessage,
+            lastMessageTime: item.lastMessageTime,
+            lastMessageRole: item.lastMessageRole,
+          },
+        ])
+      );
+    }
+
+    const conversationsWithPreview = conversations.map((conv) => {
+      const latest = latestMessagesMap.get(conv._id.toString());
+      return {
+        ...conv,
+        lastMessage: latest?.lastMessage || "",
+        lastMessageTime: latest?.lastMessageTime || conv.updatedAt || conv.createdAt,
+        lastMessageRole: latest?.lastMessageRole || "",
+      };
+    });
+
     // 計算總數（用於分頁）
     const total = await Conversation.countDocuments(query);
 
     return NextResponse.json({
-      conversations,
+      conversations: conversationsWithPreview,
       pagination: {
         page,
         limit,

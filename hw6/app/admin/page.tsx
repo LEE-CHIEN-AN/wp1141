@@ -19,6 +19,10 @@ interface Conversation {
   status: string;
   category?: string;
   createdAt: string;
+  updatedAt?: string;
+  lastMessage?: string;
+  lastMessageRole?: string;
+  lastMessageTime?: string;
   userId: {
     displayName: string;
     lineUserId: string;
@@ -276,7 +280,10 @@ export default function AdminPage() {
                       狀態
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      建立時間
+                      最新訊息
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      最新時間
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       操作
@@ -309,8 +316,24 @@ export default function AdminPage() {
                             : "已封存"}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-sm">
+                        {conv.lastMessage ? (
+                          <div className="max-w-xs">
+                            <p className="text-xs text-gray-500">
+                              {conv.lastMessageRole === "user" ? "使用者" : conv.lastMessageRole === "assistant" ? "助手" : "系統"}
+                            </p>
+                            <p className="mt-1 truncate text-gray-700">
+                              {conv.lastMessage}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">尚無訊息</span>
+                        )}
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {new Date(conv.createdAt).toLocaleString("zh-TW")}
+                        {new Date(
+                          conv.lastMessageTime || conv.updatedAt || conv.createdAt
+                        ).toLocaleString("zh-TW")}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm">
                         <a
