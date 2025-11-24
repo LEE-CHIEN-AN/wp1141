@@ -266,8 +266,8 @@ export default function AdminPage() {
           {conversationsLoading ? (
             <p className="mt-4">載入中...</p>
           ) : (
-            <div className="mt-4 overflow-hidden rounded-lg bg-white shadow">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="mt-4 overflow-x-auto rounded-lg bg-white shadow">
+              <table className="min-w-[1100px] divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
