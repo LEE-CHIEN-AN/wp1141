@@ -32,6 +32,13 @@ interface Conversation {
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const navItems = [
+    { label: "儀表板", href: "/admin", active: true, icon: "📊" },
+    { label: "對話管理", href: "/admin", icon: "💬" },
+    { label: "使用者洞察", href: "#", icon: "👥" },
+    { label: "統計報表", href: "#", icon: "📈" },
+    { label: "系統設定", href: "#", icon: "⚙️" },
+  ];
   
   // 篩選狀態
   const [startDate, setStartDate] = useState("");
@@ -71,6 +78,36 @@ export default function AdminPage() {
       5000
     );
 
+  const statCards = useMemo(
+    () => [
+      {
+        label: "總對話數",
+        value: stats?.totalConversations || 0,
+        icon: "💬",
+        accent: "bg-blue-100 text-blue-600",
+      },
+      {
+        label: "進行中對話",
+        value: stats?.activeConversations || 0,
+        icon: "🟢",
+        accent: "bg-green-100 text-green-600",
+      },
+      {
+        label: "總使用者數",
+        value: stats?.totalUsers || 0,
+        icon: "👥",
+        accent: "bg-purple-100 text-purple-600",
+      },
+      {
+        label: "累積訊息數",
+        value: stats?.totalMessages || 0,
+        icon: "📝",
+        accent: "bg-amber-100 text-amber-600",
+      },
+    ],
+    [stats]
+  );
+
   // 重置篩選
   const handleResetFilters = () => {
     setStartDate("");
@@ -100,105 +137,152 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <h1 className="text-xl font-semibold">管理後台</h1>
-            <button
-              onClick={() => signOut({ callbackUrl: "/admin/login" })}
-              className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
-            >
-              登出
-            </button>
-          </div>
+    <div className="min-h-screen bg-slate-100 lg:flex">
+      {/* Sidebar */}
+      <aside className="hidden w-64 flex-col bg-slate-900 text-white lg:flex">
+        <div className="px-6 py-6 text-2xl font-semibold tracking-wide">
+          女八舍宿網
         </div>
-      </nav>
+        <nav className="flex-1 space-y-1 px-4">
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                item.active
+                  ? "bg-white/10 text-white"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <span>{item.icon}</span>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+        <div className="border-t border-white/10 px-6 py-6">
+          <p className="text-xs text-white/70">登入帳號</p>
+          <p className="truncate text-sm font-medium">
+            {session.user?.email || session.user?.name}
+          </p>
+          <button
+            onClick={() => signOut({ callbackUrl: "/admin/login" })}
+            className="mt-4 w-full rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+          >
+            登出
+          </button>
+        </div>
+      </aside>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">統計資料</h2>
-          {statsLoading ? (
-            <p>載入中...</p>
-          ) : (
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg bg-white p-6 shadow">
-                <p className="text-sm text-gray-600">總對話數</p>
-                <p className="mt-2 text-3xl font-bold">
-                  {stats?.totalConversations || 0}
-                </p>
-              </div>
-              <div className="rounded-lg bg-white p-6 shadow">
-                <p className="text-sm text-gray-600">進行中對話</p>
-                <p className="mt-2 text-3xl font-bold">
-                  {stats?.activeConversations || 0}
-                </p>
-              </div>
-              <div className="rounded-lg bg-white p-6 shadow">
-                <p className="text-sm text-gray-600">總使用者數</p>
-                <p className="mt-2 text-3xl font-bold">
-                  {stats?.totalUsers || 0}
-                </p>
-              </div>
-              <div className="rounded-lg bg-white p-6 shadow">
-                <p className="text-sm text-gray-600">總訊息數</p>
-                <p className="mt-2 text-3xl font-bold">
-                  {stats?.totalMessages || 0}
-                </p>
-              </div>
+      <div className="flex flex-1 flex-col">
+        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-400">
+                後台儀表板
+              </p>
+              <h1 className="text-2xl font-bold text-slate-900">客服監控中心</h1>
             </div>
-          )}
-        </div>
+            <div className="flex items-center gap-3 text-sm text-slate-600">
+              <span className="hidden sm:block">
+                {session.user?.name || "管理員"}
+              </span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+                Online
+              </span>
+            </div>
+          </div>
+        </header>
 
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">對話列表</h2>
-            <button
-              onClick={handleResetFilters}
-              className="rounded-md bg-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-300"
-            >
-              重置篩選
-            </button>
+        <main className="flex-1 space-y-8 px-4 py-6 sm:px-6 lg:px-10">
+          {/* Stats */}
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">
+                  即時指標
+                </h2>
+                <p className="text-sm text-slate-500">
+                  每 5 秒自動更新一次最新數據
+                </p>
+              </div>
+              <button
+                onClick={() => handleResetFilters()}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100"
+              >
+                重置篩選
+              </button>
+            </div>
+            {statsLoading ? (
+              <p>載入中...</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {statCards.map((card) => (
+                  <div
+                    key={card.label}
+                    className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100"
+                  >
+                    <div
+                      className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg ${card.accent}`}
+                    >
+                      {card.icon}
+                    </div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      {card.label}
+                    </p>
+                    <p className="mt-2 text-3xl font-semibold text-slate-900">
+                      {card.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">
+                對話列表
+              </h2>
+              <p className="text-sm text-slate-500">
+                監控所有使用者與宿網小精靈的對話
+              </p>
+            </div>
           </div>
 
-          {/* 篩選表單 */}
-          <div className="mb-4 rounded-lg bg-white p-4 shadow">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-              {/* 日期範圍 - 開始日期 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+          {/* Filters */}
+          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-slate-500">
                   開始日期
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
-
-              {/* 日期範圍 - 結束日期 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-slate-500">
                   結束日期
                 </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
-
-              {/* 類別篩選 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-slate-500">
                   類別
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="all">全部</option>
                   <option value={CONVERSATION_CATEGORIES.NETWORK_ISSUE}>
@@ -215,16 +299,14 @@ export default function AdminPage() {
                   </option>
                 </select>
               </div>
-
-              {/* 狀態篩選 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="flex flex-col">
+                <label className="text-xs font-medium text-slate-500">
                   狀態
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="all">全部</option>
                   <option value="active">進行中</option>
@@ -232,20 +314,24 @@ export default function AdminPage() {
                   <option value="archived">已封存</option>
                 </select>
               </div>
-
-              {/* 搜尋框 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  搜尋（使用者/內容）
+              <div className="flex flex-1 flex-col min-w-[200px]">
+                <label className="text-xs font-medium text-slate-500">
+                  搜尋（使用者 / 對話內容）
                 </label>
                 <input
-                  type="text"
+                  type="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="輸入關鍵字..."
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
+              <button
+                onClick={handleResetFilters}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+              >
+                清除條件
+              </button>
             </div>
           </div>
 
@@ -266,7 +352,7 @@ export default function AdminPage() {
           {conversationsLoading ? (
             <p className="mt-4">載入中...</p>
           ) : (
-            <div className="mt-4 overflow-x-auto rounded-lg bg-white shadow">
+            <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
               <table className="min-w-[1100px] divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -449,9 +535,10 @@ export default function AdminPage() {
               )}
             </div>
           )}
-        </div>
+        </section>
       </main>
     </div>
+  </div>
   );
 }
 
