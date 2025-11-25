@@ -137,21 +137,31 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 lg:flex">
+    <div className="min-h-screen bg-fairy-sand text-fairy-coffee font-sans lg:flex">
       {/* Sidebar */}
-      <aside className="hidden w-64 flex-col bg-slate-900 text-white lg:flex">
-        <div className="px-6 py-6 text-2xl font-semibold tracking-wide">
-          女八舍宿網
+      <aside className="hidden w-64 flex-col border-r border-fairy-clay/60 bg-fairy-cream lg:flex">
+        <div className="flex items-center gap-3 px-6 py-6">
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-fairy-mint text-2xl shadow-card">
+            🧚🏻‍♀️
+          </span>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-fairy-cocoa/70">
+              NTU Lady 8
+            </p>
+            <p className="text-lg font-semibold text-fairy-coffee">
+              宿網小精靈後台
+            </p>
+          </div>
         </div>
         <nav className="flex-1 space-y-1 px-4">
           {navItems.map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              className={`flex items-center gap-3 rounded-2xl px-4 py-2 text-sm font-medium transition ${
                 item.active
-                  ? "bg-white/10 text-white"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
+                  ? "bg-fairy-mint text-fairy-fern shadow-card"
+                  : "text-fairy-cocoa/70 hover:bg-fairy-clay hover:text-fairy-coffee"
               }`}
             >
               <span>{item.icon}</span>
@@ -159,14 +169,16 @@ export default function AdminPage() {
             </a>
           ))}
         </nav>
-        <div className="border-t border-white/10 px-6 py-6">
-          <p className="text-xs text-white/70">登入帳號</p>
-          <p className="truncate text-sm font-medium">
+        <div className="border-t border-fairy-clay px-6 py-6 text-sm">
+          <p className="text-xs uppercase tracking-wide text-fairy-cocoa/60">
+            登入帳號
+          </p>
+          <p className="truncate font-semibold">
             {session.user?.email || session.user?.name}
           </p>
           <button
             onClick={() => signOut({ callbackUrl: "/admin/login" })}
-            className="mt-4 w-full rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+            className="mt-4 w-full rounded-xl bg-fairy-coral px-4 py-2 font-medium text-white transition hover:bg-fairy-coral/80"
           >
             登出
           </button>
@@ -174,40 +186,42 @@ export default function AdminPage() {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+        <header className="sticky top-0 z-10 border-b border-fairy-clay/80 bg-fairy-cream/90 backdrop-blur">
           <div className="flex items-center justify-between px-6 py-4">
             <div>
-              <p className="text-xs uppercase tracking-wide text-slate-400">
+              <p className="text-xs uppercase tracking-[0.25em] text-fairy-cocoa/60">
                 後台儀表板
               </p>
-              <h1 className="text-2xl font-bold text-slate-900">客服監控中心</h1>
+              <h1 className="text-2xl font-heading font-bold text-fairy-coffee">
+                宿網小精靈 · 客服監控中心
+              </h1>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-600">
+            <div className="flex items-center gap-3 text-sm">
               <span className="hidden sm:block">
                 {session.user?.name || "管理員"}
               </span>
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
-                Online
+              <span className="rounded-full bg-fairy-mint px-4 py-1 text-fairy-fern">
+                小精靈值班中
               </span>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 space-y-8 px-4 py-6 sm:px-6 lg:px-10">
+        <main className="flex-1 space-y-10 px-4 py-8 sm:px-6 lg:px-10">
           {/* Stats */}
-          <section>
-            <div className="mb-4 flex items-center justify-between">
+          <section className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-semibold text-slate-900">
-                  即時指標
+                <h2 className="text-xl font-semibold text-fairy-coffee">
+                  小精靈今日戰報
                 </h2>
-                <p className="text-sm text-slate-500">
-                  每 5 秒自動更新一次最新數據
+                <p className="text-sm text-fairy-cocoa/70">
+                  數據每 5 秒更新一次，掌握宿網狀況
                 </p>
               </div>
               <button
                 onClick={() => handleResetFilters()}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100"
+                className="btn btn-sm rounded-full border-none bg-fairy-teal/20 text-fairy-fern hover:bg-fairy-teal/40"
               >
                 重置篩選
               </button>
@@ -215,21 +229,52 @@ export default function AdminPage() {
             {statsLoading ? (
               <p>載入中...</p>
             ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {statCards.map((card) => (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  {
+                    label: "無法上網 / 報修",
+                    icon: "⚠️",
+                    value:
+                      stats?.categoryStats?.[
+                        CONVERSATION_CATEGORIES.NETWORK_ISSUE
+                      ] || 0,
+                    accent: "bg-[#FCE8D8] text-[#C3682D]",
+                  },
+                  {
+                    label: "註冊指南",
+                    icon: "📋",
+                    value:
+                      stats?.categoryStats?.[
+                        CONVERSATION_CATEGORIES.REGISTRATION
+                      ] || 0,
+                    accent: "bg-[#D6F1EB] text-[#2F8C7A]",
+                  },
+                  {
+                    label: "網速 / 流量反映",
+                    icon: "🐢",
+                    value: stats?.activeConversations || 0,
+                    accent: "bg-[#E0F2D8] text-[#4F8F6F]",
+                  },
+                  {
+                    label: "聯絡網管 / 其他",
+                    icon: "☎️",
+                    value: stats?.totalConversations || 0,
+                    accent: "bg-[#E4ECFA] text-[#386BA6]",
+                  },
+                ].map((card) => (
                   <div
                     key={card.label}
-                    className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100"
+                    className="rounded-2xl bg-white p-6 shadow-card ring-1 ring-fairy-clay/60"
                   >
                     <div
-                      className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg ${card.accent}`}
+                      className={`mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl text-xl ${card.accent}`}
                     >
                       {card.icon}
                     </div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                    <p className="text-sm font-medium text-fairy-cocoa/70">
                       {card.label}
                     </p>
-                    <p className="mt-2 text-3xl font-semibold text-slate-900">
+                    <p className="mt-2 text-3xl font-bold text-fairy-coffee">
                       {card.value}
                     </p>
                   </div>
@@ -238,301 +283,253 @@ export default function AdminPage() {
             )}
           </section>
 
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">
-                對話列表
-              </h2>
-              <p className="text-sm text-slate-500">
-                監控所有使用者與宿網小精靈的對話
-              </p>
+          <section className="space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold text-fairy-coffee">
+                  對話列表
+                </h2>
+                <p className="text-sm text-fairy-cocoa/70">
+                  監控所有使用者與宿網小精靈的對話
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Filters */}
-          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="flex flex-col">
-                <label className="text-xs font-medium text-slate-500">
-                  開始日期
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-medium text-slate-500">
-                  結束日期
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-medium text-slate-500">
-                  類別
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            {/* Filters */}
+            <div className="rounded-2xl bg-white p-5 shadow-card ring-1 ring-fairy-clay/60">
+              <div className="flex flex-wrap items-end gap-4">
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-fairy-cocoa/70">
+                    開始日期
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="input input-bordered h-11 rounded-xl bg-fairy-cream text-sm"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-fairy-cocoa/70">
+                    結束日期
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="input input-bordered h-11 rounded-xl bg-fairy-cream text-sm"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-fairy-cocoa/70">
+                    類別
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="select select-bordered h-11 rounded-xl bg-fairy-cream text-sm"
+                  >
+                    <option value="all">全部</option>
+                    <option value={CONVERSATION_CATEGORIES.NETWORK_ISSUE}>
+                      {CONVERSATION_CATEGORIES.NETWORK_ISSUE}
+                    </option>
+                    <option value={CONVERSATION_CATEGORIES.SECURITY_INCIDENT}>
+                      {CONVERSATION_CATEGORIES.SECURITY_INCIDENT}
+                    </option>
+                    <option value={CONVERSATION_CATEGORIES.REGISTRATION}>
+                      {CONVERSATION_CATEGORIES.REGISTRATION}
+                    </option>
+                    <option value={CONVERSATION_CATEGORIES.OTHER}>
+                      {CONVERSATION_CATEGORIES.OTHER}
+                    </option>
+                  </select>
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-fairy-cocoa/70">
+                    狀態
+                  </label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="select select-bordered h-11 rounded-xl bg-fairy-cream text-sm"
+                  >
+                    <option value="all">全部</option>
+                    <option value="active">進行中</option>
+                    <option value="completed">已完成</option>
+                    <option value="archived">已封存</option>
+                  </select>
+                </div>
+                <div className="flex min-w-[200px] flex-1 flex-col">
+                  <label className="text-xs font-medium text-fairy-cocoa/70">
+                    搜尋（使用者 / 對話內容）
+                  </label>
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="輸入關鍵字..."
+                    className="input input-bordered h-11 rounded-xl bg-fairy-cream text-sm"
+                  />
+                </div>
+                <button
+                  onClick={handleResetFilters}
+                  className="btn btn-sm rounded-full border-none bg-fairy-coral/30 text-fairy-cocoa hover:bg-fairy-coral/50"
                 >
-                  <option value="all">全部</option>
-                  <option value={CONVERSATION_CATEGORIES.NETWORK_ISSUE}>
-                    {CONVERSATION_CATEGORIES.NETWORK_ISSUE}
-                  </option>
-                  <option value={CONVERSATION_CATEGORIES.SECURITY_INCIDENT}>
-                    {CONVERSATION_CATEGORIES.SECURITY_INCIDENT}
-                  </option>
-                  <option value={CONVERSATION_CATEGORIES.REGISTRATION}>
-                    {CONVERSATION_CATEGORIES.REGISTRATION}
-                  </option>
-                  <option value={CONVERSATION_CATEGORIES.OTHER}>
-                    {CONVERSATION_CATEGORIES.OTHER}
-                  </option>
-                </select>
+                  清除條件
+                </button>
               </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-medium text-slate-500">
-                  狀態
-                </label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                >
-                  <option value="all">全部</option>
-                  <option value="active">進行中</option>
-                  <option value="completed">已完成</option>
-                  <option value="archived">已封存</option>
-                </select>
-              </div>
-              <div className="flex flex-1 flex-col min-w-[200px]">
-                <label className="text-xs font-medium text-slate-500">
-                  搜尋（使用者 / 對話內容）
-                </label>
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="輸入關鍵字..."
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                />
-              </div>
-              <button
-                onClick={handleResetFilters}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-              >
-                清除條件
-              </button>
             </div>
-          </div>
 
-          {/* 顯示篩選結果數量 */}
-          {conversationsData && (
-            <div className="mb-4 text-sm text-gray-600">
-              找到 {conversationsData.pagination.total} 筆對話
-              {conversationsData.pagination.totalPages > 1 && (
-                <span>
-                  {" "}
-                  （第 {conversationsData.pagination.page} /{" "}
-                  {conversationsData.pagination.totalPages} 頁）
-                </span>
-              )}
-            </div>
-          )}
+            {/* 顯示篩選結果數量 */}
+            {conversationsData && (
+              <div className="text-sm text-fairy-cocoa/70">
+                找到 {conversationsData.pagination.total} 筆對話
+                {conversationsData.pagination.totalPages > 1 && (
+                  <span>
+                    {" "}
+                    （第 {conversationsData.pagination.page} /{" "}
+                    {conversationsData.pagination.totalPages} 頁）
+                  </span>
+                )}
+              </div>
+            )}
 
-          {conversationsLoading ? (
-            <p className="mt-4">載入中...</p>
-          ) : (
-            <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-              <table className="min-w-[1100px] divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      使用者
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      類別
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      狀態
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      最新時間
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      操作
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      最新訊息
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {conversationsData?.conversations.map((conv) => (
-                    <tr key={conv._id}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm">
-                        {conv.userId?.displayName || "未知使用者"}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {conv.category || "未分類"}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm">
-                        <span
-                          className={`inline-flex rounded-full px-2 text-xs font-semibold ${
-                            conv.status === "active"
-                              ? "bg-green-100 text-green-800"
-                              : conv.status === "completed"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {conv.status === "active"
-                            ? "進行中"
-                            : conv.status === "completed"
-                            ? "已完成"
-                            : "已封存"}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {new Date(
-                          conv.lastMessageTime || conv.updatedAt || conv.createdAt
-                        ).toLocaleString("zh-TW")}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm">
-                        <a
-                          href={`/admin/conversations/${conv._id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          查看詳情
-                        </a>
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        {conv.lastMessage ? (
-                          <div className="max-w-xs">
-                            <p className="text-xs text-gray-500">
-                              {conv.lastMessageRole === "user"
-                                ? "使用者"
-                                : conv.lastMessageRole === "assistant"
-                                ? "助手"
-                                : "系統"}
-                            </p>
-                            <p className="mt-1 truncate text-gray-700">
-                              {conv.lastMessage}
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">尚無訊息</span>
-                        )}
-                      </td>
+            {conversationsLoading ? (
+              <p className="mt-4">載入中...</p>
+            ) : (
+              <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow-card ring-1 ring-fairy-clay/60">
+                <table className="min-w-[1100px] divide-y divide-fairy-clay/50">
+                  <thead className="bg-fairy-mint/60 text-left text-xs font-semibold uppercase tracking-wide text-fairy-fern">
+                    <tr>
+                      {["使用者", "類別", "狀態", "最新時間", "操作", "最新訊息"].map(
+                        (header) => (
+                          <th key={header} className="px-6 py-4">
+                            {header}
+                          </th>
+                        )
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white text-sm text-fairy-coffee">
+                    {conversationsData?.conversations.map((conv, idx) => (
+                      <tr
+                        key={conv._id}
+                        className={idx % 2 === 0 ? "bg-fairy-cream/60" : ""}
+                      >
+                        <td className="whitespace-nowrap px-6 py-4 font-medium">
+                          {conv.userId?.displayName || "未知使用者"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-fairy-cocoa/80">
+                          {conv.category || "未分類"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <span
+                            className={`badge border-none px-3 py-3 text-xs font-semibold ${
+                              conv.status === "active"
+                                ? "bg-fairy-mint text-fairy-fern"
+                                : conv.status === "completed"
+                                ? "bg-fairy-sky text-[#3C5A7A]"
+                                : "bg-fairy-clay text-fairy-cocoa"
+                            }`}
+                          >
+                            {conv.status === "active"
+                              ? "進行中"
+                              : conv.status === "completed"
+                              ? "已完成"
+                              : "已封存"}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-fairy-cocoa/80">
+                          {new Date(
+                            conv.lastMessageTime || conv.updatedAt || conv.createdAt
+                          ).toLocaleString("zh-TW")}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <a
+                            href={`/admin/conversations/${conv._id}`}
+                            className="btn btn-xs rounded-full border-none bg-fairy-teal/30 text-fairy-fern hover:bg-fairy-teal/50"
+                          >
+                            查看
+                          </a>
+                        </td>
+                        <td className="px-6 py-4">
+                          {conv.lastMessage ? (
+                            <div className="max-w-xs">
+                              <p className="text-xs text-fairy-cocoa/60">
+                                {conv.lastMessageRole === "user"
+                                  ? "使用者"
+                                  : conv.lastMessageRole === "assistant"
+                                  ? "助手"
+                                  : "系統"}
+                              </p>
+                              <p className="mt-1 truncate text-fairy-coffee">
+                                {conv.lastMessage}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-fairy-cocoa/40">尚無訊息</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               
               {/* 分頁控制 */}
-              {conversationsData && conversationsData.pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
-                  <div className="flex flex-1 justify-between sm:hidden">
-                    <button
-                      onClick={() => {
-                        if (page > 1) {
-                          setPage(page - 1);
-                        }
-                      }}
-                      disabled={page === 1}
-                      className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      上一頁
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (
-                          conversationsData &&
-                          page < conversationsData.pagination.totalPages
-                        ) {
-                          setPage(page + 1);
-                        }
-                      }}
-                      disabled={
-                        !conversationsData ||
-                        page === conversationsData.pagination.totalPages
-                      }
-                      className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      下一頁
-                    </button>
-                  </div>
-                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm text-gray-700">
-                        顯示第{" "}
-                        <span className="font-medium">
-                          {(conversationsData.pagination.page - 1) *
-                            conversationsData.pagination.limit +
-                            1}
-                        </span>{" "}
-                        到{" "}
-                        <span className="font-medium">
-                          {Math.min(
-                            conversationsData.pagination.page *
-                              conversationsData.pagination.limit,
-                            conversationsData.pagination.total
-                          )}
-                        </span>{" "}
-                        筆，共{" "}
-                        <span className="font-medium">
-                          {conversationsData.pagination.total}
-                        </span>{" "}
-                        筆
-                      </p>
-                    </div>
-                    <div>
-                      <nav
-                        className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                        aria-label="Pagination"
+              {conversationsData &&
+                conversationsData.pagination.totalPages > 1 && (
+                  <div className="flex flex-col gap-4 border-t border-fairy-clay/50 bg-white px-4 py-4 text-sm text-fairy-cocoa/80 sm:flex-row sm:items-center sm:justify-between">
+                    <p>
+                      顯示第{" "}
+                      <span className="font-semibold text-fairy-coffee">
+                        {(conversationsData.pagination.page - 1) *
+                          conversationsData.pagination.limit +
+                          1}
+                      </span>{" "}
+                      到{" "}
+                      <span className="font-semibold text-fairy-coffee">
+                        {Math.min(
+                          conversationsData.pagination.page *
+                            conversationsData.pagination.limit,
+                          conversationsData.pagination.total
+                        )}
+                      </span>{" "}
+                      筆，共{" "}
+                      <span className="font-semibold text-fairy-coffee">
+                        {conversationsData.pagination.total}
+                      </span>{" "}
+                      筆
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (page > 1) setPage(page - 1);
+                        }}
+                        disabled={page === 1}
+                        className="btn btn-sm rounded-full border-none bg-fairy-cream text-fairy-cocoa disabled:opacity-40"
                       >
-                        <button
-                          onClick={() => {
-                            if (page > 1) {
-                              setPage(page - 1);
-                            }
-                          }}
-                          disabled={page === 1}
-                          className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                        >
-                          上一頁
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (
-                              conversationsData &&
-                              page < conversationsData.pagination.totalPages
-                            ) {
-                              setPage(page + 1);
-                            }
-                          }}
-                          disabled={
-                            !conversationsData ||
-                            page === conversationsData.pagination.totalPages
+                        上一頁
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (
+                            conversationsData &&
+                            page < conversationsData.pagination.totalPages
+                          ) {
+                            setPage(page + 1);
                           }
-                          className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                        >
-                          下一頁
-                        </button>
-                      </nav>
+                        }}
+                        disabled={
+                          !conversationsData ||
+                          page === conversationsData.pagination.totalPages
+                        }
+                        className="btn btn-sm rounded-full border-none bg-fairy-mint text-fairy-fern disabled:opacity-40"
+                      >
+                        下一頁
+                      </button>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           )}
         </section>
