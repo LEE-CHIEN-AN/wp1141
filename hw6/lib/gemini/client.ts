@@ -52,7 +52,7 @@ export async function generateResponse(
           error.message.includes("is not found") || error.message.includes("Not Found")) {
         console.error("Gemini model not found, trying alternative models...");
         // 嘗試使用備用模型（依序嘗試）
-        const fallbackModels = ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
+        const fallbackModels = ["gemini-2.5-pro","gemini-2.5-flash-lite"];
         
         for (const fallbackModel of fallbackModels) {
           try {

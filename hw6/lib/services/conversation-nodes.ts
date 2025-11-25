@@ -316,7 +316,8 @@ export function createBlockedStatusNode(): LineMessage {
             createFlexText("2️⃣ 帳號被封鎖", "lg", "bold", "#000000"),
             createFlexText("• 可能因為違規使用（如 BT、P2P 下載）", "sm"),
             createFlexText("• 可能因為電腦中毒導致異常流量", "sm"),
-            createFlexText("• 需要聯絡網管查詢封鎖原因", "sm"),
+            createFlexText("• 請點選下方「🔍 查詢違規主機名單」確認是否被鎖", "sm"),
+            createFlexText("• 若被鎖，請先掃毒後回報網管", "sm"),
             {
               type: "separator",
               margin: "md",
@@ -331,11 +332,15 @@ export function createBlockedStatusNode(): LineMessage {
           type: "box",
           layout: "vertical",
           contents: [
+            createFlexButton("🔍 查詢違規主機名單", {
+              type: "uri",
+              uri: "https://cert.ntu.edu.tw/Module/Index/ip.php",
+            }, "primary"),
             createFlexButton("📝 如何註冊", {
               type: "postback",
               data: "action:registration",
               displayText: "如何註冊",
-            }, "primary"),
+            }, "secondary"),
             createFlexButton("📞 聯絡網管查詢", {
               type: "postback",
               data: "action:contact",

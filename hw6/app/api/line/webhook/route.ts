@@ -524,6 +524,161 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * GET /api/line/webhook
+ * Webhook 健康檢查端點，提供詳細的 webhook 狀態和統計資訊
+ */
 export async function GET() {
-  return NextResponse.json({ status: "ok" });
+  try {
+    await connectDB();
+    const Message = (await import("@/lib/db/models/Message")).default;
+
+    // 取得最近 1 小時的統計
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const [
+      recentMessages,
+      totalMessages,
+      messagesWithWebhookId,
+      duplicateMessages,
+    ] = await Promise.all([
+      // 最近 1 小時的訊息數
+      Message.countDocuments({
+        createdAt: { $gte: oneHourAgo },
+      }),
+      // 總訊息數
+      Message.countDocuments(),
+      // 有 webhookEventId 的訊息（表示是從 webhook 來的）
+      Message.countDocuments({
+        webhookEventId: { $exists: true, $ne: null },
+      }),
+      // 重複訊息（同一個 webhookEventId 有多筆）
+      Message.aggregate([
+        {
+          $match: {
+            webhookEventId: { $exists: true, $ne: null },
+            createdAt: { $gte: oneDayAgo },
+          },
+        },
+        {
+          $group: {
+            _id: "$webhookEventId",
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $match: {
+            count: { $gt: 1 },
+          },
+        },
+        {
+          $count: "duplicates",
+        },
+      ]),
+    ]);
+
+    const duplicateCount =
+      duplicateMessages.length > 0 ? duplicateMessages[0].duplicates : 0;
+
+    // 檢查環境變數設定
+    const lineConfigured =
+      !!process.env.LINE_CHANNEL_ACCESS_TOKEN &&
+      !!process.env.LINE_CHANNEL_SECRET;
+    const geminiConfigured = !!process.env.GEMINI_API_KEY;
+
+    // 計算去重效率
+    const dedupEfficiency =
+      messagesWithWebhookId > 0
+        ? ((messagesWithWebhookId - duplicateCount) / messagesWithWebhookId) *
+          100
+        : 100;
+
+    const healthStatus = {
+      status: "healthy" as "healthy" | "degraded" | "unhealthy",
+      timestamp: new Date().toISOString(),
+      webhook: {
+        endpoint: "/api/line/webhook",
+        method: "POST",
+        configured: lineConfigured,
+        verification: {
+          signature: "enabled",
+          method: "HMAC-SHA256",
+        },
+      },
+      statistics: {
+        recent: {
+          lastHour: {
+            messages: recentMessages,
+            period: "1 hour",
+          },
+        },
+        total: {
+          messages: totalMessages,
+          webhookEvents: messagesWithWebhookId,
+          duplicateEvents: duplicateCount,
+          dedupEfficiency: `${dedupEfficiency.toFixed(2)}%`,
+        },
+      },
+      services: {
+        database: {
+          status: "healthy" as "healthy" | "unhealthy",
+          connected: true,
+        },
+        lineApi: {
+          status: lineConfigured ? ("healthy" as const) : ("unhealthy" as const),
+          configured: lineConfigured,
+          accessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN
+            ? "configured"
+            : "missing",
+          channelSecret: process.env.LINE_CHANNEL_SECRET
+            ? "configured"
+            : "missing",
+        },
+        geminiApi: {
+          status: geminiConfigured ? ("healthy" as const) : ("unhealthy" as const),
+          configured: geminiConfigured,
+          apiKey: process.env.GEMINI_API_KEY ? "configured" : "missing",
+        },
+      },
+      features: {
+        duplicateDetection: {
+          enabled: true,
+          method: "webhookEventId",
+          efficiency: `${dedupEfficiency.toFixed(2)}%`,
+        },
+        replyApi: {
+          enabled: true,
+          fallback: "Push Message API",
+        },
+        profiling: {
+          enabled: true,
+          logs: "console",
+        },
+      },
+    };
+
+    // 判斷整體健康狀態
+    if (!lineConfigured || !geminiConfigured) {
+      healthStatus.status = "degraded";
+    }
+
+    return NextResponse.json(healthStatus, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : "Unknown error",
+        services: {
+          database: {
+            status: "unhealthy" as const,
+            connected: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+          },
+        },
+      },
+      { status: 503 }
+    );
+  }
 }
