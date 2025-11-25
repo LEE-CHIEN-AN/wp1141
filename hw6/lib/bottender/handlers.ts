@@ -11,13 +11,14 @@ import {
   processUserMessage,
   parsePostbackData,
 } from "@/lib/services/message";
-import { 
-  createWelcomeMessage, 
+import {
+  createWelcomeMessage,
   createTextMessage,
-  createTextWithMenuOption 
+  createTextWithMenuOption,
 } from "@/lib/utils/line-templates";
 import type { LineMessage } from "@/lib/utils/line-templates";
 import * as ConversationNodes from "@/lib/services/conversation-nodes";
+import { resolvePostbackDisplayText } from "@/lib/constants/postback-map";
 
 export interface MessageContext {
   userId: string;
@@ -69,7 +70,10 @@ export async function handleLineMessage(
       const savePostbackStart = Date.now();
       const postbackDisplayText =
         context.postbackDisplayText ||
-        context.message ||
+        resolvePostbackDisplayText(
+          context.postbackData,
+          context.message || undefined
+        ) ||
         `[Postback] ${context.postbackData}`;
       await saveMessage(
         conversation._id,
@@ -142,17 +146,6 @@ export async function handleLineMessage(
     const conversationStep = conversation.metadata?.step as string | undefined;
     const lowerMessage = context.message.toLowerCase();
 
-    // 先檢查是否為打招呼或無關訊息（優先處理，避免誤判）
-    const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
-    if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) {
-      // 清除對話狀態，引導到主選單
-      await updateConversation(conversation._id.toString(), { 
-        metadata: {},
-        category: undefined
-      });
-      return [createWelcomeMessage()];
-    }
-
     // 如果有對話狀態，優先處理逐步詢問流程
     if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
       // 處理第一個問題的回答（多人還是個人？）
@@ -199,17 +192,6 @@ export async function handleLineMessage(
       
       // 處理連接方式判定後的回答
       if (conversationStep === "network:conn_type") {
-        // 先檢查是否為打招呼或無關訊息
-        const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
-        if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) {
-          // 清除對話狀態，引導到主選單
-          await updateConversation(conversation._id.toString(), { 
-            metadata: {},
-            category: undefined
-          });
-          return [createWelcomeMessage()];
-        }
-        
         if (lowerMessage.includes("路由器") || lowerMessage.includes("wifi") || 
             lowerMessage.includes("無線") || lowerMessage.includes("分享器")) {
           // 路由器 → 路由器排查流程
@@ -281,17 +263,6 @@ export async function handleLineMessage(
       
       // 處理路由器排查的回答
       if (conversationStep === "network:router:troubleshoot") {
-        // 先檢查是否為打招呼或無關訊息
-        const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
-        if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) {
-          // 清除對話狀態，引導到主選單
-          await updateConversation(conversation._id.toString(), { 
-            metadata: {},
-            category: undefined
-          });
-          return [createWelcomeMessage()];
-        }
-        
         if (lowerMessage.includes("可以了") || lowerMessage.includes("好了") || 
             lowerMessage.includes("恢復") || lowerMessage.includes("正常")) {
           // 路由器問題已解決
@@ -373,7 +344,8 @@ export async function handleLineMessage(
     const response = await processUserMessage(
       context.message,
       category,
-      conversationHistory
+      conversationHistory,
+      conversationStep
     );
     console.log(
       `${perfLabel} [handler] H7 done in ${Date.now() - processStart}ms`

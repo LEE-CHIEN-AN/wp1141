@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { CONVERSATION_CATEGORIES } from "@/config/conversation";
+import { formatPostbackContent } from "@/lib/constants/postback-map";
 import {
   LineChart,
   Line,
@@ -61,6 +62,7 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [statsUpdatedAt, setStatsUpdatedAt] = useState<Date | null>(null);
 
   // 建立 API URL（包含篩選參數）
   const conversationsUrl = useMemo(() => {
@@ -92,6 +94,12 @@ export default function AdminPage() {
       5000
     );
 
+  useEffect(() => {
+    if (stats) {
+      setStatsUpdatedAt(new Date());
+    }
+  }, [stats]);
+
   const statCards = useMemo(
     () => [
       {
@@ -99,20 +107,23 @@ export default function AdminPage() {
         value:
           stats?.categoryStats?.[CONVERSATION_CATEGORIES.NETWORK_ISSUE] || 0,
         icon: "⚠️",
-        accent: "bg-[#FCE8D8] text-[#C3682D]",
+        unit: "件",
+        category: CONVERSATION_CATEGORIES.NETWORK_ISSUE,
       },
       {
         label: "註冊指南",
         value:
           stats?.categoryStats?.[CONVERSATION_CATEGORIES.REGISTRATION] || 0,
         icon: "📋",
-        accent: "bg-[#D6F1EB] text-[#2F8C7A]",
+        unit: "人",
+        category: CONVERSATION_CATEGORIES.REGISTRATION,
       },
       {
         label: "網速 / 流量反映",
         value: stats?.activeConversations || 0,
         icon: "🐢",
-        accent: "bg-[#E0F2D8] text-[#4F8F6F]",
+        unit: "件",
+        category: CONVERSATION_CATEGORIES.NETWORK_ISSUE,
       },
       {
         label: "聯絡網管 / 其他",
@@ -120,8 +131,9 @@ export default function AdminPage() {
           stats?.categoryStats?.[CONVERSATION_CATEGORIES.OTHER] ||
           stats?.categoryStats?.未分類 ||
           0,
-        icon: "☎️",
-        accent: "bg-[#E4ECFA] text-[#386BA6]",
+        icon: "📞",
+        unit: "次",
+        category: "other",
       },
     ],
     [stats]
@@ -237,6 +249,11 @@ export default function AdminPage() {
                 <p className="text-sm text-fairy-cocoa/70">
                   數據每 5 秒更新一次，掌握宿網狀況
                 </p>
+                {statsUpdatedAt && (
+                  <p className="text-xs text-fairy-cocoa/60">
+                    最後更新：{statsUpdatedAt.toLocaleTimeString("zh-TW")}
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => handleResetFilters()}
@@ -248,72 +265,29 @@ export default function AdminPage() {
             {statsLoading ? (
               <p>載入中...</p>
             ) : (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[repeat(2,minmax(0,320px))] xl:grid-cols-[repeat(4,minmax(0,320px))]">
+              <div className="flex flex-wrap gap-4">
                 {statCards.map((card) => (
                   <div
                     key={card.label}
-                    className="rounded-2xl bg-white p-6 shadow-card ring-1 ring-fairy-clay/60"
+                    className="flex-1 min-w-[220px] rounded-2xl bg-white p-6 shadow-card ring-1 ring-fairy-clay/40"
                   >
-                    <div
-                      className={`mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl text-xl ${card.accent}`}
-                    >
-                      {card.icon}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-fairy-cocoa/60">
+                          {card.label}
+                        </p>
+                        <p className="mt-2 text-4xl font-bold text-fairy-coffee">
+                          {card.value}
+                          <span className="ml-1 text-base font-medium text-fairy-cocoa/70">
+                            {card.unit}
+                          </span>
+                        </p>
+                      </div>
+                      <span className="text-3xl">{card.icon}</span>
                     </div>
-                    <p className="text-sm font-medium text-fairy-cocoa/70">
-                      {card.label}
+                    <p className="mt-2 text-xs text-fairy-cocoa/60">
+                      統計更新：{new Date().toLocaleTimeString("zh-TW")}
                     </p>
-                    <p className="mt-2 text-3xl font-bold text-fairy-coffee">
-                      {card.value}
-                    </p>
-                    <div className="mt-3 h-16">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={
-                            stats?.trend
-                              ?.filter((point) => {
-                                const mappedCategory =
-                                  point.category || "未分類";
-                                if (
-                                  card.label === "無法上網 / 報修" &&
-                                  mappedCategory ===
-                                    CONVERSATION_CATEGORIES.NETWORK_ISSUE
-                                ) {
-                                  return true;
-                                }
-                                if (
-                                  card.label === "註冊指南" &&
-                                  mappedCategory ===
-                                    CONVERSATION_CATEGORIES.REGISTRATION
-                                ) {
-                                  return true;
-                                }
-                                if (
-                                  card.label === "聯絡網管 / 其他" &&
-                                  (mappedCategory ===
-                                    CONVERSATION_CATEGORIES.OTHER ||
-                                    mappedCategory === "未分類")
-                                ) {
-                                  return true;
-                                }
-                                return false;
-                              })
-                              .slice(-12)
-                              .map((point) => ({
-                                time: new Date(point.timestamp).getHours(),
-                                count: point.count,
-                              })) || []
-                          }
-                        >
-                          <Line
-                            type="monotone"
-                            dataKey="count"
-                            stroke="#4F8F6F"
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -370,9 +344,9 @@ export default function AdminPage() {
                     <option value={CONVERSATION_CATEGORIES.NETWORK_ISSUE}>
                       {CONVERSATION_CATEGORIES.NETWORK_ISSUE}
                     </option>
-                    <option value={CONVERSATION_CATEGORIES.SECURITY_INCIDENT}>
-                      {CONVERSATION_CATEGORIES.SECURITY_INCIDENT}
-                    </option>
+                  <option value={CONVERSATION_CATEGORIES.SECURITY_INCIDENT}>
+                    網速很慢
+                  </option>
                     <option value={CONVERSATION_CATEGORIES.REGISTRATION}>
                       {CONVERSATION_CATEGORIES.REGISTRATION}
                     </option>
@@ -432,8 +406,8 @@ export default function AdminPage() {
             )}
 
             {conversationsLoading ? (
-              <p className="mt-4">載入中...</p>
-            ) : (
+              <p className="mt-4 text-sm text-fairy-cocoa/60">載入中...</p>
+            ) : conversationsData?.conversations.length ? (
               <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow-card ring-1 ring-fairy-clay/60">
                 <table className="min-w-[1100px] divide-y divide-fairy-clay/50">
                   <thead className="bg-fairy-mint/60 text-left text-xs font-semibold uppercase tracking-wide text-fairy-fern">
@@ -502,7 +476,7 @@ export default function AdminPage() {
                                   : "系統"}
                               </p>
                               <p className="mt-1 truncate text-fairy-coffee">
-                                {conv.lastMessage}
+                                {formatPostbackContent(conv.lastMessage)}
                               </p>
                             </div>
                           ) : (
@@ -570,6 +544,16 @@ export default function AdminPage() {
                   </div>
                 )}
             </div>
+            ) : (
+              <div className="mt-4 rounded-2xl bg-white p-12 text-center shadow-card ring-1 ring-fairy-clay/60">
+                <p className="text-4xl">🪄</p>
+                <p className="mt-2 text-lg font-semibold text-fairy-coffee">
+                  尚未找到符合條件的對話
+                </p>
+                <p className="text-sm text-fairy-cocoa/70">
+                  試著調整搜尋或篩選條件，小精靈會持續為您留意。
+                </p>
+              </div>
           )}
         </section>
       </main>

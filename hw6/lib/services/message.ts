@@ -11,50 +11,96 @@ import { CONVERSATION_CATEGORIES } from "@/config/conversation";
 import type { ConversationCategory } from "@/config/conversation";
 
 /**
- * 使用 Gemini 分類使用者訊息
- * 判斷是：打招呼/感謝、與宿舍網路相關、或完全無關
+ * 意圖類型定義
  */
-async function classifyUserMessage(userMessage: string): Promise<"greeting" | "related" | "unrelated"> {
-  const classificationPrompt = `你是一個訊息分類器，專門判斷使用者訊息是否與「台大宿舍網路管理」相關。
+export type UserIntent =
+  | "menu"                    // 回主選單
+  | "connection_troubleshoot" // 無法上網
+  | "registration"            // 註冊問題
+  | "speed_check"             // 網速問題
+  | "contact"                 // 聯絡網管
+  | "continue_flow"            // 繼續當前流程
+  | "new_question"             // 新問題（需要 Context Switching）
+  | "information_query"        // 詢問資訊（需要 RAG）
+  | "greeting"                 // 打招呼
+  | "unrelated";               // 無關問題
 
-請將使用者訊息分類為以下三類之一：
-1. "greeting" - 打招呼、感謝、問候語（如：你好、謝謝、再見、早安等）
-2. "related" - 與宿舍網路相關的問題（如：無法上網、註冊問題、網速慢、路由器設定等）
-3. "unrelated" - 完全無關的問題（如：天氣、作業、課程、其他生活問題等）
+/**
+ * 使用 Gemini 進行意圖分類
+ * 這是主要的意圖識別邏輯，取代原本的關鍵字匹配
+ */
+async function classifyUserIntent(
+  userMessage: string,
+  currentCategory?: ConversationCategory,
+  conversationStep?: string
+): Promise<UserIntent> {
+  const intentPrompt = `你是一個意圖分類器，專門判斷使用者訊息的意圖類型。
+
+當前對話狀態：
+${currentCategory ? `- 問題分類：${currentCategory}` : "- 尚未分類"}
+${conversationStep ? `- 對話步驟：${conversationStep}` : "- 對話步驟：無"}
+
+請將使用者訊息分類為以下意圖之一：
+1. "menu" - 要求回主選單（如：選單、返回、重新開始）
+2. "connection_troubleshoot" - 無法上網或連線問題（如：連不上、網路故障、無法上網）
+3. "registration" - 註冊相關問題（如：如何註冊、註冊流程、MAC 地址）
+4. "speed_check" - 網速或流量問題（如：網速慢、流量查詢、限速）
+5. "contact" - 聯絡網管（如：聯絡網管、報修、聯繫方式）
+6. "continue_flow" - 繼續當前流程的回答（如：回答系統的問題、提供流程所需資訊）
+7. "new_question" - 在流程中提出新問題（如：突然問「宿網要錢嗎？」）
+8. "information_query" - 詢問資訊（如：MAC 在哪看、流量限制多少）
+9. "greeting" - 打招呼或感謝（如：你好、謝謝、再見）
+10. "unrelated" - 完全無關的問題（如：天氣、作業、課程）
+
+**重要判斷規則**：
+- 如果使用者在流程中（有 conversationStep），但訊息明顯是「新問題」而非「回答當前問題」，應分類為 "new_question"
+- 如果訊息是回答當前流程的問題，應分類為 "continue_flow"
+- 如果訊息是詢問具體資訊（如「流量限制多少」），應分類為 "information_query"
 
 使用者訊息：「${userMessage}」
 
-請只回答分類結果（greeting、related 或 unrelated），不要有其他文字。`;
+請只回答意圖類型（menu、connection_troubleshoot、registration、speed_check、contact、continue_flow、new_question、information_query、greeting 或 unrelated），不要有其他文字。`;
 
   try {
-    const response = await generateResponse({ prompt: classificationPrompt });
+    const response = await generateResponse({ prompt: intentPrompt });
     if (response.text && !response.error) {
-      const classification = response.text.trim().toLowerCase();
-      if (classification.includes("greeting")) {
-        return "greeting";
-      } else if (classification.includes("unrelated")) {
-        return "unrelated";
-      } else {
-        // 預設為相關（包括 "related" 或其他情況）
-        return "related";
-      }
+      const intent = response.text.trim().toLowerCase();
+      // 檢查是否包含任何意圖關鍵字
+      if (intent.includes("menu") || intent.includes("主選單")) return "menu";
+      if (intent.includes("connection") || intent.includes("troubleshoot") || intent.includes("無法上網")) return "connection_troubleshoot";
+      if (intent.includes("registration") || intent.includes("註冊")) return "registration";
+      if (intent.includes("speed") || intent.includes("網速")) return "speed_check";
+      if (intent.includes("contact") || intent.includes("聯絡") || intent.includes("網管")) return "contact";
+      if (intent.includes("continue") || intent.includes("繼續")) return "continue_flow";
+      if (intent.includes("new_question") || intent.includes("新問題")) return "new_question";
+      if (intent.includes("information") || intent.includes("詢問") || intent.includes("資訊")) return "information_query";
+      if (intent.includes("greeting") || intent.includes("打招呼")) return "greeting";
+      if (intent.includes("unrelated") || intent.includes("無關")) return "unrelated";
+      
+      // 預設：如果無法明確分類，但與網路相關，視為 continue_flow 或 information_query
+      return "information_query";
     }
   } catch (error) {
-    console.error("Error classifying message:", error);
+    console.error("Error classifying intent:", error);
   }
 
-  // 如果分類失敗，使用簡單的關鍵字匹配作為降級方案
+  // 降級方案：簡單關鍵字匹配
   const lowerMessage = userMessage.toLowerCase();
-  const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
-  const relatedKeywords = ["網路", "網速", "註冊", "路由器", "連線", "上網", "mac", "ip", "網段", "網域", "宿網", "宿舍"];
+  const menuKeywords = ["選單", "menu", "功能", "主選單", "返回", "回主選單", "重新開始"];
+  if (menuKeywords.some(keyword => lowerMessage.includes(keyword))) return "menu";
   
-  if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) {
-    return "greeting";
+  const networkKeywords = ["網路", "網速", "註冊", "路由器", "連線", "上網", "mac", "ip", "網段", "網域", "宿網", "宿舍"];
+  if (networkKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    // 根據關鍵字推測意圖
+    if (lowerMessage.includes("無法上網") || lowerMessage.includes("連不上")) return "connection_troubleshoot";
+    if (lowerMessage.includes("註冊")) return "registration";
+    if (lowerMessage.includes("網速") || lowerMessage.includes("流量")) return "speed_check";
+    if (lowerMessage.includes("聯絡") || lowerMessage.includes("網管")) return "contact";
+    return "information_query";
   }
   
-  if (relatedKeywords.some(keyword => lowerMessage.includes(keyword))) {
-    return "related";
-  }
+  const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye"];
+  if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) return "greeting";
   
   return "unrelated";
 }
@@ -62,235 +108,120 @@ async function classifyUserMessage(userMessage: string): Promise<"greeting" | "r
 export async function processUserMessage(
   userMessage: string,
   category?: ConversationCategory,
-  conversationHistory?: Array<{ role: string; content: string }>
+  conversationHistory?: Array<{ role: string; content: string }>,
+  conversationStep?: string
 ): Promise<LineMessage> {
-  // 處理特殊指令（回主選單）
+  // 第一層：處理特殊指令（回主選單）- 快速路徑，不呼叫 Gemini
   const menuKeywords = ["選單", "menu", "功能", "主選單", "返回", "回主選單", "重新開始"];
   if (menuKeywords.some((keyword) => userMessage.includes(keyword))) {
     return createWelcomeMessage();
   }
 
-  // 處理核心功能關鍵字匹配
-  const lowerMessageForMain = userMessage.toLowerCase();
+  // 第二層：使用 Gemini 進行意圖分類（主要判斷邏輯）
+  const intent = await classifyUserIntent(userMessage, category, conversationStep);
   
-  // 🚫 無法上網 - 連線故障排除
-  if (lowerMessageForMain.includes("無法上網") || lowerMessageForMain.includes("連不上") || 
-      lowerMessageForMain.includes("連線故障") || lowerMessageForMain.includes("不能上網") ||
-      lowerMessageForMain.includes("網路故障")) {
-    const { createConnectionTroubleshootNode } = await import("./conversation-nodes");
-    return createConnectionTroubleshootNode();
-  }
-
-  // 📝 如何註冊 - 宿網註冊教學
-  if (lowerMessageForMain.includes("如何註冊") || lowerMessageForMain.includes("註冊") || 
-      lowerMessageForMain.includes("宿網註冊") || lowerMessageForMain.includes("註冊教學") ||
-      lowerMessageForMain.includes("註冊流程")) {
-    // 導入節點處理函數
-    const { createRegistrationTypeSelectionNode } = await import("./conversation-nodes");
-    return createRegistrationTypeSelectionNode();
-  }
-
-  // 網域/網段相關問題（無分類時也能匹配）
-  // 包括：網域不在、網段不在、網段在、網域在等各種變體
-  if (lowerMessageForMain.includes("網域不在") || lowerMessageForMain.includes("網段不在") ||
-      lowerMessageForMain.includes("不在女八舍") || lowerMessageForMain.includes("網域錯誤") ||
-      (lowerMessageForMain.includes("網域") && lowerMessageForMain.includes("女八舍")) ||
-      (lowerMessageForMain.includes("網段") && lowerMessageForMain.includes("女八舍")) ||
-      // 新增：網段在其他宿舍的情況
-      (lowerMessageForMain.includes("網段") && (lowerMessageForMain.includes("女六") || lowerMessageForMain.includes("女七") || 
-       lowerMessageForMain.includes("男一") || lowerMessageForMain.includes("男二") || lowerMessageForMain.includes("宿舍"))) ||
-      (lowerMessageForMain.includes("網域") && (lowerMessageForMain.includes("女六") || lowerMessageForMain.includes("女七") || 
-       lowerMessageForMain.includes("男一") || lowerMessageForMain.includes("男二") || lowerMessageForMain.includes("宿舍")))) {
-    const { createWrongDormSegmentNode } = await import("./conversation-nodes");
-    return createWrongDormSegmentNode();
-  }
-
-  // 🐢 網速很慢 - 網速與流量查詢
-  if (lowerMessageForMain.includes("網速") || lowerMessageForMain.includes("很慢") || 
-      lowerMessageForMain.includes("流量") || lowerMessageForMain.includes("速度慢") ||
-      lowerMessageForMain.includes("限速") || lowerMessageForMain.includes("超額")) {
-    // 導入節點處理函數
-    const { createSpeedCheckNode } = await import("./conversation-nodes");
-    return createSpeedCheckNode();
-  }
-
-  // 📞 聯絡網管
-  if (lowerMessageForMain.includes("聯絡") || lowerMessageForMain.includes("聯繫") || 
-      lowerMessageForMain.includes("網管") || lowerMessageForMain.includes("聯繫方式") ||
-      lowerMessageForMain.includes("報修")) {
-    // 導入節點處理函數
-    const { createContactNode } = await import("./conversation-nodes");
-    return createContactNode();
-  }
-
-  // 如果有分類，先使用關鍵字匹配（不呼叫 Gemini，避免延遲）
-  if (category) {
-    // 使用簡單的關鍵字匹配判斷是否為打招呼或無關訊息（不呼叫 Gemini）
-    const lowerMessageForCategory = userMessage.toLowerCase();
-    const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
-    const unrelatedKeywords = ["天氣", "作業", "課程", "考試", "成績", "餐廳", "電影", "遊戲", "購物"];
+  // 根據意圖分類結果決定處理方式
+  switch (intent) {
+    case "menu":
+      return createWelcomeMessage();
     
-    // 如果判斷為打招呼，友善回應並引導
-    if (greetingKeywords.some(keyword => lowerMessageForCategory.includes(keyword))) {
+    case "connection_troubleshoot":
+      // 無法上網 - 走固定腳本流程
+      const { createConnectionTroubleshootNode } = await import("./conversation-nodes");
+      return createConnectionTroubleshootNode();
+    
+    case "registration":
+      // 註冊問題 - 走固定腳本流程
+      const { createRegistrationTypeSelectionNode } = await import("./conversation-nodes");
+      return createRegistrationTypeSelectionNode();
+    
+    case "speed_check":
+      // 網速問題 - 走固定腳本流程
+      const { createSpeedCheckNode } = await import("./conversation-nodes");
+      return createSpeedCheckNode();
+    
+    case "contact":
+      // 聯絡網管 - 走固定腳本流程
+      const { createContactNode } = await import("./conversation-nodes");
+      return createContactNode();
+    
+    case "continue_flow":
+      // 繼續當前流程 - 交給 handlers.ts 處理（這裡不處理，讓它 fallback 到 Gemini）
+      // 這個意圖主要用於 handlers.ts 中的流程判斷
+      break;
+    
+    case "new_question":
+      // 新問題（Context Switching）- 讓 Gemini 回答，並提示可以返回原流程
+      const contextForNew = conversationHistory
+        ? conversationHistory.slice(-5).map((msg) => `${msg.role}: ${msg.content}`).join("\n")
+        : undefined;
+      const promptForNew = `使用者正在進行「${category || "某個"}」問題的排查流程，但突然問了一個新問題：「${userMessage}」
+
+請先回答這個新問題，然後在回答最後提醒使用者：「如果您想繼續剛才的排查流程，請告訴我。」`;
+      
+      const newQuestionResponse = await generateResponse({ prompt: promptForNew });
+      if (newQuestionResponse.text && !newQuestionResponse.error) {
+        return createTextWithMenuOption(
+          `${newQuestionResponse.text}\n\n💡 如果您想繼續剛才的排查流程，請告訴我。`
+        );
+      }
+      break;
+    
+    case "information_query":
+      // 詢問資訊（RAG）- 讓 Gemini 結合知識庫回答
+      // TODO: 未來整合知識庫後，這裡會使用 RAG
+      const contextForInfo = conversationHistory
+        ? conversationHistory.slice(-10).map((msg) => `${msg.role}: ${msg.content}`).join("\n")
+        : undefined;
+      const promptForInfo = buildPrompt(userMessage, category, contextForInfo);
+      const infoResponse = await generateResponse({ prompt: promptForInfo });
+      if (infoResponse.text && !infoResponse.error) {
+        return createTextWithMenuOption(infoResponse.text);
+      }
+      break;
+    
+    case "greeting":
+      // 打招呼 - 讓 Gemini 生成友善回應
+      const greetingPrompt = `使用者說：「${userMessage}」
+
+請用友善、親切的語氣回應，並引導使用者選擇需要的服務。`;
+      const greetingResponse = await generateResponse({ prompt: greetingPrompt });
+      if (greetingResponse.text && !greetingResponse.error) {
+        return createTextWithMenuOption(greetingResponse.text);
+      }
+      // Fallback
       return createTextWithMenuOption(
-        "您好！很高興為您服務！👋\n\n我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
+        "您好！我是台大女八舍宿網小精靈 👋\n\n很高興為您服務！我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
       );
-    }
     
-    // 如果判斷為無關訊息，溫柔引導
-    if (unrelatedKeywords.some(keyword => lowerMessageForCategory.includes(keyword)) && 
-        !lowerMessageForCategory.includes("網路") && !lowerMessageForCategory.includes("網速") && 
-        !lowerMessageForCategory.includes("註冊") && !lowerMessageForCategory.includes("路由器")) {
+    case "unrelated":
+      // 無關問題 - 讓 Gemini 生成溫柔引導
+      const unrelatedPrompt = `使用者問了一個與「台大宿舍網路管理」無關的問題：「${userMessage}」
+
+請用友善、溫柔的語氣告訴使用者，你是專門協助處理宿舍網路問題的小精靈，並引導他選擇相關服務。`;
+      const unrelatedResponse = await generateResponse({ prompt: unrelatedPrompt });
+      if (unrelatedResponse.text && !unrelatedResponse.error) {
+        return createTextWithMenuOption(unrelatedResponse.text);
+      }
+      // Fallback
       return createTextWithMenuOption(
         "不好意思，我是專門協助處理「台大宿舍網路問題」的小精靈，對於您提到的問題可能無法提供幫助。😅\n\n不過，如果您遇到以下問題，我很樂意協助：\n\n• 🚫 無法上網或連線故障\n• 📝 宿網註冊相關問題\n• 🐢 網速很慢或流量查詢\n• 📞 需要聯絡網管\n\n請點選「回主選單」選擇您需要的服務，或直接告訴我您的網路問題！"
       );
-    }
-    
-    // 先處理關鍵字匹配（更精確、更快）
-    if (userMessage && userMessage.trim().length > 0) {
-      const lowerMessage = userMessage.toLowerCase();
-      
-      if (category === CONVERSATION_CATEGORIES.NETWORK_ISSUE) {
-        // 注意：個人問題和多人問題的關鍵字匹配已經移到 handlers.ts 中處理
-        // 這裡只處理第二個問題的回答（完全無法連線、斷斷續續等）
-        // 個人問題關鍵字匹配已移除，改由 handlers.ts 統一處理對話狀態
-        
-        // 多人問題關鍵字
-        if (lowerMessage.includes("多人") || lowerMessage === "多人" ||
-            lowerMessage === "多人問題" || lowerMessage.includes("好幾") ||
-            lowerMessage.includes("室友") || lowerMessage.includes("大家一起")) {
-          // 導入節點處理函數
-          const { createMultipleUsersPacketCaptureNode } = await import("./conversation-nodes");
-          return createMultipleUsersPacketCaptureNode();
-        }
-        
-        // 完全無法連線關鍵字（在第二個問題時）
-        if (lowerMessage.includes("完全無法") || lowerMessage === "完全無法連線" ||
-            lowerMessage.includes("完全連不上") || lowerMessage.includes("完全不能")) {
-          // 導入節點處理函數
-          const { createNoConnectionChecklistNode } = await import("./conversation-nodes");
-          return createNoConnectionChecklistNode();
-        }
-        
-        // 斷斷續續/網速慢關鍵字（在第二個問題時）
-        if (lowerMessage.includes("斷斷續續") || lowerMessage.includes("會斷") ||
-            lowerMessage.includes("網速慢") || lowerMessage.includes("很慢") ||
-            lowerMessage.includes("瞬斷")) {
-          // 導入節點處理函數
-          const { createSingleUserPingInfoViewNode } = await import("./conversation-nodes");
-          return createSingleUserPingInfoViewNode();
-        }
-      }
-      
-      if (category === CONVERSATION_CATEGORIES.REGISTRATION) {
-        // 註冊相關關鍵字匹配
-        if (lowerMessage.includes("第一次") || lowerMessage.includes("初次") ||
-            lowerMessage === "第一次註冊") {
-          const { createFirstTimeRegistrationPrepNode } = await import("./conversation-nodes");
-          return createFirstTimeRegistrationPrepNode();
-        }
-        
-        if (lowerMessage.includes("路由器") || lowerMessage.includes("wifi") ||
-            lowerMessage === "使用路由器") {
-          const { createRouterSetupNode } = await import("./conversation-nodes");
-          return createRouterSetupNode();
-        }
-        
-        if (lowerMessage.includes("修改") && lowerMessage.includes("mac")) {
-          const { createChangeMacAddressNode } = await import("./conversation-nodes");
-          return createChangeMacAddressNode();
-        }
-
-        // 網域不在女八舍問題
-        if (lowerMessage.includes("網域不在") || lowerMessage.includes("網段不在") ||
-            lowerMessage.includes("不在女八舍") || lowerMessage.includes("網域錯誤") ||
-            (lowerMessage.includes("網域") && lowerMessage.includes("女八舍")) ||
-            (lowerMessage.includes("網段") && lowerMessage.includes("女八舍"))) {
-          const { createWrongDormSegmentNode } = await import("./conversation-nodes");
-          return createWrongDormSegmentNode();
-        }
-      }
-    }
-
-    // 如果關鍵字匹配失敗，嘗試使用 Gemini
-    const context = conversationHistory
-      ? conversationHistory
-          .slice(-10)
-          .map((msg) => `${msg.role}: ${msg.content}`)
-          .join("\n")
-      : undefined;
-
-    const prompt = buildPrompt(userMessage, category, context);
-    const geminiResponse = await generateResponse({ prompt });
-
-    if (geminiResponse.text && !geminiResponse.error) {
-      return createTextWithMenuOption(geminiResponse.text);
-    }
-
-    // 處理 LLM 配額錯誤
-    if (geminiResponse.error === "API_QUOTA_EXCEEDED") {
-      return createTextWithMenuOption(
-        "抱歉，AI 服務目前暫時無法使用（配額已用完）。\n\n請使用下方選單選擇功能，或稍後再試。"
-      );
-    }
-
-    // 處理模型不存在錯誤
-    if (geminiResponse.error === "MODEL_NOT_FOUND") {
-      console.log("Gemini model not found, falling back to keyword matching or default response");
-      // 嘗試更寬鬆的關鍵字匹配
-      const lowerMessage = userMessage.toLowerCase();
-      
-      // 檢查是否提到網段/網域相關問題
-      if (lowerMessage.includes("網段") || lowerMessage.includes("網域") || 
-          lowerMessage.includes("宿舍") || lowerMessage.includes("女六") || 
-          lowerMessage.includes("女八")) {
-        // 如果是網段相關問題，引導到註冊問題
-        const { createWrongDormSegmentNode } = await import("./conversation-nodes");
-        return createWrongDormSegmentNode();
-      }
-      
-      // 降級到預設腳本
-      return getDefaultResponseForCategory(category);
-    }
-
-    // 處理其他 Gemini 錯誤（但仍有部分回應）
-    if (geminiResponse.error && geminiResponse.text) {
-      // 如果有部分回應，使用它
-      return createTextWithMenuOption(geminiResponse.text);
-    }
-
-    // 如果都無法處理，降級到預設腳本
-    return getDefaultResponseForCategory(category);
   }
 
-  // 沒有分類時，先使用關鍵字匹配（不呼叫 Gemini，避免延遲）
-  const lowerMessage = userMessage.toLowerCase();
-  const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
-  const unrelatedKeywords = ["天氣", "作業", "課程", "考試", "成績", "餐廳", "電影", "遊戲", "購物"];
-  const relatedKeywords = ["網路", "網速", "註冊", "路由器", "連線", "上網", "mac", "ip", "網段", "網域", "宿網", "宿舍"];
-  
-  // 處理打招呼/感謝（使用關鍵字匹配）
-  if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) {
-    return createTextWithMenuOption(
-      "您好！我是台大女八舍宿網小精靈 👋\n\n很高興為您服務！我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
-    );
-  }
-  
-  // 處理完全無關的問題（使用關鍵字匹配）
-  if (unrelatedKeywords.some(keyword => lowerMessage.includes(keyword)) && 
-      !relatedKeywords.some(keyword => lowerMessage.includes(keyword))) {
-    return createTextWithMenuOption(
-      "不好意思，我是專門協助處理「台大宿舍網路問題」的小精靈，對於您提到的問題可能無法提供幫助。😅\n\n不過，如果您遇到以下問題，我很樂意協助：\n\n• 🚫 無法上網或連線故障\n• 📝 宿網註冊相關問題\n• 🐢 網速很慢或流量查詢\n• 📞 需要聯絡網管\n\n請點選「回主選單」選擇您需要的服務，或直接告訴我您的網路問題！"
-    );
-  }
-  
-  // 只有在關鍵字匹配都失敗時，才使用 Gemini 處理（未知文字）
-  // 這是最後的手段，用於處理無法用關鍵字匹配的問題
-  const prompt = buildPrompt(userMessage);
+  // Fallback：如果意圖分類失敗或無法處理，使用 Gemini 生成回答
+  const context = conversationHistory
+    ? conversationHistory
+        .slice(-10)
+        .map((msg) => `${msg.role}: ${msg.content}`)
+        .join("\n")
+    : undefined;
+
+  const prompt = buildPrompt(userMessage, category, context);
   const geminiResponse = await generateResponse({ prompt });
 
   if (geminiResponse.text && !geminiResponse.error) {
-    return createTextMessage(geminiResponse.text);
+    return createTextWithMenuOption(geminiResponse.text);
   }
 
   // 處理 LLM 配額錯誤
@@ -302,27 +233,23 @@ export async function processUserMessage(
 
   // 處理模型不存在錯誤
   if (geminiResponse.error === "MODEL_NOT_FOUND") {
-    console.log("Gemini model not found, trying keyword matching...");
-    // 嘗試更寬鬆的關鍵字匹配
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // 檢查是否提到網段/網域相關問題
-    if (lowerMessage.includes("網段") || lowerMessage.includes("網域") || 
-        lowerMessage.includes("宿舍") || lowerMessage.includes("女六") || 
-        lowerMessage.includes("女八")) {
-      // 如果是網段相關問題，引導到註冊問題
-      const { createWrongDormSegmentNode } = await import("./conversation-nodes");
-      return createWrongDormSegmentNode();
+    console.log("Gemini model not found, falling back to default response");
+    // 降級到預設腳本
+    if (category) {
+      return getDefaultResponseForCategory(category);
     }
   }
 
   // 處理其他 Gemini 錯誤（但仍有部分回應）
   if (geminiResponse.error && geminiResponse.text) {
-    // 如果有部分回應，使用它
-    return createTextMessage(geminiResponse.text);
+    return createTextWithMenuOption(geminiResponse.text);
   }
 
-  // 降級到歡迎訊息（帶有回主選單選項）
+  // 最終降級：如果都無法處理
+  if (category) {
+    return getDefaultResponseForCategory(category);
+  }
+
   return createTextWithMenuOption(
     "抱歉，我無法完全理解您的問題。\n\n請選擇以下選項，或點選「回主選單」重新開始：\n\n• 🚫 無法上網\n• 📝 如何註冊\n• 🐢 網速很慢\n• 📞 聯絡網管"
   );

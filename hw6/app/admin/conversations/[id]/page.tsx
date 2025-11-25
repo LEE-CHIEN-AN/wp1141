@@ -4,6 +4,7 @@ import { usePolling } from "@/lib/hooks/usePolling";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { formatPostbackContent } from "@/lib/constants/postback-map";
 
 interface Message {
   _id: string;
@@ -167,7 +168,7 @@ export default function ConversationDetailPage() {
                           : "bg-white text-fairy-coffee border border-fairy-clay/40"
                       }`}
                     >
-                      {message.content}
+                      {formatPostbackContent(message.content)}
                     </div>
                   </div>
                 </div>
