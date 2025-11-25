@@ -32,36 +32,96 @@ export async function handleLineMessage(
   context: MessageContext,
   webhookEventId?: string
 ): Promise<LineMessage[]> {
+  const perfLabel = webhookEventId
+    ? `[perf][event:${webhookEventId}]`
+    : "[perf]";
+  const handlerStart = Date.now();
+  console.log(
+    `${perfLabel} [handler] H0 start handleLineMessage (postback=${Boolean(
+      context.postbackData
+    )}, hasText=${Boolean(context.message)})`
+  );
   try {
-    // 取得或建立使用者
+    console.log(`${perfLabel} [handler] H1 getOrCreateUser start`);
+    const userStart = Date.now();
     const user = await getOrCreateUser(
       context.userId,
       context.displayName,
       context.pictureUrl
     );
+    console.log(
+      `${perfLabel} [handler] H1 done in ${Date.now() - userStart}ms`
+    );
 
-    // 取得或建立對話
+    console.log(`${perfLabel} [handler] H2 getOrCreateActiveConversation start`);
+    const convoStart = Date.now();
     const conversation = await getOrCreateActiveConversation(user._id);
+    console.log(
+      `${perfLabel} [handler] H2 done in ${Date.now() - convoStart}ms`
+    );
 
     // 處理 postback 事件
     if (context.postbackData) {
-      return await handlePostback(context.postbackData, conversation._id);
+      const postbackStart = Date.now();
+      console.log(`${perfLabel} [handler] H3 postback flow start`);
+      // 先儲存 postback 事件到資料庫（用於重複檢測）
+      const savePostbackStart = Date.now();
+      await saveMessage(
+        conversation._id,
+        "user",
+        `[Postback] ${context.postbackData}`,
+        undefined,
+        webhookEventId
+      );
+      console.log(
+        `${perfLabel} [handler] H3-1 save postback in ${
+          Date.now() - savePostbackStart
+        }ms`
+      );
+      const postbackResponses = await handlePostback(
+        context.postbackData,
+        conversation._id,
+        webhookEventId
+      );
+      console.log(
+        `${perfLabel} [handler] H3 postback flow done in ${
+          Date.now() - postbackStart
+        }ms`
+      );
+      console.log(
+        `${perfLabel} [handler] H9 finish (postback) in ${
+          Date.now() - handlerStart
+        }ms`
+      );
+      return postbackResponses;
     }
 
     // 處理 Follow 事件 (使用者加好友)
     if (context.message === "__FOLLOW__") {
+      console.log(`${perfLabel} [handler] H4 follow event detected`);
       const welcomeMsg = createWelcomeMessage();
       await saveMessage(conversation._id, "assistant", "歡迎使用台大女八舍宿網小精靈！");
+      console.log(
+        `${perfLabel} [handler] H9 finish (follow) in ${
+          Date.now() - handlerStart
+        }ms`
+      );
       return [welcomeMsg];
     }
 
     // 儲存使用者訊息
+    const saveUserStart = Date.now();
     await saveMessage(
       conversation._id,
       "user",
       context.message,
       context.messageId,
       webhookEventId
+    );
+    console.log(
+      `${perfLabel} [handler] H5 save user message in ${
+        Date.now() - saveUserStart
+      }ms`
     );
 
     // 判斷對話類別
@@ -286,24 +346,51 @@ export async function handleLineMessage(
     }
 
     // 取得對話歷史
+    console.log(`${perfLabel} [handler] H6 fetch conversation history start`);
+    const historyStart = Date.now();
     const history = await getConversationMessages(conversation._id.toString());
+    console.log(
+      `${perfLabel} [handler] H6 done in ${
+        Date.now() - historyStart
+      }ms (records=${history.length})`
+    );
     const conversationHistory = history.map((msg) => ({
       role: msg.role,
       content: msg.content,
     }));
 
     // 處理訊息並產生回應
+    console.log(`${perfLabel} [handler] H7 processUserMessage start`);
+    const processStart = Date.now();
     const response = await processUserMessage(
       context.message,
       category,
       conversationHistory
     );
+    console.log(
+      `${perfLabel} [handler] H7 done in ${Date.now() - processStart}ms`
+    );
 
     // 儲存助手回應
+    const saveAssistantStart = Date.now();
     await saveMessage(conversation._id, "assistant", getMessageText(response));
+    console.log(
+      `${perfLabel} [handler] H8 save assistant message in ${
+        Date.now() - saveAssistantStart
+      }ms`
+    );
 
+    console.log(
+      `${perfLabel} [handler] H9 finish in ${Date.now() - handlerStart}ms`
+    );
     return [response];
   } catch (error) {
+    console.error(
+      `${perfLabel} [handler] Error after ${
+        Date.now() - handlerStart
+      }ms:`,
+      error
+    );
     console.error("Error handling message:", error);
     return [
       createTextMessage(
@@ -315,7 +402,8 @@ export async function handleLineMessage(
 
 async function handlePostback(
   data: string,
-  conversationId: any
+  conversationId: any,
+  webhookEventId?: string
 ): Promise<LineMessage[]> {
   const { type, value } = parsePostbackData(data);
 

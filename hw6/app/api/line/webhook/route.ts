@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bot from "@/lib/bottender";
 import { handleLineMessage } from "@/lib/bottender/handlers";
 import * as crypto from "crypto";
+import connectDB from "@/lib/db/connection";
+import Message from "@/lib/db/models/Message";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -362,11 +364,11 @@ export async function POST(request: NextRequest) {
 
     // 解析事件
     const events = JSON.parse(body).events;
-    
-    console.log("Received events:", events.length);
-    events.forEach((event: any) => {
-      console.log("Event type:", event.type, "Reply token:", event.replyToken);
-    });
+    const requestId = crypto.randomUUID();
+    const requestStart = Date.now();
+    console.log(
+      `[perf][req:${requestId}] T0 Received LINE webhook request (events=${events.length})`
+    );
 
     // 處理每個事件
     for (const event of events) {
@@ -376,23 +378,37 @@ export async function POST(request: NextRequest) {
           console.log("No userId in event, skipping");
           continue;
         }
+        const eventId = event.webhookEventId || event.id || crypto.randomUUID();
+        const perfLabel = `[perf][req:${requestId}][event:${eventId}]`;
+        const eventStart = Date.now();
+        console.log(
+          `${perfLabel} T0 Event start type=${event.type} redelivery=${event.deliveryContext?.isRedelivery ?? false}`
+        );
 
-        // 檢查是否為重複訊息（使用 webhookEventId）
-        const webhookEventIdForCheck = event.webhookEventId || event.id;
-        if (webhookEventIdForCheck && event.type === "message" && event.message.type === "text") {
-          // 檢查是否已經處理過這個事件
-          const { default: Message } = await import("@/lib/db/models/Message");
-          const { default: connectDB } = await import("@/lib/db/connection");
-          await connectDB();
-          
-          const existingMessage = await Message.findOne({ 
-            webhookEventId: webhookEventIdForCheck,
-            role: "user"
+        // 連線 MongoDB，並記錄耗時
+        const connectStart = Date.now();
+        console.log(`${perfLabel} T1 Connecting MongoDB...`);
+        await connectDB();
+        console.log(
+          `${perfLabel} T2 MongoDB ready in ${Date.now() - connectStart}ms`
+        );
+
+        // 檢查是否為重複訊息（僅針對文字訊息，避免重送）
+        if (event.type === "message" && event.message.type === "text") {
+          const dedupStart = Date.now();
+          console.log(`${perfLabel} T3 Dedup check start`);
+          const existingMessage = await Message.findOne({
+            webhookEventId: eventId,
+            role: "user",
           });
-          
+          console.log(
+            `${perfLabel} T4 Dedup check result=${existingMessage ? "HIT" : "MISS"} in ${Date.now() - dedupStart}ms`
+          );
           if (existingMessage) {
-            console.log("Duplicate webhook event detected, skipping:", webhookEventIdForCheck);
-            continue; // 跳過重複的事件
+            console.log(
+              `${perfLabel} T4-1 Duplicate webhook event detected, skipping`
+            );
+            continue;
           }
         }
 
@@ -443,21 +459,30 @@ export async function POST(request: NextRequest) {
         }
 
         // 處理訊息並取得回應
-        const webhookEventId = event.webhookEventId || event.id;
-        const responses = await handleLineMessage(messageContext, webhookEventId);
-        console.log("Responses generated:", responses.length);
+        const handlerStart = Date.now();
+        console.log(`${perfLabel} T5 handleLineMessage start`);
+        const responses = await handleLineMessage(messageContext, eventId);
+        console.log(
+          `${perfLabel} T6 handleLineMessage done in ${
+            Date.now() - handlerStart
+          }ms (responses=${responses.length})`
+        );
 
         // 如果有 replyToken，使用 LINE API 發送回應
         if (event.replyToken && responses.length > 0) {
           try {
+            const replyStart = Date.now();
+            console.log(`${perfLabel} T7 Reply API send start`);
             await sendReplyToLine(event.replyToken, responses);
-            console.log("Reply sent successfully");
+            console.log(
+              `${perfLabel} T8 Reply API send success in ${Date.now() - replyStart}ms`
+            );
           } catch (error: any) {
             // 如果是 reply token 失效（通常是重新投遞的事件），改用 Push Message API
             if (error.message === "INVALID_REPLY_TOKEN" || error.message?.includes("Invalid reply token")) {
-              console.log("Reply token invalid, using Push Message API instead");
+              console.log(`${perfLabel} T8 Reply token invalid, using Push API`);
               await sendPushMessage(userId, responses);
-              console.log("Push message sent successfully");
+              console.log(`${perfLabel} T9 Push message sent successfully`);
             } else {
               // 其他錯誤，重新拋出
               throw error;
@@ -466,6 +491,10 @@ export async function POST(request: NextRequest) {
         } else {
           console.log("No replyToken or no responses");
         }
+
+        console.log(
+          `${perfLabel} T10 Event completed in ${Date.now() - eventStart}ms`
+        );
       } catch (error) {
         console.error("Error processing event:", error);
         console.error("Event details:", JSON.stringify(event, null, 2));
