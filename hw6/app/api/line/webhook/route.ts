@@ -365,7 +365,8 @@ export async function POST(request: NextRequest) {
     
     console.log("Received events:", events.length);
     events.forEach((event: any) => {
-      console.log("Event type:", event.type, "Reply token:", event.replyToken);
+      const isRedelivery = event.deliveryContext?.isRedelivery === true;
+      console.log("Event type:", event.type, "Reply token:", event.replyToken, "isRedelivery:", isRedelivery, "webhookEventId:", event.webhookEventId);
     });
 
     // 處理每個事件
@@ -423,6 +424,17 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
+        // 檢查是否為重新投遞的事件
+        const isRedelivery = event.deliveryContext?.isRedelivery === true;
+        const webhookEventId = event.webhookEventId;
+        
+        if (isRedelivery) {
+          console.log(`Event is redelivery (webhookEventId: ${webhookEventId}), skipping to prevent duplicate messages`);
+          // 重新投遞的事件通常 replyToken 已失效，且訊息已經發送過
+          // 直接跳過，避免重複發送訊息
+          continue;
+        }
+
         // 處理訊息並取得回應
         const responses = await handleLineMessage(messageContext);
         console.log("Responses generated:", responses.length);
@@ -435,7 +447,15 @@ export async function POST(request: NextRequest) {
           } catch (error: any) {
             // 如果是 reply token 失效（通常是重新投遞的事件），改用 Push Message API
             if (error.message === "INVALID_REPLY_TOKEN" || error.message?.includes("Invalid reply token")) {
-              console.log("Reply token invalid, using Push Message API instead");
+              console.log("Reply token invalid, checking if this is a redelivery event");
+              
+              // 再次檢查是否為重新投遞（某些情況下 deliveryContext 可能不在事件中）
+              if (isRedelivery) {
+                console.log("This is a redelivery event, skipping Push Message to prevent duplicate");
+                continue;
+              }
+              
+              console.log("Using Push Message API instead");
               await sendPushMessage(userId, responses);
               console.log("Push message sent successfully");
             } else {
