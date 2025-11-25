@@ -453,7 +453,16 @@ export async function POST(request: NextRequest) {
         } else if (event.type === "postback") {
           messageContext.message = "";
           messageContext.postbackData = event.postback.data;
-          console.log("Postback event received:", event.postback.data);
+          messageContext.postbackDisplayText =
+            event.postback?.displayText ||
+            event.postback?.params?.newRichMenuAliasId ||
+            event.postback?.data;
+          console.log(
+            "Postback event received:",
+            event.postback.data,
+            "displayText:",
+            messageContext.postbackDisplayText
+          );
         } else if (event.type === "follow") {
           messageContext.message = "__FOLLOW__";
         } else {

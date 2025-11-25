@@ -30,7 +30,7 @@ export async function GET(
     const messages = await Message.find({
       conversationId: id,
     })
-      .sort({ createdAt: 1 })
+      .sort({ createdAt: -1 })
       .lean();
 
     return NextResponse.json({

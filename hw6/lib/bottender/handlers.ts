@@ -26,6 +26,7 @@ export interface MessageContext {
   message: string;
   messageId?: string;
   postbackData?: string;
+  postbackDisplayText?: string;
 }
 
 export async function handleLineMessage(
@@ -66,12 +67,19 @@ export async function handleLineMessage(
       console.log(`${perfLabel} [handler] H3 postback flow start`);
       // 先儲存 postback 事件到資料庫（用於重複檢測）
       const savePostbackStart = Date.now();
+      const postbackDisplayText =
+        context.postbackDisplayText ||
+        context.message ||
+        `[Postback] ${context.postbackData}`;
       await saveMessage(
         conversation._id,
         "user",
-        `[Postback] ${context.postbackData}`,
+        postbackDisplayText,
         undefined,
-        webhookEventId
+        webhookEventId,
+        {
+          postbackData: context.postbackData,
+        }
       );
       console.log(
         `${perfLabel} [handler] H3-1 save postback in ${
