@@ -71,20 +71,20 @@ export async function processUserMessage(
   }
 
   // 處理核心功能關鍵字匹配
-  const lowerMessage = userMessage.toLowerCase();
+  const lowerMessageForMain = userMessage.toLowerCase();
   
   // 🚫 無法上網 - 連線故障排除
-  if (lowerMessage.includes("無法上網") || lowerMessage.includes("連不上") || 
-      lowerMessage.includes("連線故障") || lowerMessage.includes("不能上網") ||
-      lowerMessage.includes("網路故障")) {
+  if (lowerMessageForMain.includes("無法上網") || lowerMessageForMain.includes("連不上") || 
+      lowerMessageForMain.includes("連線故障") || lowerMessageForMain.includes("不能上網") ||
+      lowerMessageForMain.includes("網路故障")) {
     const { createConnectionTroubleshootNode } = await import("./conversation-nodes");
     return createConnectionTroubleshootNode();
   }
 
   // 📝 如何註冊 - 宿網註冊教學
-  if (lowerMessage.includes("如何註冊") || lowerMessage.includes("註冊") || 
-      lowerMessage.includes("宿網註冊") || lowerMessage.includes("註冊教學") ||
-      lowerMessage.includes("註冊流程")) {
+  if (lowerMessageForMain.includes("如何註冊") || lowerMessageForMain.includes("註冊") || 
+      lowerMessageForMain.includes("宿網註冊") || lowerMessageForMain.includes("註冊教學") ||
+      lowerMessageForMain.includes("註冊流程")) {
     // 導入節點處理函數
     const { createRegistrationTypeSelectionNode } = await import("./conversation-nodes");
     return createRegistrationTypeSelectionNode();
@@ -92,53 +92,57 @@ export async function processUserMessage(
 
   // 網域/網段相關問題（無分類時也能匹配）
   // 包括：網域不在、網段不在、網段在、網域在等各種變體
-  if (lowerMessage.includes("網域不在") || lowerMessage.includes("網段不在") ||
-      lowerMessage.includes("不在女八舍") || lowerMessage.includes("網域錯誤") ||
-      (lowerMessage.includes("網域") && lowerMessage.includes("女八舍")) ||
-      (lowerMessage.includes("網段") && lowerMessage.includes("女八舍")) ||
+  if (lowerMessageForMain.includes("網域不在") || lowerMessageForMain.includes("網段不在") ||
+      lowerMessageForMain.includes("不在女八舍") || lowerMessageForMain.includes("網域錯誤") ||
+      (lowerMessageForMain.includes("網域") && lowerMessageForMain.includes("女八舍")) ||
+      (lowerMessageForMain.includes("網段") && lowerMessageForMain.includes("女八舍")) ||
       // 新增：網段在其他宿舍的情況
-      (lowerMessage.includes("網段") && (lowerMessage.includes("女六") || lowerMessage.includes("女七") || 
-       lowerMessage.includes("男一") || lowerMessage.includes("男二") || lowerMessage.includes("宿舍"))) ||
-      (lowerMessage.includes("網域") && (lowerMessage.includes("女六") || lowerMessage.includes("女七") || 
-       lowerMessage.includes("男一") || lowerMessage.includes("男二") || lowerMessage.includes("宿舍")))) {
+      (lowerMessageForMain.includes("網段") && (lowerMessageForMain.includes("女六") || lowerMessageForMain.includes("女七") || 
+       lowerMessageForMain.includes("男一") || lowerMessageForMain.includes("男二") || lowerMessageForMain.includes("宿舍"))) ||
+      (lowerMessageForMain.includes("網域") && (lowerMessageForMain.includes("女六") || lowerMessageForMain.includes("女七") || 
+       lowerMessageForMain.includes("男一") || lowerMessageForMain.includes("男二") || lowerMessageForMain.includes("宿舍")))) {
     const { createWrongDormSegmentNode } = await import("./conversation-nodes");
     return createWrongDormSegmentNode();
   }
 
   // 🐢 網速很慢 - 網速與流量查詢
-  if (lowerMessage.includes("網速") || lowerMessage.includes("很慢") || 
-      lowerMessage.includes("流量") || lowerMessage.includes("速度慢") ||
-      lowerMessage.includes("限速") || lowerMessage.includes("超額")) {
+  if (lowerMessageForMain.includes("網速") || lowerMessageForMain.includes("很慢") || 
+      lowerMessageForMain.includes("流量") || lowerMessageForMain.includes("速度慢") ||
+      lowerMessageForMain.includes("限速") || lowerMessageForMain.includes("超額")) {
     // 導入節點處理函數
     const { createSpeedCheckNode } = await import("./conversation-nodes");
     return createSpeedCheckNode();
   }
 
   // 📞 聯絡網管
-  if (lowerMessage.includes("聯絡") || lowerMessage.includes("聯繫") || 
-      lowerMessage.includes("網管") || lowerMessage.includes("聯繫方式") ||
-      lowerMessage.includes("報修")) {
+  if (lowerMessageForMain.includes("聯絡") || lowerMessageForMain.includes("聯繫") || 
+      lowerMessageForMain.includes("網管") || lowerMessageForMain.includes("聯繫方式") ||
+      lowerMessageForMain.includes("報修")) {
     // 導入節點處理函數
     const { createContactNode } = await import("./conversation-nodes");
     return createContactNode();
   }
 
-  // 如果有分類，先檢查是否為無關訊息（溫柔引導）
+  // 如果有分類，先使用關鍵字匹配（不呼叫 Gemini，避免延遲）
   if (category) {
-    // 先使用分類器判斷是否為無關訊息
-    const messageClassification = await classifyUserMessage(userMessage);
+    // 使用簡單的關鍵字匹配判斷是否為打招呼或無關訊息（不呼叫 Gemini）
+    const lowerMessageForCategory = userMessage.toLowerCase();
+    const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
+    const unrelatedKeywords = ["天氣", "作業", "課程", "考試", "成績", "餐廳", "電影", "遊戲", "購物"];
     
-    // 如果分類為無關，即使有分類也進行溫柔引導
-    if (messageClassification === "unrelated") {
+    // 如果判斷為打招呼，友善回應並引導
+    if (greetingKeywords.some(keyword => lowerMessageForCategory.includes(keyword))) {
       return createTextWithMenuOption(
-        "不好意思，我是專門協助處理「台大宿舍網路問題」的小精靈，對於您提到的問題可能無法提供幫助。😅\n\n不過，如果您遇到以下問題，我很樂意協助：\n\n• 🚫 無法上網或連線故障\n• 📝 宿網註冊相關問題\n• 🐢 網速很慢或流量查詢\n• 📞 需要聯絡網管\n\n請點選「回主選單」選擇您需要的服務，或直接告訴我您的網路問題！"
+        "您好！很高興為您服務！👋\n\n我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
       );
     }
     
-    // 如果分類為打招呼，友善回應並引導
-    if (messageClassification === "greeting") {
+    // 如果判斷為無關訊息，溫柔引導
+    if (unrelatedKeywords.some(keyword => lowerMessageForCategory.includes(keyword)) && 
+        !lowerMessageForCategory.includes("網路") && !lowerMessageForCategory.includes("網速") && 
+        !lowerMessageForCategory.includes("註冊") && !lowerMessageForCategory.includes("路由器")) {
       return createTextWithMenuOption(
-        "您好！很高興為您服務！👋\n\n我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
+        "不好意思，我是專門協助處理「台大宿舍網路問題」的小精靈，對於您提到的問題可能無法提供幫助。😅\n\n不過，如果您遇到以下問題，我很樂意協助：\n\n• 🚫 無法上網或連線故障\n• 📝 宿網註冊相關問題\n• 🐢 網速很慢或流量查詢\n• 📞 需要聯絡網管\n\n請點選「回主選單」選擇您需要的服務，或直接告訴我您的網路問題！"
       );
     }
     
@@ -259,24 +263,29 @@ export async function processUserMessage(
     return getDefaultResponseForCategory(category);
   }
 
-  // 沒有分類時，先使用 Gemini 分類器判斷訊息類型
-  const messageClassification = await classifyUserMessage(userMessage);
+  // 沒有分類時，先使用關鍵字匹配（不呼叫 Gemini，避免延遲）
+  const lowerMessage = userMessage.toLowerCase();
+  const greetingKeywords = ["你好", "您好", "hi", "hello", "謝謝", "感謝", "再見", "bye", "早安", "晚安", "午安"];
+  const unrelatedKeywords = ["天氣", "作業", "課程", "考試", "成績", "餐廳", "電影", "遊戲", "購物"];
+  const relatedKeywords = ["網路", "網速", "註冊", "路由器", "連線", "上網", "mac", "ip", "網段", "網域", "宿網", "宿舍"];
   
-  // 處理打招呼/感謝
-  if (messageClassification === "greeting") {
+  // 處理打招呼/感謝（使用關鍵字匹配）
+  if (greetingKeywords.some(keyword => lowerMessage.includes(keyword))) {
     return createTextWithMenuOption(
       "您好！我是台大女八舍宿網小精靈 👋\n\n很高興為您服務！我可以協助您解決宿舍網路相關問題。\n\n請選擇您需要的服務，或點選「回主選單」查看所有功能。"
     );
   }
   
-  // 處理完全無關的問題（溫柔引導）
-  if (messageClassification === "unrelated") {
+  // 處理完全無關的問題（使用關鍵字匹配）
+  if (unrelatedKeywords.some(keyword => lowerMessage.includes(keyword)) && 
+      !relatedKeywords.some(keyword => lowerMessage.includes(keyword))) {
     return createTextWithMenuOption(
       "不好意思，我是專門協助處理「台大宿舍網路問題」的小精靈，對於您提到的問題可能無法提供幫助。😅\n\n不過，如果您遇到以下問題，我很樂意協助：\n\n• 🚫 無法上網或連線故障\n• 📝 宿網註冊相關問題\n• 🐢 網速很慢或流量查詢\n• 📞 需要聯絡網管\n\n請點選「回主選單」選擇您需要的服務，或直接告訴我您的網路問題！"
     );
   }
   
-  // 如果分類為相關，繼續使用 Gemini 處理
+  // 只有在關鍵字匹配都失敗時，才使用 Gemini 處理（未知文字）
+  // 這是最後的手段，用於處理無法用關鍵字匹配的問題
   const prompt = buildPrompt(userMessage);
   const geminiResponse = await generateResponse({ prompt });
 

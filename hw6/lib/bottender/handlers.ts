@@ -26,11 +26,11 @@ export interface MessageContext {
   message: string;
   messageId?: string;
   postbackData?: string;
-  webhookEventId?: string; // LINE webhook event ID，用於防重複處理
 }
 
 export async function handleLineMessage(
-  context: MessageContext
+  context: MessageContext,
+  webhookEventId?: string
 ): Promise<LineMessage[]> {
   try {
     // 取得或建立使用者
@@ -55,13 +55,13 @@ export async function handleLineMessage(
       return [welcomeMsg];
     }
 
-    // 儲存使用者訊息（包含 webhookEventId 用於防重複）
+    // 儲存使用者訊息
     await saveMessage(
       conversation._id,
       "user",
       context.message,
       context.messageId,
-      context.webhookEventId ? { webhookEventId: context.webhookEventId } : undefined
+      webhookEventId
     );
 
     // 判斷對話類別

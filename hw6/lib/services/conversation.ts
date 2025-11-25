@@ -57,6 +57,7 @@ export async function saveMessage(
   role: "user" | "assistant",
   content: string,
   lineMessageId?: string,
+  webhookEventId?: string,
   metadata?: Record<string, unknown>
 ) {
   await connectDB();
@@ -66,6 +67,7 @@ export async function saveMessage(
     role,
     content,
     lineMessageId,
+    webhookEventId,
     metadata,
   });
 
