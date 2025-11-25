@@ -365,13 +365,39 @@ export async function POST(request: NextRequest) {
     
     console.log("Received events:", events.length);
     events.forEach((event: any) => {
-      const isRedelivery = event.deliveryContext?.isRedelivery === true;
+      const isRedelivery = event.deliveryContext?.isRedelivery || false;
       console.log("Event type:", event.type, "Reply token:", event.replyToken, "isRedelivery:", isRedelivery, "webhookEventId:", event.webhookEventId);
     });
 
-    // 處理每個事件
-    for (const event of events) {
+    // ⚠️ 重要：立即回傳 200 OK 給 LINE，避免逾時重試
+    // 後續處理改為非同步執行，不阻塞回應
+    const responsePromise = NextResponse.json({ success: true });
+
+    // 非同步處理事件（不等待完成）
+    (async () => {
+      // 處理每個事件
+      for (const event of events) {
       try {
+        // 檢查是否為重送事件
+        const isRedelivery = event.deliveryContext?.isRedelivery || false;
+        const webhookEventId = event.webhookEventId;
+        
+        // ⚠️ 重要：檢查 webhookEventId 是否已處理過（防止重複處理）
+        if (webhookEventId) {
+          const { default: Message } = await import("@/lib/db/models/Message");
+          const { default: connectDB } = await import("@/lib/db/connection");
+          await connectDB();
+          
+          const existingMessage = await Message.findOne({
+            "metadata.webhookEventId": webhookEventId
+          });
+          
+          if (existingMessage) {
+            console.log(`Skipping duplicate event ${webhookEventId} - already processed at ${existingMessage.createdAt}`);
+            continue; // 已處理過，跳過
+          }
+        }
+
         const userId = event.source.userId;
         if (!userId) {
           console.log("No userId in event, skipping");
@@ -400,13 +426,14 @@ export async function POST(request: NextRequest) {
           console.error("Error fetching user profile:", error);
         }
 
-        // 建立訊息上下文
+        // 建立訊息上下文（包含 webhookEventId 用於防重複）
         const messageContext: any = {
           userId,
           displayName,
           pictureUrl,
           message: "",
           postbackData: undefined as string | undefined,
+          webhookEventId, // 傳遞給 handler 以便儲存
         };
 
         // 處理不同類型的事件
@@ -424,17 +451,6 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // 檢查是否為重新投遞的事件
-        const isRedelivery = event.deliveryContext?.isRedelivery === true;
-        const webhookEventId = event.webhookEventId;
-        
-        if (isRedelivery) {
-          console.log(`Event is redelivery (webhookEventId: ${webhookEventId}), skipping to prevent duplicate messages`);
-          // 重新投遞的事件通常 replyToken 已失效，且訊息已經發送過
-          // 直接跳過，避免重複發送訊息
-          continue;
-        }
-
         // 處理訊息並取得回應
         const responses = await handleLineMessage(messageContext);
         console.log("Responses generated:", responses.length);
@@ -447,20 +463,19 @@ export async function POST(request: NextRequest) {
           } catch (error: any) {
             // 如果是 reply token 失效（通常是重新投遞的事件），改用 Push Message API
             if (error.message === "INVALID_REPLY_TOKEN" || error.message?.includes("Invalid reply token")) {
-              console.log("Reply token invalid, checking if this is a redelivery event");
+              console.log("Reply token invalid, using Push Message API instead");
               
-              // 再次檢查是否為重新投遞（某些情況下 deliveryContext 可能不在事件中）
+              // 如果是重送事件且 reply token 失效，可能已經處理過，檢查後再決定是否發送
               if (isRedelivery) {
-                console.log("This is a redelivery event, skipping Push Message to prevent duplicate");
+                console.log("Redelivered event with invalid reply token - likely already processed, skipping push message");
                 continue;
               }
               
-              console.log("Using Push Message API instead");
               await sendPushMessage(userId, responses);
               console.log("Push message sent successfully");
             } else {
-              // 其他錯誤，重新拋出
-              throw error;
+              // 其他錯誤，記錄但不中斷處理
+              console.error("Error sending reply:", error);
             }
           }
         } else {
@@ -472,8 +487,13 @@ export async function POST(request: NextRequest) {
         continue;
       }
     }
+    })().catch((error) => {
+      // 非同步處理的錯誤記錄，但不影響 HTTP 回應
+      console.error("Error in async event processing:", error);
+    });
 
-    return NextResponse.json({ success: true });
+    // 立即回傳 200 OK，不等待事件處理完成
+    return responsePromise;
   } catch (error) {
     console.error("Webhook error:", error);
     return NextResponse.json(
