@@ -449,7 +449,7 @@ export default function AdminPage() {
                             href={`/admin/conversations/${conv._id}`}
                             className="btn btn-xs rounded-full border-none bg-fairy-teal/30 text-fairy-fern hover:bg-fairy-teal/50"
                           >
-                            查看
+                            查看完整對話
                           </a>
                         </td>
                         <td className="px-6 py-4">
