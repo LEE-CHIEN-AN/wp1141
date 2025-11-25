@@ -3,6 +3,7 @@
 import { usePolling } from "@/lib/hooks/usePolling";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 interface Message {
   _id: string;
@@ -49,6 +50,16 @@ export default function ConversationDetailPage() {
   }
 
   const { conversation, messages } = data;
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
 
   const avatarInitial =
     conversation.userId.displayName?.charAt(0)?.toUpperCase() || "U";
@@ -127,10 +138,13 @@ export default function ConversationDetailPage() {
           <section className="rounded-3xl bg-fairy-cream shadow-card ring-1 ring-fairy-clay/50">
             <div className="border-b border-fairy-clay/50 px-6 py-4">
               <h2 className="text-lg font-semibold text-fairy-coffee">
-                訊息紀錄（最新在上）
+                訊息紀錄（最舊在上）
               </h2>
             </div>
-            <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto px-6 py-6">
+            <div
+              ref={scrollRef}
+              className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto px-6 py-6"
+            >
               {messages.map((message) => (
                 <div
                   key={message._id}
