@@ -5,6 +5,19 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { CONVERSATION_CATEGORIES } from "@/config/conversation";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+interface TrendPoint {
+  timestamp: string;
+  category: string;
+  count: number;
+}
 
 interface Stats {
   totalConversations: number;
@@ -12,6 +25,7 @@ interface Stats {
   totalUsers: number;
   totalMessages: number;
   categoryStats: Record<string, number>;
+  trend: TrendPoint[];
 }
 
 interface Conversation {
@@ -81,28 +95,33 @@ export default function AdminPage() {
   const statCards = useMemo(
     () => [
       {
-        label: "總對話數",
-        value: stats?.totalConversations || 0,
-        icon: "💬",
-        accent: "bg-blue-100 text-blue-600",
+        label: "無法上網 / 報修",
+        value:
+          stats?.categoryStats?.[CONVERSATION_CATEGORIES.NETWORK_ISSUE] || 0,
+        icon: "⚠️",
+        accent: "bg-[#FCE8D8] text-[#C3682D]",
       },
       {
-        label: "進行中對話",
+        label: "註冊指南",
+        value:
+          stats?.categoryStats?.[CONVERSATION_CATEGORIES.REGISTRATION] || 0,
+        icon: "📋",
+        accent: "bg-[#D6F1EB] text-[#2F8C7A]",
+      },
+      {
+        label: "網速 / 流量反映",
         value: stats?.activeConversations || 0,
-        icon: "🟢",
-        accent: "bg-green-100 text-green-600",
+        icon: "🐢",
+        accent: "bg-[#E0F2D8] text-[#4F8F6F]",
       },
       {
-        label: "總使用者數",
-        value: stats?.totalUsers || 0,
-        icon: "👥",
-        accent: "bg-purple-100 text-purple-600",
-      },
-      {
-        label: "累積訊息數",
-        value: stats?.totalMessages || 0,
-        icon: "📝",
-        accent: "bg-amber-100 text-amber-600",
+        label: "聯絡網管 / 其他",
+        value:
+          stats?.categoryStats?.[CONVERSATION_CATEGORIES.OTHER] ||
+          stats?.categoryStats?.未分類 ||
+          0,
+        icon: "☎️",
+        accent: "bg-[#E4ECFA] text-[#386BA6]",
       },
     ],
     [stats]
@@ -229,39 +248,8 @@ export default function AdminPage() {
             {statsLoading ? (
               <p>載入中...</p>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {[
-                  {
-                    label: "無法上網 / 報修",
-                    icon: "⚠️",
-                    value:
-                      stats?.categoryStats?.[
-                        CONVERSATION_CATEGORIES.NETWORK_ISSUE
-                      ] || 0,
-                    accent: "bg-[#FCE8D8] text-[#C3682D]",
-                  },
-                  {
-                    label: "註冊指南",
-                    icon: "📋",
-                    value:
-                      stats?.categoryStats?.[
-                        CONVERSATION_CATEGORIES.REGISTRATION
-                      ] || 0,
-                    accent: "bg-[#D6F1EB] text-[#2F8C7A]",
-                  },
-                  {
-                    label: "網速 / 流量反映",
-                    icon: "🐢",
-                    value: stats?.activeConversations || 0,
-                    accent: "bg-[#E0F2D8] text-[#4F8F6F]",
-                  },
-                  {
-                    label: "聯絡網管 / 其他",
-                    icon: "☎️",
-                    value: stats?.totalConversations || 0,
-                    accent: "bg-[#E4ECFA] text-[#386BA6]",
-                  },
-                ].map((card) => (
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[repeat(2,minmax(0,320px))] xl:grid-cols-[repeat(4,minmax(0,320px))]">
+                {statCards.map((card) => (
                   <div
                     key={card.label}
                     className="rounded-2xl bg-white p-6 shadow-card ring-1 ring-fairy-clay/60"
@@ -277,6 +265,55 @@ export default function AdminPage() {
                     <p className="mt-2 text-3xl font-bold text-fairy-coffee">
                       {card.value}
                     </p>
+                    <div className="mt-3 h-16">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={
+                            stats?.trend
+                              ?.filter((point) => {
+                                const mappedCategory =
+                                  point.category || "未分類";
+                                if (
+                                  card.label === "無法上網 / 報修" &&
+                                  mappedCategory ===
+                                    CONVERSATION_CATEGORIES.NETWORK_ISSUE
+                                ) {
+                                  return true;
+                                }
+                                if (
+                                  card.label === "註冊指南" &&
+                                  mappedCategory ===
+                                    CONVERSATION_CATEGORIES.REGISTRATION
+                                ) {
+                                  return true;
+                                }
+                                if (
+                                  card.label === "聯絡網管 / 其他" &&
+                                  (mappedCategory ===
+                                    CONVERSATION_CATEGORIES.OTHER ||
+                                    mappedCategory === "未分類")
+                                ) {
+                                  return true;
+                                }
+                                return false;
+                              })
+                              .slice(-12)
+                              .map((point) => ({
+                                time: new Date(point.timestamp).getHours(),
+                                count: point.count,
+                              })) || []
+                          }
+                        >
+                          <Line
+                            type="monotone"
+                            dataKey="count"
+                            stroke="#4F8F6F"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -441,7 +478,9 @@ export default function AdminPage() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-fairy-cocoa/80">
                           {new Date(
-                            conv.lastMessageTime || conv.updatedAt || conv.createdAt
+                            conv.lastMessageTime ||
+                              conv.updatedAt ||
+                              conv.createdAt
                           ).toLocaleString("zh-TW")}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
