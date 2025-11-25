@@ -393,8 +393,11 @@ export async function POST(request: NextRequest) {
           `${perfLabel} T2 MongoDB ready in ${Date.now() - connectStart}ms`
         );
 
-        // 檢查是否為重複訊息（僅針對文字訊息，避免重送）
-        if (event.type === "message" && event.message.type === "text") {
+        // 檢查是否為重複訊息（文字訊息、postback 都需要避免重送）
+        if (
+          (event.type === "message" && event.message.type === "text") ||
+          event.type === "postback"
+        ) {
           const dedupStart = Date.now();
           console.log(`${perfLabel} T3 Dedup check start`);
           const existingMessage = await Message.findOne({
