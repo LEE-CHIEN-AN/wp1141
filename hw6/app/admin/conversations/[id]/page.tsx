@@ -33,6 +33,18 @@ export default function ConversationDetailPage() {
     messages: Message[];
   }>(`/api/conversations/${conversationId}`, 5000);
 
+  const conversation = data?.conversation;
+  const messages = data?.messages ?? [];
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages.length]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -41,25 +53,13 @@ export default function ConversationDetailPage() {
     );
   }
 
-  if (!data) {
+  if (!conversation) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p>找不到對話</p>
       </div>
     );
   }
-
-  const { conversation, messages } = data;
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }, [messages]);
 
   const avatarInitial =
     conversation.userId.displayName?.charAt(0)?.toUpperCase() || "U";
