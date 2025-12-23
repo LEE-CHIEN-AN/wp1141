@@ -4,6 +4,12 @@
 
 A shadow navigation web application that helps users find the shortest and coolest (most shaded) paths while walking on the streets of Taipei. The system calculates routes that maximize shade coverage from buildings to keep pedestrians cool during hot weather.
 
+### video demo
+https://www.youtube.com/watch?v=B1G-FGSvSJg
+
+### deploy link 
+https://ntu-cooooooool.vercel.app/
+
 ## 🌟 Features
 
 - **Shadow-Aware Routing**: Calculates routes that prioritize shaded paths based on building shadows at specific times
@@ -622,5 +628,35 @@ Currently optimized for **Taipei, Taiwan**. Building data and street networks ar
 - Route optimization balances shade and distance but may not find globally optimal solution
 
 ---
+## 每位組員之負責項目
+#### b12705030 藍柏婷
+- FastAPI 基礎架構
+- 計算 solar azimuth、elevation
+- 建立差不多方框裡面的查詢的同一時間 cache
+- 建物陰影 polygon 投影
+- 路徑進行幾何交集
+- STRtree 加速陰影計算時間 (30s -> 0.2s)
+- 把 路徑計算結果 跟 路網 存到 /cache 下面
+- 路徑計算結果：使用模糊搜尋，只要起點、終點相差不超過 10 m，且時間相差不超過 20 min，就使用已存在的 cache。
+- 路網 (street graph)：因為載入路網通常需要 10 秒以上，因此如果新的搜尋的 boundary 包含在之前的任一載過的路網中，則直接取用 cache 中的路網。
+- 
+#### b12705041 李倢安
+- supabase 資料庫建置，將台北市3D建物模型資料轉換存到資料庫中
+- PostgresSQL + PostGIS [GiST]
+- geojson 匯入 supabase 
+- 部署（Vercel/Render）
+- 清理與簡化建物 polygon
+- 串接 Mapbox Directions API
+- 實作 bounding box 內的資料裁切
+- PostGIS 函數：ST_MakeEnvelope() + ST_Intersects()
+- GiST Index：buildings_geometry_idx 加速查詢
+- 座標系統：EPSG:4326 (WGS84)
+#### b12705066 柯絲昀
+- 建立 React/Vite 開發環境
+- Mapbox 地圖渲染
+- 3D 建物載入與顯示 → 實作 dynamic tile loading，靠近建築物時建築物才長出來
+- UI（時間、起點終點輸入介面）
+- 跟後端串接，讓陰影可以即時顯示
+- 
 
 **Note**: This project requires Python 3.11 or earlier. Python 3.13 is not supported due to pyproj/geopandas compatibility issues.
