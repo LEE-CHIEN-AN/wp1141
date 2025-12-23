@@ -1,0 +1,161 @@
+.map-container {
+  flex: 1;
+  height: 100vh;
+}
+
+/* Floating Action Button (FAB) Styles */
+.fab-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.fab-button:hover {
+  transform: scale(1.1);
+}
+
+.fab-button:active {
+  transform: scale(0.95);
+}
+
+/* FAB pulse animation when clicked */
+.fab-pulse {
+  animation: fabPulse 0.3s ease-out;
+}
+
+@keyframes fabPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* FAB large size for first-time hint */
+.fab-large {
+  width: 4rem;
+  height: 4rem;
+  animation: fabGrow 0.5s ease-out;
+}
+
+@keyframes fabGrow {
+  0% {
+    width: 3.5rem;
+    height: 3.5rem;
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    width: 4rem;
+    height: 4rem;
+    transform: scale(1);
+  }
+}
+
+/* Shrink animation when hint disappears */
+.fab-shrink {
+  animation: fabShrink 0.5s ease-out;
+}
+
+@keyframes fabShrink {
+  0% {
+    width: 4rem;
+    height: 4rem;
+    transform: scale(1);
+  }
+  100% {
+    width: 3.5rem;
+    height: 3.5rem;
+    transform: scale(1);
+  }
+}
+
+/* Ripple effect */
+.fab-ripple {
+  animation: ripple 0.6s ease-out;
+}
+
+.fab-ripple-blue {
+  border: 2px solid rgba(59, 130, 246, 0.5);
+}
+
+.fab-ripple-red {
+  border: 2px solid rgba(239, 68, 68, 0.5);
+}
+
+.fab-ripple-gray {
+  border: 2px solid rgba(107, 114, 128, 0.5);
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Slide up animation */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Hint expand animation - expands from button */
+@keyframes hint-expand {
+  0% {
+    transform: scale(0.3) translateX(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-hint-expand {
+  animation: hint-expand 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: right center;
+}
+

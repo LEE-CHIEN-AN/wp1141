@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+osmnx
+geopandas
+shapely
+pandas
+numpy
+pvlib
+networkx
+pydantic
+pydantic-settings
+scikit-learn
+supabase
+python-dotenv
+psycopg2-binary
+psutil
+

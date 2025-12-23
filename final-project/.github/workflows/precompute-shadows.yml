@@ -1,0 +1,56 @@
+name: Precompute Daily Shadows
+
+on:
+  schedule:
+    # Run daily at UTC 18:00 (02:00 Taiwan time)
+    # This computes shadows for the current day
+    - cron: '0 18 * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  precompute:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgdal-dev \
+            gdal-bin \
+            libgeos-dev \
+            libproj-dev \
+            libspatialindex-dev
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run precomputation
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SHADOW_USE_SUPABASE: 'true'
+        run: |
+          python scripts/precompute_daily_shadows.py
+      
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Shadow precomputation failed on ${new Date().toISOString()}`,
+              body: `The daily shadow precomputation workflow failed. Please check the logs.\n\nWorkflow run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })

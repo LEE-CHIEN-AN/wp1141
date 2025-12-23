@@ -1,0 +1,43 @@
+name: Manual Precompute Shadows
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to run (branch/tag/sha). e.g. shadow-precompute"
+        required: true
+        default: "shadow-precompute"
+      target_date:
+        description: "YYYY-MM-DD (optional). empty = today"
+        required: false
+        default: ""
+
+jobs:
+  precompute:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run precompute
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          if [ -z "${{ inputs.target_date }}" ]; then
+            python scripts/precompute_daily_shadows.py
+          else
+            python scripts/precompute_daily_shadows.py --date "${{ inputs.target_date }}"
+          fi
