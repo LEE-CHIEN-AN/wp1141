@@ -639,7 +639,8 @@ Currently optimized for **Taipei, Taiwan**. Building data and street networks ar
 - 把 路徑計算結果 跟 路網 存到 /cache 下面
 - 路徑計算結果：使用模糊搜尋，只要起點、終點相差不超過 10 m，且時間相差不超過 20 min，就使用已存在的 cache。
 - 路網 (street graph)：因為載入路網通常需要 10 秒以上，因此如果新的搜尋的 boundary 包含在之前的任一載過的路網中，則直接取用 cache 中的路網。
-- 
+- 把台北市路網下載存到資料庫
+- 建立快取機制
 #### b12705041 李倢安
 - supabase 資料庫建置，將台北市3D建物模型資料轉換存到資料庫中
 - PostgresSQL + PostGIS [GiST]
@@ -651,12 +652,17 @@ Currently optimized for **Taipei, Taiwan**. Building data and street networks ar
 - PostGIS 函數：ST_MakeEnvelope() + ST_Intersects()
 - GiST Index：buildings_geometry_idx 加速查詢
 - 座標系統：EPSG:4326 (WGS84)
+- 預計算陰影機制、每日計算存到資料庫流程
 #### b12705066 柯絲昀
 - 建立 React/Vite 開發環境
 - Mapbox 地圖渲染
 - 3D 建物載入與顯示 → 實作 dynamic tile loading，靠近建築物時建築物才長出來
 - UI（時間、起點終點輸入介面）
 - 跟後端串接，讓陰影可以即時顯示
-- 
+- 合併陰影多邊形，將重疊的陰影union成一個multipolygon
+- 設計陰影計算演算法、路徑計算演算法
+- 優化計算路線的時間
+- 前端優化
+- 快取清理機制
 
 **Note**: This project requires Python 3.11 or earlier. Python 3.13 is not supported due to pyproj/geopandas compatibility issues.
